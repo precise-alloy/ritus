@@ -179,6 +179,8 @@ README.md                    ← this file
   skills/
     ticket-review/           ← ticket analysis and task planning skill
     pr-review/               ← PR/local-diff adversarial review skill
+  scripts/
+     remote-api.ts            ← Bun helper for Jira/Azure DevOps remote API access
 docs/
   ARCHITECTURE.md            ← system architecture (filled progressively)
   CUTOFF.md                  ← module registry — documented vs code-only

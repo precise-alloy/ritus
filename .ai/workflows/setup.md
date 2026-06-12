@@ -3,7 +3,7 @@
 ## Trigger
 
 Run this workflow when human says any of:
-`"setup ai workflow"` · `"setup workflow"` · `"init workflow"` · `"initialize workflow"`
+`"setup ai workflow"` · `"setup workflow"` · `"init workflow"` · `"initialize workflow"` · `"Setup AI workflow for new project"`
 
 ---
 
