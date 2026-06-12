@@ -42,18 +42,18 @@ The AI agent asks one question at a time. Have these ready before starting:
 
 After the interview, the AI agent writes these files automatically:
 
-| File                      | What it contains                                                                                                     |
-|---------------------------|----------------------------------------------------------------------------------------------------------------------|
-| `.ai/AGENTS.md`           | **Workflow source of truth** — role detection, triage, read order, golden rules, standards, output format            |
+| File                      | What it contains                                                                                                   |
+|---------------------------|--------------------------------------------------------------------------------------------------------------------|
+| `.ai/AGENTS.md`           | **Workflow source of truth** — role detection, triage, read order, golden rules, standards, output format          |
 | `.ai/profiles/project.md` | Project-specific technical facts — language, source layout, auth/error/testing patterns, build commands, constraints |
-| `.ai/profiles/team.md`    | Team process config — ticket format, branch/PR conventions, QA mode, traceability policy, review defaults            |
-| `.ai/profiles/runtime.md` | Runtime config — AI tools, model routing, prompt caching, mandatory Bun remote API helper rules                      |
-| `.ai/exec-context.md`     | Auto-generated executor context — thin subset generated from project profile + reusable executor rules               |
-| `.ai/routing.md`          | Role detection flow, context-by-role map, runtime profile pointer                                                    |
-| `.ai/SKILLS-TODO.md`      | Tech stack registry — language + framework pre-filled, rest as ❓                                                     |
-| `docs/ARCHITECTURE.md`    | Header filled — rest populated progressively during work                                                             |
-| `AGENTS.md` (root)        | Thin pointer → `.ai/AGENTS.md`                                                                                       |
-| `.claude/CLAUDE.md`       | Bootstrap pointer + setup/repo-scan triggers                                                                         |
+| `.ai/profiles/team.md`    | Team process config — ticket format, branch/PR conventions, QA mode, traceability policy, review defaults          |
+| `.ai/profiles/runtime.md` | Runtime config — AI tools, model routing, mandatory Bun remote API helper rules                      |
+| `.ai/exec-context.md`     | Auto-generated executor context — thin subset generated from project profile + reusable executor rules             |
+| `.ai/routing.md`          | Role detection flow, context-by-role map, runtime profile pointer                                                  |
+| `.ai/SKILLS-TODO.md`      | Tech stack registry — language + framework pre-filled, rest as ❓                                                   |
+| `docs/ARCHITECTURE.md`    | Header filled — rest populated progressively during work                                                           |
+| `AGENTS.md` (root)        | Thin pointer → `.ai/AGENTS.md`                                                                                     |
+| `.claude/CLAUDE.md`       | Bootstrap pointer + setup/repo-scan triggers                                                                       |
 
 **Filled later by repo-scan or first work session:**
 
@@ -153,7 +153,7 @@ README.md                    ← this file
   profiles/
     project.md               ← project-specific technical facts and commands
     team.md                  ← team process, branch/PR, QA, traceability policy
-    runtime.md               ← AI tools, model routing, prompt caching, remote API helper
+    runtime.md               ← AI tools, model routing, remote API helper
   exec-context.md            ← auto-generated executor context
   SKILLS-TODO.md             ← tech stack registry (❓ rows filled during work)
   module-map.md              ← phrase → module name mappings
@@ -238,7 +238,6 @@ docs/
 |------------------------------|-----------------------------------------------------------------------------------------------|
 | `## AI tools in use`         | During setup interview or when tools change                                                   |
 | `## Model routing`           | During setup interview or when model budget changes                                           |
-| `## Prompt caching strategy` | When runtime supports or changes caching behavior                                             |
 | `## Remote API access`       | When Jira/Azure DevOps remote access is needed; Bun and `scripts/remote-api.ts` are mandatory |
 
 ### `docs/ARCHITECTURE.md` — fill progressively
@@ -285,17 +284,17 @@ changes.
 
 ## Key resources
 
-| Resource                                                                       | Purpose                                                              |
-|--------------------------------------------------------------------------------|----------------------------------------------------------------------|
-| [.ai/AGENTS.md](.ai/AGENTS.md)                                                 | Workflow rules, triage, read order, standards, output format         |
+| Resource                                                                       | Purpose                                                            |
+|--------------------------------------------------------------------------------|--------------------------------------------------------------------|
+| [.ai/AGENTS.md](.ai/AGENTS.md)                                                 | Workflow rules, triage, read order, standards, output format       |
 | [.ai/profiles/project.md](.ai/profiles/project.md)                             | Project-specific technical facts, auth/error/testing, build commands |
-| [.ai/profiles/team.md](.ai/profiles/team.md)                                   | Team process, branch/PR, QA, traceability, review defaults           |
-| [.ai/profiles/runtime.md](.ai/profiles/runtime.md)                             | AI tools, model routing, prompt caching, remote API helper rules     |
-| [.ai/routing.md](.ai/routing.md)                                               | Role detection, context-by-role map, executor guide                  |
-| [.ai/exec-context.md](.ai/exec-context.md)                                     | Executor context generated from project profile + reusable rules     |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)                                   | System architecture, runbook patterns                                |
-| [docs/CUTOFF.md](docs/CUTOFF.md)                                               | What is documented vs what exists only in code                       |
-| [.ai/standards/](.ai/standards/)                                               | Code conventions, security, testing, UI, definition of done          |
-| [.github/skills/ticket-review/SKILL.md](.github/skills/ticket-review/SKILL.md) | Ticket analysis, review docs, and task planning                      |
-| [.github/skills/pr-review/SKILL.md](.github/skills/pr-review/SKILL.md)         | PR/local-diff review against ticket requirements                     |
-| [docs/qa/](docs/qa/)                                                           | EPIC QA summaries for testers                                        |
+| [.ai/profiles/team.md](.ai/profiles/team.md)                                   | Team process, branch/PR, QA, traceability, review defaults         |
+| [.ai/profiles/runtime.md](.ai/profiles/runtime.md)                             | AI tools, model routing, remote API helper rules     |
+| [.ai/routing.md](.ai/routing.md)                                               | Role detection, context-by-role map, executor guide                |
+| [.ai/exec-context.md](.ai/exec-context.md)                                     | Executor context generated from project profile + reusable rules   |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)                                   | System architecture, runbook patterns                              |
+| [docs/CUTOFF.md](docs/CUTOFF.md)                                               | What is documented vs what exists only in code                     |
+| [.ai/standards/](.ai/standards/)                                               | Code conventions, security, testing, UI, definition of done        |
+| [.github/skills/ticket-review/SKILL.md](.github/skills/ticket-review/SKILL.md) | Ticket analysis, review docs, and task planning                    |
+| [.github/skills/pr-review/SKILL.md](.github/skills/pr-review/SKILL.md)         | PR/local-diff review against ticket requirements                   |
+| [docs/qa/](docs/qa/)                                                           | EPIC QA summaries for testers                                      |

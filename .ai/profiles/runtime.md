@@ -1,6 +1,6 @@
 # Runtime Profile
 
-> AI tool, model, prompt caching, and remote-access helper configuration live here.
+> AI tool, model, and remote-access helper configuration live here.
 
 ## AI tools in use
 

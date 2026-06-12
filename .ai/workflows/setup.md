@@ -390,7 +390,7 @@ Extract from `.ai/profiles/project.md` after filling it. Copy these sections ver
 - Error handling (`{{ERROR_HANDLING_PATTERN}}`)
 - Build commands (`{{BUILD_CMD}}`, `{{TYPECHECK_CMD}}`, `{{TEST_CMD}}`, `{{LINT_CMD}}`)
 
-Do not copy: triage, team config, model routing, branch conventions, prompt caching, pre-coding read order,
+Do not copy: triage, team config, model routing, branch conventions, pre-coding read order,
 SKILLS-TODO.md discipline, memory expiry.
 
 The static sections (role statement, golden rules, standards table, skills maintenance, output format) come from the

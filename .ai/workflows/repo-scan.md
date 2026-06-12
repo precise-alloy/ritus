@@ -102,8 +102,7 @@ After Steps 2–4 have filled auth, error handling, and build commands into `.ai
    - {{ERROR_HANDLING_PATTERN}}
    - {{BUILD_CMD}}, {{TYPECHECK_CMD}}, {{TEST_CMD}}, {{LINT_CMD}}
    - {{PROJECT_NAME}}
-3. Do NOT copy: triage, team config, model routing, branch conventions,
-   prompt caching, pre-coding read order, SKILLS-TODO.md discipline, memory expiry
+3. Do NOT copy: triage, team config, model routing, branch conventions, pre-coding read order, SKILLS-TODO.md discipline, memory expiry
 4. Static sections stay as written in the template — do not overwrite from AGENTS.md
 5. Write the filled exec-context.md
 ```

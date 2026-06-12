@@ -11,7 +11,7 @@ Load profiles only when their scope is relevant:
 |---------------------------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | `.ai/profiles/project.md` | `## Project identity`, `## Language policy`, `## Source layout`, `## Authentication`, `## Error handling`, `## Testing`, `## Build commands`, `## Project-specific constraints` |
 | `.ai/profiles/team.md`    | `## Team config`, `## Branch conventions`, `## tasks/ path convention`, `## Pull request requirements`, `## Review defaults`, `## Traceability policy`                          |
-| `.ai/profiles/runtime.md` | `## AI tools in use`, `## Model routing`, `## Prompt caching strategy`, `## Remote API access`                                                                                  |
+| `.ai/profiles/runtime.md` | `## AI tools in use`, `## Model routing`, `## Remote API access`                                                                                                                |
 
 ---
 
@@ -67,7 +67,7 @@ Stale check: grep-verify 1–2 key names the skill file claims exist. If missing
 2. `.ai/profiles/project.md` — load only sections relevant to touched paths, auth/error/testing, build commands, or
    project constraints
 3. `.ai/profiles/team.md` — load only sections relevant to branch, PR, ticket, QA, traceability, or escalation rules
-4. `.ai/profiles/runtime.md` — load only sections relevant to model/tool routing, prompt caching, or remote API helper
+4. `.ai/profiles/runtime.md` — load only sections relevant to model/tool routing, or remote API helper
    rules
 5. `docs/LESSONS.md` — grep module/file name; load matching entries only. **Load before skill files** — known failure
    patterns must inform how you read them. If no match: skip.
