@@ -194,21 +194,21 @@ docs/
 
 ## File merge strategy (existing projects)
 
-| File / folder         | On adopt                                                                  |
-|-----------------------|---------------------------------------------------------------------------|
-| `.ai/AGENTS.md`       | Workflow-only source of truth — Never touch                               |
-| `.ai/profiles/*.md`   | Merge project/team/runtime values — keep existing project constraints     |
-| `.ai/exec-context.md` | Regenerate from filled `.ai/profiles/project.md` after merge              |
-| `AGENTS.md` (root)    | Overwrite with thin pointer after extracting any project-specific rules   |
-| `.claude/CLAUDE.md`   | Overwrite with bootstrap form after extracting any project-specific rules |
-| `.ai/workflows/*.md`  | Replace                                                                   |
-| `.ai/routing.md`      | Replace                                                                   |
-| `.ai/SKILLS-TODO.md`  | Generate fresh from repo-scan                                             |
-| `.ai/skills/*.md`     | Append only — never overwrite                                             |
-| `.ai/tasks/**`        | Never touch                                                               |
-| `.ai/memory/**`       | Never touch                                                               |
-| `docs/**`             | Never touch                                                               |
-| `.ai/module-map.md`   | Never touch                                                               |
+| File / folder         | On adopt                                                                                                                             |
+|-----------------------|--------------------------------------------------------------------------------------------------------------------------------------|
+| `.ai/AGENTS.md`       | Workflow-only source of truth — replace/merge only when upgrading the workflow (keep project/team/runtime config in `.ai/profiles/`) |
+| `.ai/profiles/*.md`   | Merge project/team/runtime values — keep existing project constraints                                                                |
+| `.ai/exec-context.md` | Regenerate from filled `.ai/profiles/project.md` after merge                                                                         |
+| `AGENTS.md` (root)    | Overwrite with thin pointer after extracting any project-specific rules                                                              |
+| `.claude/CLAUDE.md`   | Overwrite with bootstrap form after extracting any project-specific rules                                                            |
+| `.ai/workflows/*.md`  | Replace                                                                                                                              |
+| `.ai/routing.md`      | Replace                                                                                                                              |
+| `.ai/SKILLS-TODO.md`  | Generate fresh from repo-scan                                                                                                        |
+| `.ai/skills/*.md`     | Append only — never overwrite                                                                                                        |
+| `.ai/tasks/**`        | Never touch                                                                                                                          |
+| `.ai/memory/**`       | Never touch                                                                                                                          |
+| `docs/**`             | Never touch                                                                                                                          |
+| `.ai/module-map.md`   | Never touch                                                                                                                          |
 
 ---
 

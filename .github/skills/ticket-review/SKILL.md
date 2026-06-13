@@ -208,8 +208,8 @@ These must be clearly documented in the output so they can be reviewed before im
 
 ## Step 3: Create Review Document
 
-Create the file `docs/src/tickets/<TICKET_ID>-review.md` (e.g., `docs/src/tickets/PROJ-123-review.md`) with the
-following structure:
+Create the file `<ticket-reviews-path>/<TICKET_ID>-review.md` (per `.ai/profiles/project.md` →
+`## Documentation layout`, e.g. `<ticket-reviews-path>/PROJ-123-review.md`) with the following structure:
 
 ````markdown
 # <TICKET_ID>: <Ticket Summary>
