@@ -2,16 +2,16 @@
 
 ## Test type matrix
 
-| Change type | Unit | Integration | Contract | Migration |
-|---|---|---|---|---|
-| New service method | ✅ required | — | — | — |
-| New API endpoint | ✅ auth + validation | ✅ happy path | — | — |
-| New background worker / job | ✅ dispatch logic | ✅ queue behavior | — | — |
-| New DB table / column | — | — | — | ✅ required |
-| Shared type / contract change | ✅ all callers compile | — | ✅ required | — |
-| Bug fix | ✅ regression required | — | — | — |
-| Auth / permission change | ✅ | ✅ | ✅ | — |
-| External integration (API client, webhook) | ✅ | ✅ mocked external | — | — |
+| Change type                                | Unit                  | Integration       | Contract   | Migration  |
+|--------------------------------------------|-----------------------|-------------------|------------|------------|
+| New service method                         | ✅ required            | —                 | —          | —          |
+| New API endpoint                           | ✅ auth + validation   | ✅ happy path      | —          | —          |
+| New background worker / job                | ✅ dispatch logic      | ✅ queue behavior  | —          | —          |
+| New DB table / column                      | —                     | —                 | —          | ✅ required |
+| Shared type / contract change              | ✅ all callers compile | —                 | ✅ required | —          |
+| Bug fix                                    | ✅ regression required | —                 | —          | —          |
+| Auth / permission change                   | ✅                     | ✅                 | ✅          | —          |
+| External integration (API client, webhook) | ✅                     | ✅ mocked external | —          | —          |
 
 <!-- Fill: extend this matrix with project-specific change types after repo-scan -->
 
@@ -45,11 +45,11 @@
 
 ## Test location
 
-| Type | Location |
-|---|---|
-| Unit | Co-located `<file>.test.<ext>` or `__tests__/` adjacent to source |
-| Integration | `tests/integration/<module>/` |
-| Migration | `tests/migrations/` |
+| Type        | Location                                                          |
+|-------------|-------------------------------------------------------------------|
+| Unit        | Co-located `<file>.test.<ext>` or `__tests__/` adjacent to source |
+| Integration | `tests/integration/<module>/`                                     |
+| Migration   | `tests/migrations/`                                               |
 
 <!-- Fill: adjust test locations per project structure after repo-scan -->
 

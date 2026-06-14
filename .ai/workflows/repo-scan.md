@@ -12,9 +12,8 @@ Run this workflow when:
 
 ## Purpose
 
-Populate all `[fill after repo-scan]` placeholders in `.ai/AGENTS.md` and `SKILLS-TODO.md`
-without reading the entire codebase. Targeted detection only.
-
+Populate repo-scan-owned sections and `{{...}}` tokens in `.ai/profiles/project.md` and
+`SKILLS-TODO.md` without reading the entire codebase. Targeted detection only.
 ---
 
 ## Behavior rules
@@ -30,24 +29,24 @@ without reading the entire codebase. Targeted detection only.
 
 Run these checks in parallel:
 
-| Check | Command | Fills |
-| --- | --- | --- |
-| Language | Look for `package.json`, `pyproject.toml`, `*.csproj`, `go.mod`, `Cargo.toml`, `pom.xml` | Primary language |
-| Runtime / framework | Read deps from detected manifest | Runtime / framework |
-| Package manager | Check for `pnpm-lock.yaml`, `yarn.lock`, `package-lock.json`, `poetry.lock`, `uv.lock` | Package manager |
-| Build tool | Check `scripts` in package.json or `Makefile`, `justfile`, `build.gradle` | Build tool |
-| Test framework | Grep deps for `jest`, `vitest`, `pytest`, `go test`, `rspec`, `junit` | Test framework |
-| Frontend framework | Grep deps for `react`, `vue`, `svelte`, `angular`, `next`, `nuxt` | Frontend framework |
-| CSS approach | Grep deps for `tailwind`, `styled-components`, `emotion`, `sass`, `css-modules` | CSS approach |
-| Database | Grep deps or config for `pg`, `mysql2`, `sqlite3`, `mongodb`, `prisma`, `drizzle` | Database |
-| ORM / query builder | Grep deps for `prisma`, `drizzle`, `typeorm`, `sequelize`, `sqlalchemy`, `knex` | ORM / query builder |
-| Deployment target | Look for `Dockerfile`, `fly.toml`, `vercel.json`, `railway.toml`, `.github/workflows/` | Deployment target |
+| Check               | Command                                                                                  | Fills               |
+|---------------------|------------------------------------------------------------------------------------------|---------------------|
+| Language            | Look for `package.json`, `pyproject.toml`, `*.csproj`, `go.mod`, `Cargo.toml`, `pom.xml` | Primary language    |
+| Runtime / framework | Read deps from detected manifest                                                         | Runtime / framework |
+| Package manager     | Check for `pnpm-lock.yaml`, `yarn.lock`, `package-lock.json`, `poetry.lock`, `uv.lock`   | Package manager     |
+| Build tool          | Check `scripts` in package.json or `Makefile`, `justfile`, `build.gradle`                | Build tool          |
+| Test framework      | Grep deps for `jest`, `vitest`, `pytest`, `go test`, `rspec`, `junit`                    | Test framework      |
+| Frontend framework  | Grep deps for `react`, `vue`, `svelte`, `angular`, `next`, `nuxt`                        | Frontend framework  |
+| CSS approach        | Grep deps for `tailwind`, `styled-components`, `emotion`, `sass`, `css-modules`          | CSS approach        |
+| Database            | Grep deps or config for `pg`, `mysql2`, `sqlite3`, `mongodb`, `prisma`, `drizzle`        | Database            |
+| ORM / query builder | Grep deps for `prisma`, `drizzle`, `typeorm`, `sequelize`, `sqlalchemy`, `knex`          | ORM / query builder |
+| Deployment target   | Look for `Dockerfile`, `fly.toml`, `vercel.json`, `railway.toml`, `.github/workflows/`   | Deployment target   |
 
 Mark each found row `✅`. Mark each not found `❓` with a note of what to ask.
 
 ---
 
-## Step 2 — detect auth pattern (fills .ai/AGENTS.md Authentication section)
+## Step 2 — detect auth pattern (fills `.ai/profiles/project.md` Authentication section)
 
 ```text
 1. Grep for: middleware, auth, jwt, session, cookie, bearer, token, passport, nextauth, clerk, supabase
@@ -57,13 +56,13 @@ Mark each found row `✅`. Mark each not found `❓` with a note of what to ask.
    - Where verification happens (middleware vs per-handler)
    - How tenant/workspace scoping is passed (session claim vs request body vs header)
    - Role/permission model if any
-4. Fill {{AUTH_PATTERN}}, {{AUTH_TOKEN_VERIFICATION}}, {{AUTH_TENANT_SCOPING}}, {{AUTH_ROLE_MODEL}}
+4. Fill {{AUTH_PATTERN}}, {{AUTH_TOKEN_VERIFICATION}}, {{AUTH_TENANT_SCOPING}}, {{AUTH_ROLE_MODEL}} in `.ai/profiles/project.md`
 5. If ambiguous: fill what is clear, mark rest ❓
 ```
 
 ---
 
-## Step 3 — detect error handling pattern (fills .ai/AGENTS.md Error handling section)
+## Step 3 — detect error handling pattern (fills `.ai/profiles/project.md` Error handling section)
 
 ```text
 1. Grep for: catch, error, throw, HttpException, APIError, logger, log.error
@@ -72,39 +71,38 @@ Mark each found row `✅`. Mark each not found `❓` with a note of what to ask.
    - API error response shape
    - Logging approach (structured vs console)
    - Background job failure behavior
-4. Fill {{ERROR_HANDLING_PATTERN}} with a concise 2–3 line description
+4. Fill {{ERROR_HANDLING_PATTERN}} in `.ai/profiles/project.md` with a concise 2–3 line description
 5. If inconsistent across the codebase: note the inconsistency, pick the dominant pattern
 ```
 
 ---
 
-## Step 4 — detect test setup (fills .ai/AGENTS.md Testing section + build commands)
+## Step 4 — detect test setup (fills `.ai/profiles/project.md` Testing section + build commands)
 
 ```text
 1. Read package.json scripts (or equivalent in detected build tool)
 2. Extract: build, typecheck, test, lint commands
-3. Fill {{BUILD_CMD}}, {{TYPECHECK_CMD}}, {{TEST_CMD}}, {{LINT_CMD}}
+3. Fill {{BUILD_CMD}}, {{TYPECHECK_CMD}}, {{TEST_CMD}}, {{LINT_CMD}} in `.ai/profiles/project.md`
 4. Look for test config files: jest.config.*, vitest.config.*, pytest.ini, etc.
 5. Identify test conventions: unit vs integration separation, mock strategy, DB usage
-6. Fill {{TESTING_PATTERN}} with the key rules (2–4 bullet points max)
+6. Fill {{TESTING_PATTERN}} and {{TEST_LOCATION_CONVENTIONS}} in `.ai/profiles/project.md` with the key rules (2–4 bullet points max)
 ```
 
 ---
 
-## Step 5 — generate exec-context.md (auto-generated from .ai/AGENTS.md)
+## Step 5 — generate exec-context.md (auto-generated from `.ai/profiles/project.md`)
 
-After Steps 2–4 have filled auth, error handling, and build commands into `.ai/AGENTS.md`:
+After Steps 2–4 have filled auth, error handling, and build commands into `.ai/profiles/project.md`:
 
 ```text
 1. Open .ai/exec-context.md template
-2. Copy from filled .ai/AGENTS.md into exec-context.md:
+2. Copy from filled `.ai/profiles/project.md` into exec-context.md:
    - {{AUTH_PATTERN}}, {{AUTH_TOKEN_VERIFICATION}}, {{AUTH_TENANT_SCOPING}}, {{AUTH_ROLE_MODEL}}
    - {{ERROR_HANDLING_PATTERN}}
    - {{BUILD_CMD}}, {{TYPECHECK_CMD}}, {{TEST_CMD}}, {{LINT_CMD}}
    - {{PROJECT_NAME}}
-3. Do NOT copy: triage, team config, model routing, branch conventions,
-   prompt caching, pre-coding read order, SKILLS-TODO.md discipline, memory expiry
-4. Static sections stay as written in the template — do not overwrite from AGENTS.md
+3. Do NOT copy: triage, team config, model routing, branch conventions, pre-coding read order, SKILLS-TODO.md discipline, memory expiry
+4. Static sections stay as written in the template — only fill the copied token values
 5. Write the filled exec-context.md
 ```
 
@@ -157,18 +155,19 @@ Output conflict report. **Wait for human confirmation before writing any files.*
 
 Apply per `routing.md` merge strategy:
 
-| File/folder | Action |
-| --- | --- |
-| `.ai/AGENTS.md` | Merge filled values into template — keep existing project constraints |
-| `.ai/exec-context.md` | Regenerate from filled AGENTS.md (Step 5) |
-| `.ai/workflows/*.md` | Replace with new versions |
-| `.ai/routing.md` | Replace |
-| `.ai/SKILLS-TODO.md` | Generate fresh from Step 1 results |
-| `.ai/skills/*.md` | Append only — never overwrite |
-| `.ai/tasks/**` | Preserve — never touch |
-| `.ai/memory/**` | Preserve — never touch |
-| `docs/**` | Preserve — never touch |
-| `.ai/module-map.md` | Write if not exists; append if exists |
+| File/folder           | Action                                                                                   |
+|-----------------------|------------------------------------------------------------------------------------------|
+| `.ai/AGENTS.md`       | Merge workflow rule changes only — project constraints move to `.ai/profiles/project.md` |
+| `.ai/profiles/*.md`   | Merge filled project/team/runtime values — preserve existing project constraints         |
+| `.ai/exec-context.md` | Regenerate from filled `.ai/profiles/project.md` (Step 5)                                |
+| `.ai/workflows/*.md`  | Replace with new versions                                                                |
+| `.ai/routing.md`      | Replace                                                                                  |
+| `.ai/SKILLS-TODO.md`  | Generate fresh from Step 1 results                                                       |
+| `.ai/skills/*.md`     | Append only — never overwrite                                                            |
+| `.ai/tasks/**`        | Preserve — never touch                                                                   |
+| `.ai/memory/**`       | Preserve — never touch                                                                   |
+| `docs/**`             | Preserve — never touch                                                                   |
+| `.ai/module-map.md`   | Write if not exists; append if exists                                                    |
 
 ---
 
@@ -189,16 +188,16 @@ After completing all steps, output:
 ❓ <role>: <what was ambiguous and why>
 ...
 
-### .ai/AGENTS.md filled
+### .ai/profiles/project.md filled
 ✅ Auth pattern: <summary>
 ✅ Error handling: <summary>
 ✅ Build commands: <list>
 ✅ Test pattern: <summary>
 
 ### .ai/exec-context.md generated
-✅ Auth values propagated from AGENTS.md
-✅ Error handling propagated from AGENTS.md
-✅ Build commands propagated from AGENTS.md
+✅ Auth values propagated from project profile
+✅ Error handling propagated from project profile
+✅ Build commands propagated from project profile
 
 ### Files preserved (not touched)
 - .ai/tasks/** — N task files

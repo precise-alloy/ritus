@@ -18,26 +18,27 @@ Classify the change before doing anything else. Do not load context until classi
 
 ### Classification signals
 
-| Signal | Weight |
-| --- | --- |
-| Blast radius — how many systems / modules / teams affected | **Primary** |
-| Contract impact — does a public interface / shared type change? | **Primary** |
-| Validation clarity — is pass/fail unambiguous without running the system? | **Primary** |
-| File count | Supporting hint |
-| LOC | Supporting hint |
+| Signal                                                                    | Weight          |
+|---------------------------------------------------------------------------|-----------------|
+| Blast radius — how many systems / modules / teams affected                | **Primary**     |
+| Contract impact — does a public interface / shared type change?           | **Primary**     |
+| Validation clarity — is pass/fail unambiguous without running the system? | **Primary**     |
+| File count                                                                | Supporting hint |
+| LOC                                                                       | Supporting hint |
 
 ### Classification levels
 
-| Level | Criteria | Output |
-| --- | --- | --- |
-| **TRIVIAL** | Single file, no public contract change, clear validation, low blast radius | Direct fix — no task file |
-| **SIMPLE** | ≤2 files, no cross-module contract, clear path, low blast radius | Task note: TASK + DONE WHEN only |
-| **STANDARD** | Cross-file, design decision, public contract changed, or validation unclear | Full task file |
-| **EPIC** | Multi-session, multiple modules, new architecture pattern | Full task file + memory file |
+| Level        | Criteria                                                                    | Output                           |
+|--------------|-----------------------------------------------------------------------------|----------------------------------|
+| **TRIVIAL**  | Single file, no public contract change, clear validation, low blast radius  | Direct fix — no task file        |
+| **SIMPLE**   | ≤2 files, no cross-module contract, clear path, low blast radius            | Task note: TASK + DONE WHEN only |
+| **STANDARD** | Cross-file, design decision, public contract changed, or validation unclear | Full task file                   |
+| **EPIC**     | Multi-session, multiple modules, new architecture pattern                   | Full task file + memory file     |
 
 ### Safety override
 
 Force upgrade to STANDARD regardless of above classification when touching:
+
 - auth / session / token handling
 - payment / billing logic
 - database migrations
@@ -47,18 +48,20 @@ Force upgrade to STANDARD regardless of above classification when touching:
 
 ### Context budget per classification
 
-| Level | Load these files | Approx tokens |
-| --- | --- | --- |
-| TRIVIAL | .ai/AGENTS.md golden rules + grep target file | ~1k |
-| SIMPLE | .ai/AGENTS.md + `.ai/skills/<module>.md` | ~2–3k |
-| STANDARD | .ai/AGENTS.md + CUTOFF.md + skills/ + ARCHITECTURE.md (if new resource) | ~5–8k |
-| EPIC | Full read order + memory context | ~10–15k |
+| Level    | Load these files                                                        | Approx tokens |
+|----------|-------------------------------------------------------------------------|---------------|
+| TRIVIAL  | .ai/AGENTS.md golden rules + grep target file                           | ~1k           |
+| SIMPLE   | .ai/AGENTS.md + `.ai/skills/<module>.md`                                | ~2–3k         |
+| STANDARD | .ai/AGENTS.md + CUTOFF.md + skills/ + ARCHITECTURE.md (if new resource) | ~5–8k         |
+| EPIC     | Full read order + memory context                                        | ~10–15k       |
 
-**Standards:** all levels — load applicable standards per .ai/AGENTS.md standards section before implementation. Standards tokens are in addition to the budget above.
+**Standards:** all levels — load applicable standards per .ai/AGENTS.md standards section before implementation.
+Standards tokens are in addition to the budget above.
 
 ---
 
 ## TASK
+
 Convert a requirement into task files + execution plan.
 
 ---
@@ -82,13 +85,13 @@ Stop. Ask human. Fill the row. Update .ai/AGENTS.md. Then continue.
 
 ## Pattern matching (STANDARD / EPIC only — before writing any task file)
 
-| Task involves | Check ARCHITECTURE.md for |
-| --- | --- |
-| New resource / page | "Add a new \<resource\>" checklist |
-| New API endpoint | Auth guards, validation, error handling pattern |
-| New DB table | Migration + type registration pattern |
-| New module | Module wiring / registration pattern |
-| Bugfix | No pattern — scope to failing path only |
+| Task involves       | Check ARCHITECTURE.md for                       |
+|---------------------|-------------------------------------------------|
+| New resource / page | "Add a new \<resource\>" checklist              |
+| New API endpoint    | Auth guards, validation, error handling pattern |
+| New DB table        | Migration + type registration pattern           |
+| New module          | Module wiring / registration pattern            |
+| Bugfix              | No pattern — scope to failing path only         |
 
 Every checklist step must appear in STEPS or be marked `N/A — <reason>`.
 
@@ -97,38 +100,37 @@ Every checklist step must appear in STEPS or be marked `N/A — <reason>`.
 ## Executor rule
 
 Do NOT write executor in task files. Human decides at run time.
-Claude outputs an execution plan — human uses it to decide what to run where.
+Architect agent outputs an execution plan — human uses it to decide what to run where.
 
-Executor = tool(s) listed in `{{AI_TOOLS}}` in .ai/AGENTS.md.
-Shell runner = Cline or terminal — for shell-only steps.
+Executor = tool(s) listed in `.ai/profiles/runtime.md` section `## AI tools in use`.
+Shell runner = configured shell runner in `.ai/profiles/runtime.md` section `## AI tools in use` or terminal — for
+shell-only steps.
 
 ## tasks/ naming convention
 
-<!-- Determined by {{GIT_FLOW}} and {{TEAM_SIZE}} — filled by setup wizard -->
-
-```text
-{{TASKS_PATH_CONVENTION}}
-```
+See `.ai/profiles/team.md` section `## tasks/ path convention`.
 
 **Branch slug rule:** take current git branch name, replace `/` with `-`.
 Example: branch `feat/PROJ-42-auth-refresh` → slug `feat-PROJ-42-auth-refresh`
 → task file: `tasks/feat-PROJ-42-auth-refresh/001-add-refresh-endpoint.md`
 
 **Hard rules:**
+
 - One task file per logical change — never bundle unrelated changes
 - Task files live in `.ai/tasks/` — never in project source directories
 - Do not touch another branch's task directory
-- When `{{QA_MODE}} = task`: every STANDARD/EPIC task file has a paired `.qa.md` same name same directory
+- When QA mode in `.ai/profiles/team.md` section `## Team config` is `task`: every STANDARD/EPIC task file has a paired
+  `.qa.md` same name same directory
 
 ## QA mode rules
 
-Check `{{QA_MODE}}` in `.ai/AGENTS.md` team config before generating tasks.
+Check QA mode in `.ai/profiles/team.md` section `## Team config` before generating tasks.
 
-| `{{QA_MODE}}` | STANDARD task | EPIC task | EPIC close |
-| --- | --- | --- | --- |
-| `task` | Generate `{name}.qa.md` alongside task | Generate `{name}.qa.md` per task | Generate `docs/qa/{epic-slug}.qa.md` |
-| `epic-only` | No `.qa.md` | No `.qa.md` | Generate `docs/qa/{epic-slug}.qa.md` |
-| `off` | No QA docs | No QA docs | No QA docs |
+| QA mode     | STANDARD task                          | EPIC task                        | EPIC close                           |
+|-------------|----------------------------------------|----------------------------------|--------------------------------------|
+| `task`      | Generate `{name}.qa.md` alongside task | Generate `{name}.qa.md` per task | Generate `docs/qa/{epic-slug}.qa.md` |
+| `epic-only` | No `.qa.md`                            | No `.qa.md`                      | Generate `docs/qa/{epic-slug}.qa.md` |
+| `off`       | No QA docs                             | No QA docs                       | No QA docs                           |
 
 **TRIVIAL and SIMPLE tasks never get `.qa.md` files regardless of QA mode.**
 
@@ -145,15 +147,18 @@ Split when: different executor needed, true sequential dependency.
 ## Task file formats
 
 ### TRIVIAL — no task file
+
 Implement directly. Log in commit message only.
 
 ### SIMPLE — task note (2 sections only)
 
 ```markdown
 ## TASK
+
 <one focused logical change — imperative sentence>
 
 ## DONE WHEN
+
 - [ ] <condition>
 - [ ] Compiles without errors
 - [ ] No files outside stated scope modified
@@ -163,33 +168,42 @@ Implement directly. Log in commit message only.
 
 ```markdown
 ## TASK
+
 <one focused logical change — imperative sentence>
 Classification: STANDARD | EPIC
 
 ## PRIOR CONTEXT
+
 <!-- Remove for first-session tasks -->
+
 - context: .ai/memory/<feature-slug>-context.md
 - done so far: <one-line summary>
 
 ## PATTERN
+
 <!-- Runbook pattern from ARCHITECTURE.md, or "none" -->
 none | Add a new <resource> | Add a new endpoint | ...
 
 ## CONTEXT
+
 - files:
-  - <entry-point path>
+    - <entry-point path>
 - docs:
-  - .ai/skills/<module>.md
+    - .ai/skills/<module>.md
 
 ## GOAL
+
 <expected outcome — from ACCEPTANCE CRITERIA>
 
 ## STEPS
+
 <!-- Positive instructions only. No "don't do X". -->
+
 1. grep/find to confirm paths before editing
 2. ...
 
 ## DONE WHEN
+
 - [ ] <condition from ACCEPTANCE CRITERIA>
 - [ ] Compiles without errors
 - [ ] Smoke test passes (new endpoints)
@@ -201,15 +215,19 @@ none | Add a new <resource> | Add a new endpoint | ...
 - [ ] If interface changed: skill file for affected module updated or rewritten
 - [ ] Standards validated: all applicable gates in `.ai/standards/definition-of-done.md` checked
 - [ ] DOC UPDATE completed
-<!-- If {{QA_MODE}} = task or epic-only (EPIC tasks): -->
+
+<!-- If QA mode is task or epic-only (EPIC tasks): -->
+
 - [ ] `{task-name}.qa.md` generated with accurate affected features and risk level
 - [ ] Executor verified: QA IMPACT matches actual changes made
 
 ## DOC UPDATE
+
 <!-- Apply trigger matrix below — do not default to "update all" -->
 <see doc trigger matrix — state each doc path + what to update, or "none required">
 
 ## COMMIT
+
 type(scope): subject
 
 - what changed and why
@@ -221,34 +239,41 @@ Migration: none
 
 ---
 
-## QA file formats (when `{{QA_MODE}}` is not `off`)
+## QA file formats (when QA mode is not `off`)
 
 ### Per-task `.qa.md` (STANDARD / EPIC — same name as task file)
 
 ```markdown
 # QA — {task title}
+
 Task: {relative task file path}
 Generated: {YYYY-MM-DD}
 Risk: low | medium | high — {one-line reason}
 
 ## Affected features
+
 - {user-facing feature that could be impacted}
 
 ## Test scenarios
 
 ### Happy path
+
 - [ ] {what should work normally after this change}
 
 ### Edge cases
+
 - [ ] {boundary condition or error path to verify}
 
 ### Regression checks
+
 - [ ] {existing feature to re-verify — not changed but at risk}
 
 ## Not affected (skip these)
+
 {features or areas testers can safely skip — be explicit}
 
 ## Status
+
 - [ ] Executor verified: QA IMPACT matches actual changes made
 - [ ] Tester sign-off
 ```
@@ -257,26 +282,32 @@ Risk: low | medium | high — {one-line reason}
 
 ```markdown
 # QA Summary — {EPIC name}
+
 Branch: {git branch}
 Closed: {YYYY-MM-DD}
 Tasks: {N completed}
 
 ## Risk overview
+
 | Task | Affected features | Risk |
 | --- | --- | --- |
 | {task name} | {features} | low \| medium \| high |
 
 ## Test first (high risk areas)
+
 1. {feature} — {reason it's high risk}
 
 ## Full affected feature list
+
 - {feature}
 
 ## Recommended test order
+
 1. {highest risk}
 2. {next}
 
 ## Known gaps / not covered
+
 - {area not tested by this EPIC}
 ```
 
@@ -284,20 +315,21 @@ Tasks: {N completed}
 
 ## Doc trigger matrix
 
-**Meta-rule (apply this first):** Update docs only when the change affects how future humans or agents understand, navigate, or safely modify the system.
+**Meta-rule (apply this first):** Update docs only when the change affects how future humans or agents understand,
+navigate, or safely modify the system.
 
-| Change type | `CUTOFF.md` date | `skills/{module}.md` | `ARCHITECTURE.md` | `DECISIONS.md` | `LESSONS.md` | `exec-context.md` | `{task}.qa.md` |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| Bug fix | ❌ | ❌ | ❌ | ❌ | ✅ if dangerous pattern | ❌ | ✅ if QA_MODE on |
-| New endpoint | ✅ | ✅ if interface changed | ❌ | ❌ | ❌ | ❌ | ✅ if QA_MODE on |
-| New module | ✅ | ✅ new stub | ✅ | optional | ❌ | ❌ | ✅ if QA_MODE on |
-| New arch pattern / decision | ❌ | ❌ | ✅ | ✅ | ❌ | ❌ | ✅ if QA_MODE on |
-| Config / env change | ✅ | ❌ | ❌ | optional | ❌ | ❌ | ❌ |
-| Refactor (no contract change) | ❌ | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ if QA_MODE on |
-| Auth pattern changed | ❌ | ❌ | ❌ | ✅ | ❌ | ✅ regenerate | ❌ |
-| Error handling changed | ❌ | ❌ | ❌ | optional | ❌ | ✅ regenerate | ❌ |
-| Build commands changed | ❌ | ❌ | ❌ | ❌ | ❌ | ✅ regenerate | ❌ |
-| Golden rules changed | ❌ | ❌ | ❌ | ✅ | ❌ | ✅ regenerate | ❌ |
+| Change type                   | `CUTOFF.md` date | `skills/{module}.md`   | `ARCHITECTURE.md` | `DECISIONS.md` | `LESSONS.md`           | `exec-context.md` | `{task}.qa.md`  |
+|-------------------------------|------------------|------------------------|-------------------|----------------|------------------------|-------------------|-----------------|
+| Bug fix                       | ❌                | ❌                      | ❌                 | ❌              | ✅ if dangerous pattern | ❌                 | ✅ if QA mode on |
+| New endpoint                  | ✅                | ✅ if interface changed | ❌                 | ❌              | ❌                      | ❌                 | ✅ if QA mode on |
+| New module                    | ✅                | ✅ new stub             | ✅                 | optional       | ❌                      | ❌                 | ✅ if QA mode on |
+| New arch pattern / decision   | ❌                | ❌                      | ✅                 | ✅              | ❌                      | ❌                 | ✅ if QA mode on |
+| Config / env change           | ✅                | ❌                      | ❌                 | optional       | ❌                      | ❌                 | ❌               |
+| Refactor (no contract change) | ❌                | ❌                      | ❌                 | ❌              | ❌                      | ❌                 | ✅ if QA mode on |
+| Auth pattern changed          | ❌                | ❌                      | ❌                 | ✅              | ❌                      | ✅ regenerate      | ❌               |
+| Error handling changed        | ❌                | ❌                      | ❌                 | optional       | ❌                      | ✅ regenerate      | ❌               |
+| Build commands changed        | ❌                | ❌                      | ❌                 | ❌              | ❌                      | ✅ regenerate      | ❌               |
+| Golden rules changed          | ❌                | ❌                      | ❌                 | ✅              | ❌                      | ✅ regenerate      | ❌               |
 
 **exec-context.md regenerate rule:** run repo-scan or setup wizard to regenerate. Do not hand-edit.
 
@@ -322,7 +354,7 @@ Always output this block in chat:
 ### Shell — after executor done (shell required):
 .ai/tasks/<module>/NNN-name.md
 
-### QA files generated (when {{QA_MODE}} is not off):
+### QA files generated (when QA mode is not off):
 .ai/tasks/<module>/NNN-name.qa.md
 .ai/tasks/<module>/NNN-name.qa.md
 
@@ -361,6 +393,7 @@ This ensures no two developers on different branches collide on the same memory 
 
 ```markdown
 # <Feature> — Context
+
 Branch: <git branch name>
 Created-by: <first task ID>
 Active-until: <last task ID> done
@@ -368,18 +401,25 @@ Owner: <module>
 Auto-expire: <today + {{MEMORY_EXPIRY_DAYS}} days>
 
 ## State
+
 ## Decisions
+
 ## Lessons
+
 ## Tasks
+
 | # | File | Status | Depends on |
 | --- | --- | --- | --- |
 
 ## QA
-<!-- Accumulated from task .qa.md files — only when {{QA_MODE}} is not off -->
+
+<!-- Accumulated from task .qa.md files — only when QA mode is not off -->
 Affected features so far:
+
 - (add as tasks complete)
 
 High risk areas:
+
 - (add as tasks complete)
 
 ## Next
@@ -388,6 +428,7 @@ High risk areas:
 ---
 
 ## Hard constraints
+
 - Triage before any context load — no exceptions
 - TRIVIAL: implement directly, no task file
 - SIMPLE: 2-section task note only, no full task file

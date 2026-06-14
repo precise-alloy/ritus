@@ -17,4 +17,5 @@
 - Touch only the failing path.
 - If bug = missing auth/guard → add rule to `.ai/AGENTS.md` + log in `docs/DECISIONS.md`.
 - If same pattern appears twice → add as golden rule in `.ai/AGENTS.md`.
-- If fix reveals a pattern that must never repeat → add a LESSON entry to `docs/LESSONS.md`. Not every bug — only dangerous patterns.
+- If fix reveals a pattern that must never repeat → add a LESSON entry to `docs/LESSONS.md`. Not every bug — only
+  dangerous patterns.

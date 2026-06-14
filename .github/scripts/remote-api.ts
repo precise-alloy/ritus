@@ -43,18 +43,18 @@ const JIRA_PAGE_SIZE = 100;
 function printUsage(): void {
     const { jiraTicketKey, jiraTicketUrl, adoPrUrl } = PROJECT_CONFIG.examples;
     console.error(`Usage:
-  bun run scripts/remote-api.ts check-env
-  bun run scripts/remote-api.ts jira issue <ticket-key-or-url> [fields]
-  bun run scripts/remote-api.ts jira comments <ticket-key-or-url>
-  bun run scripts/remote-api.ts jira changelog <ticket-key-or-url>
-  bun run scripts/remote-api.ts ado pr <pull-request-url>
+  bun run .github/scripts/remote-api.ts check-env
+  bun run .github/scripts/remote-api.ts jira issue <ticket-key-or-url> [fields]
+  bun run .github/scripts/remote-api.ts jira comments <ticket-key-or-url>
+  bun run .github/scripts/remote-api.ts jira changelog <ticket-key-or-url>
+  bun run .github/scripts/remote-api.ts ado pr <pull-request-url>
 
 Examples:
-  bun run scripts/remote-api.ts check-env
-  bun run scripts/remote-api.ts jira issue ${jiraTicketKey}
-  bun run scripts/remote-api.ts jira issue ${jiraTicketUrl} summary,description,status,issuetype,comment
-  bun run scripts/remote-api.ts jira comments ${jiraTicketKey}
-  bun run scripts/remote-api.ts ado pr ${adoPrUrl}`);
+  bun run .github/scripts/remote-api.ts check-env
+  bun run .github/scripts/remote-api.ts jira issue ${jiraTicketKey}
+  bun run .github/scripts/remote-api.ts jira issue ${jiraTicketUrl} summary,description,status,issuetype,comment
+  bun run .github/scripts/remote-api.ts jira comments ${jiraTicketKey}
+  bun run .github/scripts/remote-api.ts ado pr ${adoPrUrl}`);
 }
 
 async function readEnvFile(filePath: string): Promise<void> {
@@ -442,7 +442,7 @@ async function main(): Promise<void> {
     // before any remote call is attempted.
     const envCheck = await checkEnv();
     if (!envCheck.ok) {
-        console.error('Pre-flight check failed. Run: bun run scripts/remote-api.ts check-env');
+        console.error('Pre-flight check failed. Run: bun run .github/scripts/remote-api.ts check-env');
         if (!envCheck.envLocalExists) {
             console.error(`.env.local missing at ${envCheck.envLocalPath}`);
         }

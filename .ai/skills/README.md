@@ -1,7 +1,7 @@
 # skills/ — Module interface summaries
 
 Each file = condensed interface for one module.
-Claude reads these instead of scanning source on every task.
+Agents read these instead of scanning source on every task.
 
 ## Format (keep under 150 lines)
 

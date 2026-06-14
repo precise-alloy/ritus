@@ -1,8 +1,8 @@
 # memory/ — Multi-session context snapshots
 
 ## Lifecycle
-1. Claude creates when starting an EPIC
-2. Claude updates State + Tasks table after each session
+1. Architect agent creates when starting an EPIC
+2. Agent updates State + Tasks table after each session
 3. Human deletes when all tasks done + logs in CHANGELOG.md
 
 ## Format

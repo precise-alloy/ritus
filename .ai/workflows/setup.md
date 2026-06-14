@@ -3,7 +3,7 @@
 ## Trigger
 
 Run this workflow when human says any of:
-`"setup ai workflow"` · `"setup workflow"` · `"init workflow"` · `"initialize workflow"`
+`"setup ai workflow"` · `"setup workflow"` · `"init workflow"` · `"initialize workflow"` · `"Setup AI workflow for new project"`
 
 ---
 
@@ -63,11 +63,11 @@ Drives: tasks/ naming, PR reviewer count, memory expiry, setup question scope.
 
 **If `solo`: skip Q5, Q9, Q10 — auto-derive defaults and continue to Q4.**
 
-| Auto-derived for solo | Value |
-| --- | --- |
-| Q5 — Git platform | `GitHub` |
-| Q9 — Ticket format | `none` |
-| Q10 — Workflow owner | `developer` |
+| Auto-derived for solo | Value       |
+|-----------------------|-------------|
+| Q5 — Git platform     | `GitHub`    |
+| Q9 — Ticket format    | `none`      |
+| Q10 — Workflow owner  | `developer` |
 
 ---
 
@@ -128,7 +128,7 @@ Options: `Claude Code` · `Cursor` · `GitHub Copilot` · `Codex` · `Cline` · 
 
 Record as: `{{AI_TOOLS}}`
 
-Drives: routing.md executor section. If only Claude Code: simplify executor routing.
+Drives: `.ai/profiles/runtime.md` executor and shell runner guidance.
 
 ---
 
@@ -148,7 +148,7 @@ Default if skipped: `balanced`
 
 Record as: `{{MODEL_BUDGET}}`
 
-Drives: model routing table in `.ai/AGENTS.md` and `routing.md`.
+Drives: model routing table in `.ai/profiles/runtime.md` and `routing.md`.
 
 ---
 
@@ -204,11 +204,11 @@ Drives: `.qa.md` generation in task files, DONE WHEN QA gate, EPIC QA summary.
 
 ### tasks/ naming convention → `{{TASKS_PATH_CONVENTION}}`
 
-| `{{GIT_FLOW}}` | Convention |
-| --- | --- |
-| `PR-based` or `gitflow` | `tasks/{branch-slug}/{NNN-name}.md` |
-| `trunk-based` | `tasks/{author}/{NNN-name}.md` |
-| `solo` team size | `tasks/{NNN-name}.md` (flat — no subdirectory needed) |
+| `{{GIT_FLOW}}`          | Convention                                            |
+|-------------------------|-------------------------------------------------------|
+| `PR-based` or `gitflow` | `tasks/{branch-slug}/{NNN-name}.md`                   |
+| `trunk-based`           | `tasks/{author}/{NNN-name}.md`                        |
+| `solo` team size        | `tasks/{NNN-name}.md` (flat — no subdirectory needed) |
 
 ### Branch naming format → `{{BRANCH_FORMAT}}`
 
@@ -227,21 +227,21 @@ If `{{TICKET_FORMAT}}` is set: `feat/PROJ-123-{slug}` or `feat/#123-{slug}`.
 
 ### PR reviewer count → `{{PR_REVIEWERS}}`
 
-| `{{TEAM_SIZE}}` | Required reviewers |
-| --- | --- |
-| `solo` | 0 (self-merge allowed) |
-| `small` | 1 |
-| `medium` | 1–2 |
-| `large` | 2 |
+| `{{TEAM_SIZE}}` | Required reviewers     |
+|-----------------|------------------------|
+| `solo`          | 0 (self-merge allowed) |
+| `small`         | 1                      |
+| `medium`        | 1–2                    |
+| `large`         | 2                      |
 
 ### EPIC memory expiry → `{{MEMORY_EXPIRY_DAYS}}`
 
-| `{{TEAM_SIZE}}` | Days | Rationale |
-| --- | --- | --- |
-| `solo` | 60 | Long-running projects, infrequent context switches |
-| `small` | 30 | Moderate cadence, some parallel EPICs |
-| `medium` | 21 | Higher PR throughput, faster EPIC cycles |
-| `large` | 14 | Many concurrent EPICs, stale context risk rises quickly |
+| `{{TEAM_SIZE}}` | Days | Rationale                                               |
+|-----------------|------|---------------------------------------------------------|
+| `solo`          | 60   | Long-running projects, infrequent context switches      |
+| `small`         | 30   | Moderate cadence, some parallel EPICs                   |
+| `medium`        | 21   | Higher PR throughput, faster EPIC cycles                |
+| `large`         | 14   | Many concurrent EPICs, stale context risk rises quickly |
 
 **Expiry action (mandatory):** when a memory file reaches expiry date, before deleting:
 
@@ -254,33 +254,33 @@ If `{{TICKET_FORMAT}}` is set: `feat/PROJ-123-{slug}` or `feat/#123-{slug}`.
 
 **cost-first:**
 
-| Triage | Model | Notes |
-| --- | --- | --- |
-| TRIVIAL | `claude-haiku-4-5-20251001` | Direct edits, single file |
-| SIMPLE | `claude-haiku-4-5-20251001` | 2-section task note |
-| STANDARD | `claude-sonnet-4-6` | Cross-module, design decision |
-| EPIC | `claude-sonnet-4-6` | Multi-session, new architecture |
-| Batch validate (pre-PR) | `claude-haiku-4-5-20251001` | Diff + task review |
+| Triage                  | Model                       | Notes                           |
+|-------------------------|-----------------------------|---------------------------------|
+| TRIVIAL                 | `claude-haiku-4-5-20251001` | Direct edits, single file       |
+| SIMPLE                  | `claude-haiku-4-5-20251001` | 2-section task note             |
+| STANDARD                | `claude-sonnet-4-6`         | Cross-module, design decision   |
+| EPIC                    | `claude-sonnet-4-6`         | Multi-session, new architecture |
+| Batch validate (pre-PR) | `claude-haiku-4-5-20251001` | Diff + task review              |
 
 **balanced (default):**
 
-| Triage | Model | Notes |
-| --- | --- | --- |
-| TRIVIAL | `claude-haiku-4-5-20251001` | Direct edits, single file |
-| SIMPLE | `claude-haiku-4-5-20251001` | 2-section task note |
-| STANDARD | `claude-sonnet-4-6` | Cross-module, design decision |
-| EPIC | `claude-sonnet-4-6` · `claude-opus-4-7` (pure arch decisions only) | Multi-session |
-| Batch validate (pre-PR) | `claude-haiku-4-5-20251001` | Diff + task review |
+| Triage                  | Model                                                              | Notes                         |
+|-------------------------|--------------------------------------------------------------------|-------------------------------|
+| TRIVIAL                 | `claude-haiku-4-5-20251001`                                        | Direct edits, single file     |
+| SIMPLE                  | `claude-haiku-4-5-20251001`                                        | 2-section task note           |
+| STANDARD                | `claude-sonnet-4-6`                                                | Cross-module, design decision |
+| EPIC                    | `claude-sonnet-4-6` · `claude-opus-4-7` (pure arch decisions only) | Multi-session                 |
+| Batch validate (pre-PR) | `claude-haiku-4-5-20251001`                                        | Diff + task review            |
 
 **quality-first:**
 
-| Triage | Model | Notes |
-| --- | --- | --- |
-| TRIVIAL | `claude-haiku-4-5-20251001` | Direct edits, single file |
-| SIMPLE | `claude-sonnet-4-6` | 2-section task note |
-| STANDARD | `claude-sonnet-4-6` | Cross-module, design decision |
-| EPIC | `claude-opus-4-7` | Multi-session, new architecture |
-| Batch validate (pre-PR) | `claude-sonnet-4-6` | Diff + task review |
+| Triage                  | Model                       | Notes                           |
+|-------------------------|-----------------------------|---------------------------------|
+| TRIVIAL                 | `claude-haiku-4-5-20251001` | Direct edits, single file       |
+| SIMPLE                  | `claude-sonnet-4-6`         | 2-section task note             |
+| STANDARD                | `claude-sonnet-4-6`         | Cross-module, design decision   |
+| EPIC                    | `claude-opus-4-7`           | Multi-session, new architecture |
+| Batch validate (pre-PR) | `claude-sonnet-4-6`         | Diff + task review              |
 
 ---
 
@@ -291,15 +291,15 @@ Run this check before writing any file. Preserve project-specific rules already 
 ```text
 1. Does root AGENTS.md contain content beyond the pointer text?
    → Extract: auth pattern, error handling, testing pattern, constraints, build commands
-   → Merge extracted values into corresponding sections of .ai/AGENTS.md
+   → Merge extracted values into corresponding sections of `.ai/profiles/project.md`
    → Overwrite root AGENTS.md with thin pointer form after merge
 
 2. Does .claude/CLAUDE.md contain content beyond the bootstrap text?
    → Extract any project-specific rules found
-   → Merge into .ai/AGENTS.md project-specific constraints section
+   → Merge into `.ai/profiles/project.md` project-specific constraints section
    → Overwrite .claude/CLAUDE.md with thin bootstrap form after merge
 
-3. Does .ai/AGENTS.md already exist with filled values?
+3. Do `.ai/AGENTS.md` or `.ai/profiles/*.md` already exist with filled values?
    → Preserve all filled values — do not overwrite with {{variable}} tokens
    → Only fill sections that still show unfilled {{variable}} tokens
 ```
@@ -311,35 +311,56 @@ Run this check before writing any file. Preserve project-specific rules already 
 Write all files in this order. Replace every `{{variable}}` with the recorded value.
 Do not leave any `{{variable}}` token in the output.
 
-### 1. `.ai/AGENTS.md` — source of truth
+### 1. `.ai/AGENTS.md` — workflow source of truth
+
+No project/team/runtime tokens should be filled here. Keep workflow rules reusable and point to `.ai/profiles/` for
+project-specific values.
+
+### 2. `.ai/profiles/project.md` — project profile
 
 Fill these tokens:
 
 - `{{PROJECT_NAME}}`
 - `{{PRIMARY_LANGUAGE}}`
 - `{{FRAMEWORK}}`
+
+Leave these for repo-scan or first work session:
+
+- `{{BUSINESS_LOGIC_PATHS}}`, `{{WEB_API_PATHS}}`, `{{MODEL_CONTRACT_PATHS}}`, `{{INTEGRATION_PATHS}}`,
+  `{{FRONTEND_PATHS}}`, `{{GENERATED_ARTIFACT_PATHS}}`
+- `{{TICKET_REVIEW_DOCS_PATH}}`
+- `{{AUTH_PATTERN}}` and sub-fields
+- `{{ERROR_HANDLING_PATTERN}}`
+- `{{TESTING_PATTERN}}`
+- `{{TEST_LOCATION_CONVENTIONS}}`
+- `{{PROJECT_CONSTRAINTS}}`
+- `{{BUILD_CMD}}`, `{{TYPECHECK_CMD}}`, `{{TEST_CMD}}`, `{{LINT_CMD}}`
+
+### 3. `.ai/profiles/team.md` — team profile
+
+Fill these tokens:
+
 - `{{TEAM_SIZE}}`
 - `{{GIT_PLATFORM}}`
 - `{{GIT_FLOW}}`
-- `{{AI_TOOLS}}`
 - `{{WORKFLOW_OWNER}}`
 - `{{TICKET_FORMAT}}`
 - `{{MEMORY_EXPIRY_DAYS}}`
 - `{{QA_MODE}}`
-- `{{MODEL_ROUTING}}` — paste the correct table from §Model routing table above
 - `{{BRANCH_FORMAT}}`
 - `{{TASKS_PATH_CONVENTION}}`
 - `{{PR_REVIEWERS}}`
+- `{{DEFAULT_BASE_BRANCH}}`
+- `{{TRACEABILITY_POLICY}}`
 
-Leave these for repo-scan or first work session:
+### 4. `.ai/profiles/runtime.md` — runtime profile
 
-- `{{AUTH_PATTERN}}` and sub-fields
-- `{{ERROR_HANDLING_PATTERN}}`
-- `{{TESTING_PATTERN}}`
-- `{{PROJECT_CONSTRAINTS}}`
-- `{{BUILD_CMD}}`, `{{TYPECHECK_CMD}}`, `{{TEST_CMD}}`, `{{LINT_CMD}}`
+Fill these tokens:
 
-### 2. Root `AGENTS.md` — thin pointer
+- `{{AI_TOOLS}}`
+- `{{MODEL_ROUTING}}` — paste the correct table from §Model routing table above
+
+### 5. Root `AGENTS.md` — thin pointer
 
 Write exactly:
 
@@ -349,29 +370,31 @@ Source of truth: `.ai/AGENTS.md`
 Read `.ai/AGENTS.md` before doing any work. Do not add rules here.
 ```
 
-### 3. `.claude/CLAUDE.md` — bootstrap pointer
+### 6. `.claude/CLAUDE.md` — bootstrap pointer
 
 Keep the bootstrap form. Do not add rules.
 
-### 4. `.ai/exec-context.md` — auto-generated executor context
+### 7. `.ai/exec-context.md` — auto-generated executor context
 
-Extract from `.ai/AGENTS.md` after filling it. Copy these sections verbatim:
+Extract from `.ai/profiles/project.md` after filling it. Copy these sections verbatim:
 
 - Project name (header)
 - Auth pattern (`{{AUTH_PATTERN}}` and sub-fields)
 - Error handling (`{{ERROR_HANDLING_PATTERN}}`)
 - Build commands (`{{BUILD_CMD}}`, `{{TYPECHECK_CMD}}`, `{{TEST_CMD}}`, `{{LINT_CMD}}`)
 
-Do not copy: triage, team config, model routing, branch conventions, prompt caching, pre-coding read order, SKILLS-TODO.md discipline, memory expiry.
+Do not copy: triage, team config, model routing, branch conventions, pre-coding read order,
+SKILLS-TODO.md discipline, memory expiry.
 
-The static sections (role statement, golden rules, standards table, skills maintenance, output format) come from the exec-context.md template — do not regenerate from AGENTS.md.
+The static sections (role statement, golden rules, standards table, skills maintenance, output format) come from the
+exec-context.md template — do not regenerate them from `.ai/AGENTS.md` or `.ai/profiles/*.md`.
 
-### 5. `.ai/routing.md`
+### 8. `.ai/routing.md`
 
-Update executor section with `{{AI_TOOLS}}` list.
-Fill model routing table with the correct `{{MODEL_ROUTING}}` table.
+Ensure executor section points to `.ai/profiles/runtime.md`.
+Fill `.ai/profiles/runtime.md` model routing with the correct `{{MODEL_ROUTING}}` table.
 
-### 6. `.ai/SKILLS-TODO.md`
+### 9. `.ai/SKILLS-TODO.md`
 
 Pre-fill rows:
 
@@ -379,7 +402,7 @@ Pre-fill rows:
 - Runtime / framework → `{{FRAMEWORK}}` → ✅
 - Leave other rows as ❓
 
-### 7. `docs/ARCHITECTURE.md`
+### 10. `docs/ARCHITECTURE.md`
 
 Fill header only:
 
@@ -398,7 +421,8 @@ After writing all files, output this to human:
 Setup complete — {{PROJECT_NAME}}
 
 WRITTEN:
-  .ai/AGENTS.md        filled (team config, model routing, branch conventions, QA mode)
+  .ai/AGENTS.md        workflow rules
+  .ai/profiles/*.md    filled (project, team, runtime config)
   .ai/exec-context.md  auto-generated (auth, error handling, build commands)
   .ai/routing.md       updated (role detection, executor tools, model routing)
   .ai/SKILLS-TODO.md   pre-filled (language + framework)
@@ -427,4 +451,5 @@ NEXT STEP:
 - Never guess a `{{variable}}` value — only use what human answered.
 - Never write files before the pre-output merge check is complete.
 - Never skip the completion checklist output.
-- If human changes an answer after files are written: surgically update the specific token and re-output only the affected file.
+- If human changes an answer after files are written: surgically update the specific token and re-output only the
+  affected file.
