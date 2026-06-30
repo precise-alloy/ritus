@@ -120,6 +120,7 @@ async function main(): Promise<void> {
 
   if (system === 'check-env') {
     await runCheckEnv();
+    return;
   }
 
   const provider = PROVIDER_MAP.get(system);

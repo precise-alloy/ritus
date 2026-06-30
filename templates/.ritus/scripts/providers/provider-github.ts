@@ -8,7 +8,7 @@ type GitHubPullRequestRef = {
 };
 
 function getGitHubToken(): string {
-  const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
+  const token = (process.env.GITHUB_TOKEN ?? process.env.GH_TOKEN)?.trim();
   if (!token) {
     throw new Error('Missing GITHUB_TOKEN (or GH_TOKEN). Populate it in .env.local before using this helper.');
   }

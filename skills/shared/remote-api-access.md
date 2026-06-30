@@ -85,6 +85,8 @@ AZURE_DEVOPS_PROJECT=
 
 # GitHub
 GITHUB_TOKEN=
+# Optional: alternative token name used by GitHub CLI
+GH_TOKEN=
 ```
 
 Not all providers need to be configured — only the ones the project uses. `check-env` reports which providers are configured; the helper validates the required keys for the invoked provider before dispatch.
