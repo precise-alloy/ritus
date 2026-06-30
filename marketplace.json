@@ -1,0 +1,18 @@
+{
+  "name": "precise-alloy-marketplace",
+  "owner": {
+    "name": "eshn"
+  },
+  "metadata": {
+    "description": "Private AI workflow plugins for development teams",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "ritus",
+      "description": "AI-assisted development workflow — triage, task generation, execution, verification, and adversarial code review",
+      "version": "2.0.0",
+      "source": "./"
+    }
+  ]
+}

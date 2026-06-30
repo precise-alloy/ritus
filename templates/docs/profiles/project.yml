@@ -1,0 +1,55 @@
+# Project profile data — filled by setup wizard and repo-scan.
+# Edit this file, then re-run the `setup` skill to regenerate PROJECT_CONTEXT.md.
+# Values like off/no/yes must be quoted: key: "off"
+
+schema_version: 2
+
+# Filled by setup
+project_name: ""
+primary_language: ""
+framework: ""
+
+# Filled by repo-scan — stack detection
+stack:
+  package_manager: ""
+  build_tool: ""
+  test_framework: ""
+  frontend_framework: ""
+  css_approach: ""
+  database: ""
+  orm: ""
+  deployment_target: ""
+
+# Filled by repo-scan or manual edit
+source_layout:
+  business_logic: ""
+  web_api: ""
+  models: ""
+  integrations: ""
+  frontend: ""
+  generated: ""
+
+documentation:
+  ticket_reviews: ""
+
+authentication:
+  pattern: ""
+  token_verification: ""
+  tenant_scoping: ""
+  role_model: ""
+
+error_handling: ""
+
+testing:
+  pattern: ""
+  location_conventions: ""
+
+build_commands:
+  build: ""
+  typecheck: ""
+  test: ""
+  lint: ""
+
+project_constraints: []
+
+module_map: []
