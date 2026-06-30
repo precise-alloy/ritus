@@ -160,7 +160,7 @@ async function getAdoWorkItem(target: string, extra?: string): Promise<unknown> 
 
   return {
     workItemId: parsed.workItemId,
-    ...(extra ? { fields: extra.split(',') } : {}),
+    ...(extra ? { fields: extra.split(',').map(f => f.trim()).filter(Boolean) } : {}),
     workItem: await requestJson(url, adoHeaders()),
   };
 }

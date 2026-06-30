@@ -75,7 +75,7 @@ async function getJiraIssue(target: string, extra?: string): Promise<unknown> {
 
   return {
     ticketKey,
-    fields: requestedFields.split(','),
+    fields: requestedFields.split(',').map(f => f.trim()).filter(Boolean),
     issue: await requestJson(url, jiraHeaders()),
   };
 }
