@@ -238,5 +238,5 @@ After completing all four phases, the skill produces:
 
 Report the fix: root cause, what changed, and test results. Do NOT commit — the user decides when to commit.
 
-After the fix is verified, dispatch a fresh subagent (model: sonnet, effort: high) to run the `verify-task` skill for
+After the fix is verified, dispatch a fresh subagent (model: haiku, effort: medium) to run the `verify-task` skill for
 adversarial review of the changes.

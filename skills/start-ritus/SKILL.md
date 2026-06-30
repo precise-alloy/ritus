@@ -48,14 +48,14 @@ This makes the plan visible to both you and the user, and prevents steps from be
 For all other intents, create a TODO list based on the skill chain. Examples:
 
 For a new requirement:
-```
+```text
 - [ ] Classify the requirement (triage)
 - [ ] Analyze and generate task files (ticket-review)
 - [ ] Present tasks for user approval
 ```
 
 For a bug report:
-```
+```text
 - [ ] Investigate root cause (debug — 4 phases)
 - [ ] Fix and verify
 - [ ] Run pr-review
@@ -121,4 +121,4 @@ When multiple skills could apply, use this order:
 
 ## Output format
 
-Subagents report using the output format defined in the `execute-task` skill.
+Each subagent reports using the output format defined in its own skill (`execute-task`, `verify-task`, `pr-review`, etc.).

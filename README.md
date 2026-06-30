@@ -67,25 +67,6 @@ This detects auth patterns, build commands, testing conventions, and coding conv
 **Plugin:** updates automatically — skills are replaced. On next session start, the sync hook reports
 missing project files. Run the setup again to create any new files. Existing user files are never overwritten.
 
----
-
-## What the setup interview asks
-
-| #   | Question                     | Notes                                                                          |
-|-----|------------------------------|--------------------------------------------------------------------------------|
-| Q1  | New or existing project?     | Determines whether repo-scan runs after setup                                  |
-| Q2  | Project name                 | Lowercase kebab-case — used in task file slugs and commit scopes               |
-| Q3  | Team size                    | `solo` / `small` / `medium` / `large` — drives tasks/ naming and memory expiry |
-| Q4  | Primary language + framework | e.g. `TypeScript + Next.js`, `Python + FastAPI`                                |
-| Q5  | Git platform                 | `GitHub` / `GitLab` / `Azure DevOps` / other — skipped if solo                 |
-| Q6  | Git workflow                 | `PR-based` / `trunk-based` / `gitflow`                                         |
-| Q7  | Model cost preference        | `cost-first` / `balanced` (default) / `quality-first`                          |
-| Q8  | Ticket format                | e.g. `PROJ-123` / `#123` / `none` — skipped if solo                           |
-| Q9  | Workflow owner               | `tech-lead` / `team` — skipped if solo                                         |
-| Q10 | QA mode (optional)           | `task` / `epic-only` / `off` (default) — generates `.qa.md` docs for testers  |
-
----
-
 ## What gets generated
 
 **By plugin (workflow-owned):**
@@ -179,11 +160,12 @@ For the full workflow diagram, see [docs/WORKFLOW_DIAGRAMS.md](./docs/WORKFLOW_D
 ## Repository structure
 
 ```text
-marketplace.json                 ← plugin marketplace manifest
-.claude-plugin/plugin.json       ← marketplace config
+marketplace.json                 ← Copilot marketplace manifest
+.claude-plugin/
+    marketplace.json       ← Claude marketplace manifest
+    plugin.json   ← Claude Code plugin manifest
 README.md                        ← this file
 .env.example                     ← remote API credentials template
-.claude-plugin/plugin.json   ← Claude Code plugin manifest
 skills/
   start-ritus/SKILL.md     ← entry-point meta-skill: golden rules, dispatch instructions
   brainstorm/SKILL.md
@@ -198,7 +180,7 @@ skills/
   debug/SKILL.md
   setup/SKILL.md
   sync/SKILL.md
-    script/sync.ts              ← project file scaffolding script
+    script/sync.cjs              ← project file scaffolding script
   repo-scan/SKILL.md
   code-conventions/SKILL.md
   testing-policy/SKILL.md
@@ -287,7 +269,7 @@ Expiry days set by team size (solo=60, small=30, medium=21, large=14). Before de
 
 | Resource | Purpose |
 |----------|---------|
-| [docs/PROJECT_CONTEXT.md](docs/PROJECT_CONTEXT) | Always-on project facts |
+| [docs/PROJECT_CONTEXT.md](docs/PROJECT_CONTEXT.md) | Always-on project facts |
 | [docs/profiles/](docs/profiles/) | YAML data files (source of truth) |
 | [docs/CODE_CONVENTIONS.md](docs/CODE_CONVENTIONS.md) | Project-specific coding conventions |
 | [docs/TEST_CONVENTIONS.md](docs/TEST_CONVENTIONS.md) | Project-specific test conventions |

@@ -19,9 +19,6 @@
     "docs": "docs",
     "templates": "templates"
   },
-  "files": [
-    "marketplace.json"
-  ],
   "author": "eshn",
   "license": "MIT"
 }

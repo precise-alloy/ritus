@@ -133,8 +133,14 @@ async function main(): Promise<void> {
     process.exit(2);
   }
 
-  for (const key of provider.requiredEnvKeys) {
-    requireEnv(key);
+  if (provider.name === 'github') {
+    if (!process.env.GITHUB_TOKEN?.trim() && !process.env.GH_TOKEN?.trim()) {
+      throw new Error('Missing GITHUB_TOKEN (or GH_TOKEN). Populate it in .env.local before using this helper.');
+    }
+  } else {
+    for (const key of provider.requiredEnvKeys) {
+      requireEnv(key);
+    }
   }
 
   const handler = provider.actions[action];

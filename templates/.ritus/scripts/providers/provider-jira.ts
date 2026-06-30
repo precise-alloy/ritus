@@ -1,3 +1,4 @@
+import { basename, join } from 'node:path';
 import type { Provider, RequestHeaders } from './types.ts';
 import { basicAuth, requestBinary, requestJson, requireEnv } from './http.ts';
 
@@ -166,10 +167,11 @@ async function downloadJiraAttachments(target: string, extra?: string): Promise<
   const downloaded: { filename: string; path: string; mimeType: string; size: number }[] = [];
 
   for (const attachment of images) {
-    const outputPath = `${outputDir}/${attachment.filename}`;
+    const safeName = basename(attachment.filename);
+    const outputPath = join(outputDir, safeName);
     const bytesWritten = await requestBinary(attachment.content, headers, outputPath);
     downloaded.push({
-      filename: attachment.filename,
+      filename: safeName,
       path: outputPath,
       mimeType: attachment.mimeType,
       size: bytesWritten,

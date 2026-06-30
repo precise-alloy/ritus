@@ -67,13 +67,13 @@ Record as: `{{TEAM_SIZE}}`
 
 Drives: tasks/ naming, PR reviewer count, memory expiry, setup question scope.
 
-**If `solo`: skip Q5, Q8, Q9 — auto-derive defaults and continue to Q4.**
+**If `solo`: skip Q5, Q9, Q10 — auto-derive defaults and continue to Q4.**
 
 | Auto-derived for solo | Value       |
 |-----------------------|-------------|
 | Q5 — Git platform     | `GitHub`    |
-| Q8 — Ticket format    | `none`      |
-| Q9 — Workflow owner   | `developer` |
+| Q9 — Ticket format    | `none`      |
+| Q10 — Workflow owner  | `developer` |
 
 ---
 
@@ -124,7 +124,21 @@ Drives: tasks/ path convention, branch naming strictness.
 
 ---
 
-### Q7 — Model cost preference
+### Q7 — Default base branch
+
+Ask:
+
+> "What is the **default base branch** for feature PRs/merges? (e.g., `main`, `develop`, `master`)"
+
+Default if skipped: `main` (or `develop` if `{{GIT_FLOW}}` is `gitflow`).
+
+Record as: `{{DEFAULT_BASE_BRANCH}}`
+
+Drives: PR review diff base, team conventions in `PROJECT_CONTEXT.md`.
+
+---
+
+### Q8 — Model cost preference
 
 Ask:
 
@@ -144,7 +158,7 @@ Drives: model routing table in `docs/profiles/runtime.yml`.
 
 ---
 
-### Q8 — Ticket system
+### Q9 — Ticket system
 
 Ask:
 
@@ -157,7 +171,7 @@ Drives: branch naming format.
 
 ---
 
-### Q9 — Workflow owner
+### Q10 — Workflow owner
 
 Ask:
 
@@ -172,7 +186,7 @@ Record as: `{{WORKFLOW_OWNER}}`
 
 ---
 
-### Q10 — QA mode (optional)
+### Q11 — QA mode (optional)
 
 Ask:
 
@@ -244,7 +258,7 @@ If `{{TICKET_FORMAT}}` is set: `feat/PROJ-123-{slug}` or `feat/#123-{slug}`.
 
 ### Default base branch → `{{DEFAULT_BASE_BRANCH}}`
 
-Default: `main`. Override if the project uses a different default branch (e.g., `develop`, `master`).
+Value from Q7. Default: `main` (or `develop` if `{{GIT_FLOW}}` is `gitflow`).
 
 ### Traceability policy → `{{TRACEABILITY_POLICY}}`
 
@@ -376,7 +390,7 @@ NEXT STEP:
 
 ## Hard rules
 
-- Never guess a `{{variable}}` value — only use what human answered or what is auto-derived for solo teams (Q5, Q8, Q9).
+- Never guess a `{{variable}}` value — only use what human answered or what is auto-derived for solo teams (Q5, Q9, Q10).
 - Never write files before the pre-output merge check is complete.
 - Never skip the completion checklist output.
 - If human changes an answer after files are written: surgically update the specific token and re-output only the

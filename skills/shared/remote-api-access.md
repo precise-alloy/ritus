@@ -79,7 +79,6 @@ JIRA_EMAIL=
 
 # Azure DevOps
 AZURE_DEVOPS_READONLY_PAT=
-AZURE_DEVOPS_EMAILS=
 # Optional: for bare work item IDs
 AZURE_DEVOPS_ORG=
 AZURE_DEVOPS_PROJECT=
@@ -88,7 +87,7 @@ AZURE_DEVOPS_PROJECT=
 GITHUB_TOKEN=
 ```
 
-Not all providers need to be configured — only the ones the project uses. The pre-flight check validates only the invoked provider's keys.
+Not all providers need to be configured — only the ones the project uses. `check-env` reports which providers are configured; the helper validates the required keys for the invoked provider before dispatch.
 
 Before fetching remote data, always run the sanctioned env check via Bun. Do not use `Test-Path`, `Get-Content`, `cat .env.local`, or any other ad-hoc check.
 
