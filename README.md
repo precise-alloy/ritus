@@ -32,7 +32,7 @@ AI Agent Workflow = Primary rules + Core workflow + Project profile + Runtime co
 2. Install Ritus
 
 ```text
-/plugin marketplace add precise-alloy/ritus#plugin
+/plugin marketplace add precise-alloy/ritus
 /plugin install ritus
 ```
 
@@ -43,7 +43,7 @@ AI Agent Workflow = Primary rules + Core workflow + Project profile + Runtime co
 3. Install Ritus
 
 ```text
-/plugin marketplace add precise-alloy/ritus#plugin
+/plugin marketplace add precise-alloy/ritus
 /plugin marketplace browse precise-alloy-marketplace
 /plugin install ritus@precise-alloy-marketplace
 ```
