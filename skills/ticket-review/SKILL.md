@@ -294,15 +294,15 @@ For EPIC work, read `templates/epic-memory.md` in this skill's directory for the
 **Meta-rule:** Update docs only when the change affects how future humans or agents understand, navigate, or safely
 modify the system.
 
-| Change type                   | `CUTOFF.md` | `ARCHITECTURE.md` | `DECISIONS.md` | `LESSONS.md`           | `.qa.md`        |
-|-------------------------------|-------------|--------------------| ---------------|------------------------|-----------------|
-| Bug fix                       | ❌           | ❌                  | ❌              | ✅ if dangerous pattern | ✅ if QA mode on |
-| New endpoint                  | ✅           | ❌                  | ❌              | ❌                      | ✅ if QA mode on |
-| New module                    | ✅           | ✅                  | optional       | ❌                      | ✅ if QA mode on |
-| New arch pattern / decision   | ❌           | ✅                  | ✅              | ❌                      | ✅ if QA mode on |
-| Config / env change           | ✅           | ❌                  | optional       | ❌                      | ❌               |
-| Refactor (no contract change) | ❌           | ❌                  | ❌              | ❌                      | ✅ if QA mode on |
-| Auth / error / build changed  | ❌           | ❌                  | ✅              | ❌                      | ❌               |
+| Change type                   | `docs/CUTOFF.md` | `docs/ARCHITECTURE.md` | `docs/DECISIONS.md` | `docs/LESSONS.md`      | `.qa.md`        |
+|-------------------------------|------------------|------------------------|---------------------|------------------------|-----------------|
+| Bug fix                       | ❌                | ❌                      | ❌                   | ✅ if dangerous pattern | ✅ if QA mode on |
+| New endpoint                  | ✅                | ❌                      | ❌                   | ❌                      | ✅ if QA mode on |
+| New module                    | ✅                | ✅                      | optional            | ❌                      | ✅ if QA mode on |
+| New arch pattern / decision   | ❌                | ✅                      | ✅                   | ❌                      | ✅ if QA mode on |
+| Config / env change           | ✅                | ❌                      | optional            | ❌                      | ❌               |
+| Refactor (no contract change) | ❌                | ❌                      | ❌                   | ❌                      | ✅ if QA mode on |
+| Auth / error / build changed  | ❌                | ❌                      | ✅                   | ❌                      | ❌               |
 
 ## Execution plan
 

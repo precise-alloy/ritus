@@ -134,7 +134,7 @@ Default if skipped: `main` (or `develop` if `{{GIT_FLOW}}` is `gitflow`).
 
 Record as: `{{DEFAULT_BASE_BRANCH}}`
 
-Drives: PR review diff base, team conventions in `PROJECT_CONTEXT.md`.
+Drives: PR review diff base, team conventions in `docs/PROJECT_CONTEXT.md`.
 
 ---
 

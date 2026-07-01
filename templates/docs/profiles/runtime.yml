@@ -1,5 +1,5 @@
 # Runtime profile data — filled by setup wizard.
-# Edit this file, then re-run the `setup` skill to regenerate PROJECT_CONTEXT.md.
+# Edit this file, then re-run the `setup` skill to regenerate docs/PROJECT_CONTEXT.md.
 # Values like off/no/yes must be quoted: key: "off"
 
 schema_version: 2

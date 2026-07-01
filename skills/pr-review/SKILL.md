@@ -61,7 +61,7 @@ environment setup, and error handling.
 - [ ] Blast radius analysis — all upstream callers of changed interfaces verified
 - [ ] **Traceability policy followed** — verify ticket IDs and rationale appear where `docs/PROJECT_CONTEXT.md` section
   `## Team conventions` requires them.
-- [ ] **Documentation up-to-date** — verify affected docs (skill files, ARCHITECTURE.md, DECISIONS.md, LESSONS.md) were
+- [ ] **Documentation up-to-date** — verify affected docs (skill files, docs/ARCHITECTURE.md, docs/DECISIONS.md, docs/LESSONS.md) were
   updated to reflect the PR changes. Flag stale or missing doc updates.
 
 ## Step 1: Gather Input

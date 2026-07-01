@@ -104,19 +104,19 @@ in the `start-ritus` skill and in each skill's dispatch instructions section.
 
 ### Workflow skills
 
-| Skill | Purpose |
-|-------|---------|
+| Skill | Purpose                                                                         |
+|-------|---------------------------------------------------------------------------------|
 | `start-ritus` | Entry-point meta-skill — golden rules, dispatch instructions, workflow tracking |
-| `brainstorm` | Explore unclear requirements — propose 2-3 approaches before triage |
-| `triage` | Classify changes by blast radius, contract impact, validation clarity |
-| `ticket-review` | Analyze requirements (plain text or ticket) → produce task files |
-| `execute-task` | Implement a task file — load context, implement steps, report |
-| `verify-task` | Independent per-task verification (dispatched as fresh haiku subagent) |
-| `pr-review` | Adversarial review at ticket/PR level (dispatched as fresh sonnet subagent) |
-| `debug` | Systematic 4-phase root cause investigation with evidence grading |
-| `setup` | Setup interview — write YAML profiles, render PROJECT_CONTEXT.md |
-| `sync` | Scaffold or check project files — create missing docs, profiles, scripts |
-| `repo-scan` | Detect stack, auth, build commands from existing codebase |
+| `brainstorm` | Explore unclear requirements — propose 2-3 approaches before triage             |
+| `triage` | Classify changes by blast radius, contract impact, validation clarity           |
+| `ticket-review` | Analyze requirements (plain text or ticket) → produce task files                |
+| `execute-task` | Implement a task file — load context, implement steps, report                   |
+| `verify-task` | Independent per-task verification (dispatched as fresh haiku subagent)          |
+| `pr-review` | Adversarial review at ticket/PR level (dispatched as fresh sonnet subagent)     |
+| `debug` | Systematic 4-phase root cause investigation with evidence grading               |
+| `setup` | Setup interview — write YAML profiles, render docs/PROJECT_CONTEXT.md           |
+| `sync` | Scaffold or check project files — create missing docs, profiles, scripts        |
+| `repo-scan` | Detect stack, auth, build commands from existing codebase                       |
 
 ### Standard skills (loaded alongside workflow skills when applicable)
 

@@ -54,12 +54,12 @@ Force upgrade to STANDARD regardless of classification when touching:
 
 ## Context budget per level
 
-| Level    | Load                                                              | Approx tokens |
-|----------|-------------------------------------------------------------------|---------------|
-| TRIVIAL  | ritus golden rules + grep target file                     | ~1k           |
-| SIMPLE   | ritus + relevant skill file                               | ~2–3k         |
-| STANDARD | ritus + docs/PROJECT_CONTEXT.md + relevant skills + ARCHITECTURE.md (if new resource) | ~5–8k |
-| EPIC     | Full context + memory file                                        | ~10–15k       |
+| Level    | Load                                                                                       | Approx tokens |
+|----------|--------------------------------------------------------------------------------------------|---------------|
+| TRIVIAL  | ritus golden rules + grep target file                                                      | ~1k           |
+| SIMPLE   | ritus + relevant skill file                                                                | ~2–3k         |
+| STANDARD | ritus + docs/PROJECT_CONTEXT.md + relevant skills + docs/ARCHITECTURE.md (if new resource) | ~5–8k |
+| EPIC     | Full context + memory file                                                                 | ~10–15k       |
 
 Standards tokens are in addition to the budget above — load applicable standard skills per ritus standards table.
 

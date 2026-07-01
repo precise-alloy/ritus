@@ -184,7 +184,7 @@ Note: `docs/PROJECT_CONTEXT.md` will be rendered from `.yml` data in Step 10 aft
 
 ---
 
-## Step 8 — prepare CUTOFF.md entries
+## Step 8 — prepare docs/CUTOFF.md entries
 
 ```text
 1. For each module identified in Step 7:
@@ -202,7 +202,7 @@ Before merging any workflow files, check:
 ```text
 1. Are there existing docs/tasks/ or docs/memory/ files?
    → If yes: never touch them — list them as "preserved"
-2. Does docs/ contain existing ARCHITECTURE.md, DECISIONS.md, LESSONS.md?
+2. Does docs/ contain existing docs/ARCHITECTURE.md, docs/DECISIONS.md, docs/LESSONS.md?
    → If yes: never touch them — list as "preserved"
 ```
 

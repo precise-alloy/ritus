@@ -39,7 +39,7 @@ Classification: STANDARD | EPIC
 
 ## PATTERN
 
-<!-- Reference ARCHITECTURE.md pattern, or "none" -->
+<!-- Reference docs/ARCHITECTURE.md pattern, or "none" -->
 none | Add a new <resource> | Add a new endpoint | ...
 
 ## CONTEXT

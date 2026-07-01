@@ -159,7 +159,7 @@ What runs in which context, with which model.
 ```mermaid
 flowchart LR
     subgraph "Orchestrator Session (inherits user's model)"
-        A["CLAUDE.md\n+ start-ritus skill\n+ PROJECT_CONTEXT.md\n(always loaded)"]
+        A["CLAUDE.md\n+ start-ritus skill\n+ docs/PROJECT_CONTEXT.md\n(always loaded)"]
         B["brainstorm / triage\n/ ticket-review"]
         C["execute-task\n+ standards skills"]
         D["debug\n(investigation)"]
