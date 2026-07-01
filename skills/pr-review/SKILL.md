@@ -1,7 +1,7 @@
 ---
 name: pr-review
 description: Use when reviewing code diffs, pull requests, or completed implementation — adversarial review of code quality and correctness. TRIGGER — invoke when user says "review my code", "review this PR", "code review", "check my changes", or all tasks are verified. Do NOT use for analyzing requirements or generating tasks — that is ticket-review
-argument-hint: Provide either the Azure DevOps PR URL or describe the local branch/worktree to review, plus relevant Jira ticket URL(s)
+argument-hint: Provide either the Azure DevOps/GitHub PR URL or describe the local branch/worktree to review, plus relevant ticket URL(s)
 ---
 
 # PR Review
@@ -69,7 +69,7 @@ environment setup, and error handling.
 Ask the user for:
 
 1. **Review mode**:
-    - PR review: the pull request URL matching the configured remote system.
+    - PR review: the Azure DevOps or GitHub pull request URL matching the configured remote system.
     - Local pre-PR review: the branch to review and whether the scope is committed branch diff, staged changes, unstaged
       changes, or the full worktree
 2. **Requirement source** (one of):
@@ -89,7 +89,7 @@ Choose the review path based on the input mode.
 Fetch remote PR details only via the configured helper in the `## Remote API access` section above.
 Grounding the review in live PR metadata is required before reviewing code.
 
-Parse the PR URL using the `## Remote API access` section → `### Azure DevOps PR URL parsing`.
+Parse the PR URL using the `## Remote API access` section. Use the provider that matches the PR host:
 
 Fetch the PR details (the `ado` subcommand targets Azure DevOps):
 
@@ -97,8 +97,14 @@ Fetch the PR details (the `ado` subcommand targets Azure DevOps):
 bun run .ritus/scripts/remote-api.ts ado pr "<AZURE_DEVOPS_PR_URL>"
 ```
 
+Fetch GitHub PR details with the `github` subcommand:
+
+```bash
+bun run .ritus/scripts/remote-api.ts github pr "<GITHUB_PR_URL>"
+```
+
 If this helper returns `401` or `403`, or returns `404` with a permission-style message, stop and ask the user to verify
-Azure DevOps access before continuing. Do not continue the PR review until the remote PR fetch succeeds.
+remote provider access before continuing. Do not continue the PR review until the remote PR fetch succeeds.
 
 **Verify** the target branch matches `docs/PROJECT_CONTEXT.md` section `## Team conventions`. If not, warn the user.
 

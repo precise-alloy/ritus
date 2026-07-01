@@ -1,6 +1,7 @@
 ---
 name: debug
 description: Use when investigating bugs, test failures, or unexpected behavior — 4-phase investigation with evidence grading before any fix. TRIGGER — invoke when user mentions bug, broken, failing, error, crash, not working
+argument-hint: Provide the symptom, exact error/log output, reproduction steps, and recent changes
 ---
 
 # Debug

@@ -1,6 +1,7 @@
 ---
 name: repo-scan
 description: Use when user says "run repo-scan", "scan repo", "detect my stack", "analyze my codebase", "what framework am I using", or "what's my tech stack" — detects stack, conventions, and patterns from existing codebase
+argument-hint: Provide the repository path or specific areas to scan, if different from the current workspace
 ---
 
 # Repo Scan

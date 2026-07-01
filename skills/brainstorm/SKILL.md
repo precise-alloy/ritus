@@ -1,6 +1,7 @@
 ---
 name: brainstorm
 description: Use when requirements are vague or exploratory — proposes 2-3 approaches with tradeoffs before triage. TRIGGER — invoke when user says "explore", "what should we build", "what are our options", "compare approaches", "pros and cons", "how should we approach this", "I'm not sure how to do this", or any open-ended design question
+argument-hint: Provide the idea, problem, or design question to explore, plus known constraints
 ---
 
 # Brainstorm

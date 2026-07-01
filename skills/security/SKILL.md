@@ -1,6 +1,7 @@
 ---
 name: security
 description: Loaded automatically by execute-task and verify-task when changes touch auth, billing, migration, tenant isolation, infra, or shared contracts — security checklist. Do not invoke standalone unless the user specifically asks for a security review
+argument-hint: Provide the changed auth, billing, migration, tenant, infra, or contract areas to review
 ---
 
 # Security Standards

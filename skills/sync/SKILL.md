@@ -1,6 +1,7 @@
 ---
 name: sync
 description: Use when scaffolding or checking project files — creates missing docs, profiles, scripts without the full setup interview. TRIGGER — invoke when user says "check project files", "sync files", "what files am I missing", or after a plugin upgrade. For first-time setup with interview, use setup instead
+argument-hint: Provide whether to check only or apply missing project files
 ---
 
 # Sync

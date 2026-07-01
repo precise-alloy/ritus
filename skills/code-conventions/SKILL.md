@@ -1,6 +1,7 @@
 ---
 name: code-conventions
 description: Loaded automatically by execute-task and verify-task for any code change — covers comments, abstraction limits, dependency rules, and project-specific conventions from docs/CODE_CONVENTIONS.md. Do not invoke standalone unless the user specifically asks about coding conventions
+argument-hint: Provide the task or ticket identifier and the files/modules likely to change
 ---
 
 # Code Conventions

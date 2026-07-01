@@ -1,6 +1,7 @@
 ---
 name: setup
-description: Use when user says "setup workflow", "setup workflow", or "init workflow" — runs interview and fills project profiles
+description: Use when user says "setup workflow", "configure workflow", or "init workflow" — runs interview and fills project profiles
+argument-hint: Provide any known project profile answers or constraints to prefill during setup
 ---
 
 # Setup

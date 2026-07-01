@@ -1,6 +1,7 @@
 ---
 name: definition-of-done
 description: Loaded automatically by execute-task and verify-task for STANDARD and EPIC tasks — hard gates and per-change-type completion checklists. Do not invoke standalone
+argument-hint: Provide the task or ticket identifier, changed files, and validation evidence
 ---
 
 # Definition of Done

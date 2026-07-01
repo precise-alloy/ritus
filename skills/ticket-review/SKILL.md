@@ -1,7 +1,7 @@
 ---
 name: ticket-review
-description: Use after triage to produce task files — analyzes requirements, fetches Jira tickets, and generates execution plans. Reached via triage's Next section, not invoked directly for code review. Do NOT use for reviewing code diffs or PRs — that is pr-review
-argument-hint: Provide a requirement description or Jira ticket URL(s) with any additional context
+description: Use after triage to produce task files — analyzes requirements, fetches Jira or Azure DevOps tickets, and generates execution plans. Reached via triage's Next section, not invoked directly for code review. Do NOT use for reviewing code diffs or PRs — that is pr-review
+argument-hint: Provide a requirement description or Jira/Azure DevOps ticket URL(s) with any additional context
 ---
 
 # Ticket Review
@@ -19,7 +19,8 @@ Ask the user for:
 
 1. **The requirement source** — either:
    - A plain requirement description (summary of what needs to be done), OR
-   - Jira ticket URL(s) or key(s) matching docs/PROJECT_CONTEXT.md `## Team conventions` ticket format
+   - Jira ticket URL(s)/key(s) or Azure DevOps work item URL(s)/ID(s) matching docs/PROJECT_CONTEXT.md
+     `## Team conventions` ticket format
 2. **Additional context** — verbal decisions, Slack discussions, architectural constraints, priority notes, or anything
    not captured in the requirement/ticket.
 
@@ -64,14 +65,23 @@ Read `remote-api-access.md` in the `shared` skill directory for the remote API h
 
 Fetch ticket details and comments via the helper. Live ticket data is required before producing the review document.
 
-Parse ticket keys according to docs/PROJECT_CONTEXT.md `## Team conventions` ticket format.
+Parse ticket keys/work item IDs according to docs/PROJECT_CONTEXT.md `## Team conventions` ticket format.
+
+For Jira tickets:
 
 ```bash
 bun run .ritus/scripts/remote-api.ts jira issue "<TICKET_KEY_OR_URL>" "summary,description,status,issuetype,comment,acceptance_criteria"
 ```
 
-If either Jira request returns `401`, `403`, or `404` with `Issue does not exist or you do not have permission`,
-stop and ask the user to verify Jira access. Do not continue with stale or partial ticket data.
+For Azure DevOps work items:
+
+```bash
+bun run .ritus/scripts/remote-api.ts ado issue "<WORK_ITEM_URL_OR_ID>" "System.Title,System.Description,System.State,System.WorkItemType,System.Tags"
+bun run .ritus/scripts/remote-api.ts ado comments "<WORK_ITEM_URL_OR_ID>"
+```
+
+If either provider returns `401`, `403`, or a permission-style `404`, stop and ask the user to verify remote access.
+Do not continue with stale or partial ticket data.
 
 Apply docs/PROJECT_CONTEXT.md `## Requirement source precedence`.
 
@@ -107,7 +117,7 @@ If the requirements involve UI updates (new components, layout changes, styling,
 
 ### 4.4 Analyze Attached Images
 
-If the ticket or requirement includes image attachments (screenshots, mockups, annotated images):
+If the Jira ticket or requirement includes image attachments (screenshots, mockups, annotated images):
 
 First, download the images locally so they can be viewed:
 

@@ -1,6 +1,7 @@
 ---
 name: verify-task
 description: Dispatched as a fresh subagent after execute-task — verifies DONE WHEN conditions independently. Do not invoke directly; the orchestrating session dispatches this as a haiku subagent
+argument-hint: Provide the task file path, changed files, implementation summary, and validation evidence
 ---
 
 # Verify Task

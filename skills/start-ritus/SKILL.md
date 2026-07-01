@@ -1,6 +1,7 @@
 ---
 name: start-ritus
 description: Use when starting any conversation — establishes skill routing and golden rules for the workflow, requiring Skill tool invocation before ANY response including clarifying questions
+argument-hint: Provide the user's request so the router can choose the next applicable skill
 ---
 
 > **Subagent guard:** If you were dispatched as a subagent to execute a specific task (verify-task, pr-review, or execute-task), skip this skill entirely.

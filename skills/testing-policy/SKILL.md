@@ -1,6 +1,7 @@
 ---
 name: testing-policy
 description: Loaded automatically by execute-task and verify-task for new services, endpoints, workers, or bug fixes — test type rules and coverage requirements. Do not invoke standalone
+argument-hint: Provide the changed area and the type of behavior that needs validation
 ---
 
 # Testing Policy

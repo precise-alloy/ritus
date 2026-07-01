@@ -1,6 +1,7 @@
 ---
 name: execute-task
 description: Use when given a task file to implement — reads context, implements steps, runs tests, reports results. TRIGGER — invoke when user says "implement task", "run task", "execute task", "work on task", or provides a task file path (e.g., docs/tasks/.../*.md)
+argument-hint: Provide the task file path, requirement source, and expected validation commands
 ---
 
 # Execute Task
