@@ -1,85 +1,154 @@
-# AI Workflow — V1.0
+# Ritus
 
-A generic, project-agnostic AI-assisted development workflow. Covers role detection, triage, task generation, execution,
-standards enforcement, and doc discipline. Works with any language, stack, or team size.
+**Pronounced:** *REE-tus* `/ˈriː.tus/`
 
----
-
-## How to adopt
-
-Two paths — pick one.
-
-| Situation                | Do this                                                                                            |
-|--------------------------|----------------------------------------------------------------------------------------------------|
-| New project (empty repo) | Copy `.ai/` and `.github/` folders into repo root → say "setup ai workflow"                        |
-| Existing codebase        | Copy `.ai/` and `.github/` folders into repo root → say "setup ai workflow" → then "run repo-scan" |
-
-That's it. The AI agent runs an interactive setup interview — no templates to paste.
+A generic, project-agnostic AI-assisted development workflow. Skill-based architecture with on-demand loading,
+chain-based routing, and independent verification. Works with Claude Code, GitHub Copilot, and any language or stack.
 
 ---
 
-## What the setup interview asks
+## Formula
 
-The AI agent asks one question at a time. Have these ready before starting:
+```text
+AI Agent Workflow = Primary rules + Core workflow + Project profile + Runtime context
+```
 
-| #   | Question                     | Notes                                                                          |
-|-----|------------------------------|--------------------------------------------------------------------------------|
-| Q1  | New or existing project?     | Determines whether repo-scan runs after setup                                  |
-| Q2  | Project name                 | Lowercase kebab-case — used in task file slugs and commit scopes               |
-| Q3  | Team size                    | `solo` / `small` / `medium` / `large` — drives tasks/ naming and memory expiry |
-| Q4  | Primary language + framework | e.g. `TypeScript + Next.js`, `Python + FastAPI`                                |
-| Q5  | Git platform                 | `GitHub` / `GitLab` / `Azure DevOps` / other — skipped if solo                 |
-| Q6  | Git workflow                 | `PR-based` / `trunk-based` / `gitflow`                                         |
-| Q7  | AI tools in use              | `Claude Code` / `Cursor` / `Codex` / `Cline` / other                           |
-| Q8  | Model cost preference        | `cost-first` / `balanced` (default) / `quality-first`                          |
-| Q9  | Ticket format                | e.g. `PROJ-123` / `#123` / `none` — skipped if solo                            |
-| Q10 | Workflow owner               | `tech-lead` / `team` — skipped if solo                                         |
-| Q11 | QA mode (optional)           | `task` / `epic-only` / `off` (default) — generates `.qa.md` docs for testers   |
+| Layer           | File(s)                                           | What it does                                         |
+|-----------------|---------------------------------------------------|------------------------------------------------------|
+| Primary rules   | CLAUDE.md / copilot-instructions.md               | User's behavioral directives — highest authority     |
+| Core workflow   | Skills (via plugin)                               | On-demand skills with subagent dispatch instructions |
+| Project profile | `docs/profiles/*.yml` → `docs/PROJECT_CONTEXT.md` | Project facts rendered from YAML data                |
+| Runtime context | Current task file + active skill                  | What to work on now                                  |
 
 ---
+
+## Installation
+
+### Plugin (recommended)
+
+**Claude Code:**
+
+1. Add marketplace
+2. Install Ritus
+
+```text
+/plugin marketplace add precise-alloy/ritus#plugin
+/plugin install ritus
+```
+
+**GitHub Copilot CLI:**
+
+1. Add the marketplace
+2. Fetch the plugin manifest
+3. Install Ritus
+
+```text
+/plugin marketplace add precise-alloy/ritus#plugin
+/plugin marketplace browse precise-alloy-marketplace
+/plugin install ritus@precise-alloy-marketplace
+```
+
+After plugin install, tell your AI agent:
+
+```text
+setup ai work flow
+```
+
+or just
+
+```text
+/setup
+```
+
+The setup skill automatically scaffolds all project files (`docs/`, `.ritus/`, `.env.example`) and runs an
+11-question interview to fill your project profiles.
+
+## What gets installed
+
+The `/sync` skill copies template files into your project. Files are never overwritten once they exist.
+
+| Strategy             | Behavior                                    | Files                                                                                                                                                                                                                                               |
+|----------------------|---------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| **user-owned**       | Created once, you own it — edit freely      | `docs/profiles/project.yml`, `team.yml`, `runtime.yml`, `docs/PROJECT_CONTEXT.md`, `docs/ARCHITECTURE.md`, `docs/CODE_CONVENTIONS.md`, `docs/TEST_CONVENTIONS.md`, `docs/DECISIONS.md`, `docs/LESSONS.md`, `docs/CUTOFF.md`, `docs/STAKEHOLDERS.md` |
+| **append-only**      | Created once, only appended to              | `docs/CHANGELOG.md`                                                                                                                                                                                                                                 |
+| **scaffold**         | Directory placeholder                       | `docs/tasks/README.md`, `docs/memory/README.md`                                                                                                                                                                                                     |
+| **project-specific** | Created once, you own it — extend as needed | `.ritus/scripts/remote-api.ts`, `.ritus/scripts/providers/*`, `.ritus/scripts/tsconfig.json`, `.env.example`                                                                                                                                        |
+
+Run `/sync check missing` to see what's missing, or `/sync create missing` to create missing files.
+
+For existing codebases, follow up with:
+
+```text
+run repo-scan
+```
+
+This detects auth patterns, build commands, testing conventions, and coding conventions from your codebase.
+
+### Upgrading
+
+**Plugin:** updates automatically — skills are replaced. On next session start, the sync hook reports
+missing project files. Run the setup again to create any new files. Existing user files are never overwritten.
 
 ## What gets generated
 
-After the interview, the AI agent writes these files automatically:
+**By plugin (workflow-owned):**
 
-| File                      | What it contains                                                                                                     |
-|---------------------------|----------------------------------------------------------------------------------------------------------------------|
-| `.ai/AGENTS.md`           | **Workflow source of truth** — role detection, triage, read order, golden rules, standards, output format            |
-| `.ai/profiles/project.md` | Project-specific technical facts — language, source layout, auth/error/testing patterns, build commands, constraints |
-| `.ai/profiles/team.md`    | Team process config — ticket format, branch/PR conventions, QA mode, traceability policy, review defaults            |
-| `.ai/profiles/runtime.md` | Runtime config — AI tools, model routing, mandatory Bun remote API helper rules                                      |
-| `.ai/exec-context.md`     | Auto-generated executor context — thin subset generated from project profile + reusable executor rules               |
-| `.ai/routing.md`          | Role detection flow, context-by-role map, runtime profile pointer                                                    |
-| `.ai/SKILLS-TODO.md`      | Tech stack registry — language + framework pre-filled, rest as ❓                                                     |
-| `docs/ARCHITECTURE.md`    | Header filled — rest populated progressively during work                                                             |
-| `AGENTS.md` (root)        | Thin pointer → `.ai/AGENTS.md`                                                                                       |
-| `.claude/CLAUDE.md`       | Bootstrap pointer + setup/repo-scan triggers                                                                         |
+| Component | What it contains                                                                            |
+|-----------|---------------------------------------------------------------------------------------------|
+| 16 skills | On-demand workflow and standard skills (includes `start-ritus` meta-skill for auto-routing) |
 
-**Filled later by repo-scan or first work session:**
+**By setup / repo-scan (user-owned in target project):**
 
-- Project profile: auth pattern, error handling, testing pattern, project constraints
-- Team profile: branch/PR defaults, QA mode, traceability policy
-- Runtime profile: AI tools, model routing, Bun remote API helper config
-- Build / lint / test / typecheck commands
-- Module skill files (`.ai/skills/`)
-- Module map (`.ai/module-map.md`)
+| File                       | What it contains                                          |
+|----------------------------|-----------------------------------------------------------|
+| `docs/PROJECT_CONTEXT.md`  | Always-on project facts (rendered from profiles)          |
+| `docs/profiles/*.yml`      | Source of truth — project, team, runtime data             |
+| `docs/ARCHITECTURE.md`     | System architecture (header filled, rest progressive)     |
+| `docs/CODE_CONVENTIONS.md` | Project-specific coding conventions (filled by repo-scan) |
+| `docs/TEST_CONVENTIONS.md` | Project-specific test conventions (filled by repo-scan)   |
 
 ---
 
-## Role system
+## Skills
 
-The AI agent detects its role from the message before loading any context.
+Skills are self-contained SKILL.md files loaded on-demand. Each has YAML frontmatter (name + description) so the
+agent scans relevance without loading the full content. Subagent dispatch (model, effort, constraints) is defined
+in the `start-ritus` skill and in each skill's dispatch instructions section.
 
-| Role          | Triggered by                                                                  | Context loaded                              | Output                      |
-|---------------|-------------------------------------------------------------------------------|---------------------------------------------|-----------------------------|
-| **Architect** | `design`, `plan`, `break down`, `analyze`, `brainstorm`, `review and propose` | `.ai/AGENTS.md` + targeted profile sections | Task files + execution plan |
-| **Executor**  | `implement`, `fix`, `build`, `create`, `refactor`, `update X`                 | `exec-context.md` only (~75% fewer tokens)  | Code changes + DONE WHEN    |
+### Workflow skills
 
-The AI agent also acts as executor when the message is execution-intent — it loads `exec-context.md` instead of
-`AGENTS.md`. Configured external tools always run as executor.
+| Skill           | Purpose                                                                         |
+|-----------------|---------------------------------------------------------------------------------|
+| `start-ritus`   | Entry-point meta-skill — golden rules, dispatch instructions, workflow tracking |
+| `brainstorm`    | Explore unclear requirements — propose 2-3 approaches before triage             |
+| `triage`        | Classify changes by blast radius, contract impact, validation clarity           |
+| `ticket-review` | Analyze requirements (plain text or ticket) → produce task files                |
+| `execute-task`  | Implement a task file — load context, implement steps, report                   |
+| `verify-task`   | Independent per-task verification (dispatched as fresh haiku subagent)          |
+| `pr-review`     | Adversarial review at ticket/PR level (dispatched as fresh sonnet subagent)     |
+| `debug`         | Systematic 4-phase root cause investigation with evidence grading               |
+| `setup`         | Setup interview — write YAML profiles, render docs/PROJECT_CONTEXT.md           |
+| `sync`          | Scaffold or check project files — create missing docs, profiles, scripts        |
+| `repo-scan`     | Detect stack, auth, build commands from existing codebase                       |
 
-Ambiguous message → defaults to **Architect**. The agent never switches role mid-task silently — stops and asks if
-unclear.
+### Standard skills (loaded alongside workflow skills when applicable)
+
+| Skill                | Load when                                                            |
+|----------------------|----------------------------------------------------------------------|
+| `code-conventions`   | Any code change                                                      |
+| `testing-policy`     | New service, endpoint, worker, or bug fix                            |
+| `tdd`                | New business logic or bug fix — enforces red-green-refactor          |
+| `security`           | Auth, billing, migrations, tenant isolation, infra, shared contracts |
+| `definition-of-done` | STANDARD or EPIC tasks                                               |
+
+### Skill chains
+
+```text
+Explore/brainstorm:   brainstorm → triage → ticket-review
+Plan/implement:       triage → ticket-review → execute-task → verify-task (haiku subagent)
+Debug/fix:            debug → execute-task → verify-task (haiku subagent)
+Review:               pr-review (sonnet subagent)
+```
 
 ---
 
@@ -87,183 +156,127 @@ unclear.
 
 ```text
 Write requirement
-  → Agent detects role (architect or executor)
+  → Agent loads triage skill → classifies (TRIVIAL / SIMPLE / STANDARD / EPIC)
+  → Triage recommends model + effort from routing table
 
-  ARCHITECT:
-    → Triage (TRIVIAL / SIMPLE / STANDARD / EPIC)
-    → TRIVIAL: Executor implements directly
-    → SIMPLE:  2-section task note → send to executor tool
-    → STANDARD/EPIC: task files + execution plan → send to executor tool
+  TRIVIAL:                Agent implements directly — no task file, self-verifies
+  SIMPLE / STANDARD / EPIC:
+    → ticket-review produces task files (parallel groups when independent)
+    → execute-task implements each task
+    → verify-task subagent (haiku) reviews each task independently
+    → pr-review subagent (sonnet) runs adversarial review at ticket level
 
-  EXECUTOR (configured code-edit tool or shell runner):
-    → Reads exec-context.md + task file + applicable standards
-    → Implements STEPS
-    → Validates DONE WHEN + standards gates
-    → Updates .qa.md if QA mode is on
-    → Reports done
+  If pr-review approves → ready for merge/PR
+  If pr-review rejects  → fix → re-verify → re-review until approved
 
   Human:
     → Reviews diff
-    → Commits using batch commit message
+    → Commits
     → Pushes
 ```
 
----
-
-## QA docs (when QA mode is active)
-
-For STANDARD and EPIC tasks, the architect agent generates a paired `.qa.md` alongside each task file.
-
-```text
-.ai/tasks/feat-auth/001-add-login.md        ← task (for executor)
-.ai/tasks/feat-auth/001-add-login.qa.md     ← QA impact doc (for tester)
-```
-
-Each `.qa.md` contains: affected features, regression risk (low/medium/high), test scenarios, regression checks, and
-what testers can safely skip.
-
-When an EPIC closes, a summary is generated at `docs/qa/{epic-slug}.qa.md` consolidating all impacted features in
-recommended test order.
-
----
-
-## Bundled skills
-
-This workflow includes two repository skills under `.github/skills/`:
-
-| Skill           | Use for                                                                                              | Reads project-specific guidance from                                                                          |
-|-----------------|------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------------------------------------|
-| `ticket-review` | Fetching/reviewing tickets, extracting requirements, creating review docs, and generating task files | `.ai/profiles/project.md`, `.ai/profiles/team.md`, `.ai/profiles/runtime.md`, `.ai/standards/stakeholders.md` |
-| `pr-review`     | Reviewing remote PRs or local pre-PR changes against ticket requirements and task DONE WHEN gates    | `.ai/profiles/project.md`, `.ai/profiles/team.md`, `.ai/profiles/runtime.md`, `.ai/standards/stakeholders.md` |
-
-Both skills use `.ai/profiles/runtime.md` section `## Remote API access` for Jira/Azure DevOps access. Bun and
-`.github/scripts/remote-api.ts` are mandatory for those remote calls.
+For the full workflow diagram, see [docs/WORKFLOW_DIAGRAMS.md](./docs/WORKFLOW_DIAGRAMS.md).
 
 ---
 
 ## Repository structure
 
 ```text
-AGENTS.md                    ← thin pointer to .ai/AGENTS.md (do not add rules here)
-README.md                    ← this file
-.claude/
-  CLAUDE.md                  ← Claude Code bootstrap (setup trigger, pointer to .ai/AGENTS.md)
-.ai/
-  AGENTS.md                  ← workflow source of truth — role, triage, read order, golden rules
+marketplace.json                 ← Copilot marketplace manifest
+.claude-plugin/
+    marketplace.json       ← Claude marketplace manifest
+    plugin.json   ← Claude Code plugin manifest
+README.md                        ← this file
+.env.example                     ← remote API credentials template
+skills/
+  start-ritus/SKILL.md     ← entry-point meta-skill: golden rules, dispatch instructions
+  brainstorm/SKILL.md
+  triage/SKILL.md
+  ticket-review/SKILL.md
+    templates/               ← review doc, task file, QA, EPIC memory templates
+  execute-task/SKILL.md
+  verify-task/SKILL.md
+  pr-review/SKILL.md
+  shared/
+    remote-api-access.md     ← remote API rules (shared by ticket-review + pr-review)
+  debug/SKILL.md
+  setup/SKILL.md
+  sync/SKILL.md
+    script/sync.cjs              ← project file scaffolding script
+  repo-scan/SKILL.md
+  code-conventions/SKILL.md
+  testing-policy/SKILL.md
+  tdd/SKILL.md
+  security/SKILL.md
+  definition-of-done/SKILL.md
+docs/                            ← user-owned (scaffolded into target project)
+  PROJECT_CONTEXT.md             ← always-on project facts (rendered from profiles)
   profiles/
-    project.md               ← project-specific technical facts and commands
-    team.md                  ← team process, branch/PR, QA, traceability policy
-    runtime.md               ← AI tools, model routing, remote API helper
-  exec-context.md            ← auto-generated executor context
-  SKILLS-TODO.md             ← tech stack registry (❓ rows filled during work)
-  module-map.md              ← phrase → module name mappings
-  routing.md                 ← role detection, context-by-role, model routing
-  workflows/
-    setup.md                 ← setup interview; fills AGENTS.md + profiles
-    repo-scan.md             ← existing project scan; fills project profile + SKILLS-TODO.md
-    generate-tasks.md        ← architect: triage, task formats, QA file formats
-    execute-task.md          ← executor: implementation steps, DONE WHEN gates
-    feature.md               ← feature workflow
-    bugfix.md                ← bugfix workflow
-  standards/
-    code-conventions.md      ← naming, structure, error handling, logging
-    security.md              ← auth, secrets, tenant isolation, audit logging
-    testing-policy.md        ← test type matrix, unit/integration rules
-    ui-visual-testing.md     ← component, page, accessibility checks
-    definition-of-done.md    ← hard gates, per-change-type checklists
-    stakeholders.md          ← stakeholder ownership and escalation template
-  skills/                    ← module interface summaries (created during work)
-  tasks/                     ← execution task files (created during work)
-  memory/                    ← multi-session EPIC context snapshots
-.github/
-  skills/
-    ticket-review/           ← ticket analysis and task planning skill
-    pr-review/               ← PR/local-diff adversarial review skill
-  scripts/
-    remote-api.ts            ← Bun helper for Jira/Azure DevOps remote API access
-docs/
-  ARCHITECTURE.md            ← system architecture (filled progressively)
-  CUTOFF.md                  ← module registry — documented vs code-only
-  DECISIONS.md               ← architecture decisions and rationale
-  CHANGELOG.md               ← completed EPICs log
-  LESSONS.md                 ← dangerous patterns discovered from bugs
-  qa/                        ← EPIC QA summaries (created when EPICs close)
+    project.yml                  ← project data (source of truth)
+    team.yml                     ← team data
+    runtime.yml                  ← runtime data
+  tasks/                         ← execution task files (created during work)
+  memory/                        ← multi-session EPIC context snapshots
+  ARCHITECTURE.md
+  CODE_CONVENTIONS.md
+  TEST_CONVENTIONS.md
+  CUTOFF.md
+  DECISIONS.md
+  CHANGELOG.md
+  LESSONS.md
+  WORKFLOW_DIAGRAMS.md           ← visual workflow reference (human-only)
+  qa/                            ← EPIC QA summaries (when QA mode is active)
+.ritus/scripts/
+  remote-api.ts                  ← CLI dispatcher for remote API providers
+  providers/
+    types.ts                     ← Provider interface and shared types
+    http.ts                      ← HTTP plumbing (retry, auth, env loading)
+    provider-jira.ts             ← Jira Cloud (tickets, comments, changelog, attachments)
+    provider-ado.ts              ← Azure DevOps (PRs + work items)
+    provider-github.ts           ← GitHub (PRs)
 ```
-
----
-
-## File merge strategy (existing projects)
-
-| File / folder         | On adopt                                                                                                                             |
-|-----------------------|--------------------------------------------------------------------------------------------------------------------------------------|
-| `.ai/AGENTS.md`       | Workflow-only source of truth — replace/merge only when upgrading the workflow (keep project/team/runtime config in `.ai/profiles/`) |
-| `.ai/profiles/*.md`   | Merge project/team/runtime values — keep existing project constraints                                                                |
-| `.ai/exec-context.md` | Regenerate from filled `.ai/profiles/project.md` after merge                                                                         |
-| `AGENTS.md` (root)    | Overwrite with thin pointer after extracting any project-specific rules                                                              |
-| `.claude/CLAUDE.md`   | Overwrite with bootstrap form after extracting any project-specific rules                                                            |
-| `.ai/workflows/*.md`  | Replace                                                                                                                              |
-| `.ai/routing.md`      | Replace                                                                                                                              |
-| `.ai/SKILLS-TODO.md`  | Generate fresh from repo-scan                                                                                                        |
-| `.ai/skills/*.md`     | Append only — never overwrite                                                                                                        |
-| `.ai/tasks/**`        | Never touch                                                                                                                          |
-| `.ai/memory/**`       | Never touch                                                                                                                          |
-| `docs/**`             | Never touch                                                                                                                          |
-| `.ai/module-map.md`   | Never touch                                                                                                                          |
 
 ---
 
 ## Ongoing maintenance
 
-### `.ai/profiles/project.md` — fill during work
+### `docs/profiles/project.yml` — fill during work
 
-| Section                                       | When to fill                                                        |
-|-----------------------------------------------|---------------------------------------------------------------------|
-| `## Project-specific constraints`             | Add rules as discovered — one rule per line                         |
-| `## Testing` / `## Test location conventions` | After first test — project-specific commands and rules              |
-| `## Authentication`                           | During repo-scan or first auth-touching task                        |
-| `## Error handling`                           | During repo-scan                                                    |
-| `## Build commands`                           | During repo-scan or correct after setup if auto-detection was wrong |
+Edit the `.yml` file. The AI agent re-reads `docs/PROJECT_CONTEXT.md` on next session start.
 
-### `.ai/profiles/team.md` — fill during setup or process changes
+| YAML field            | When to fill                                 |
+|-----------------------|----------------------------------------------|
+| `project_constraints` | Add rules as discovered                      |
+| `authentication.*`    | During repo-scan or first auth-touching task |
+| `error_handling`      | During repo-scan                             |
+| `build_commands.*`    | During repo-scan                             |
 
-| Section                        | When to fill                                         |
-|--------------------------------|------------------------------------------------------|
-| `## Team config`               | During setup interview                               |
-| `## Branch conventions`        | During setup interview or when git workflow changes  |
-| `## Pull request requirements` | During setup interview or when PR process changes    |
-| `## Review defaults`           | During setup or review process changes               |
-| `## Traceability policy`       | When ticket/commit/comment traceability rules change |
+### `docs/CODE_CONVENTIONS.md` — fill by repo-scan, refine manually
 
-### `.ai/profiles/runtime.md` — fill during setup or tool changes
+Repo-scan detects type system, naming, module structure, error handling, logging. Refine after repo-scan.
 
-| Section                | When to fill                                                                                          |
-|------------------------|-------------------------------------------------------------------------------------------------------|
-| `## AI tools in use`   | During setup interview or when tools change                                                           |
-| `## Model routing`     | During setup interview or when model budget changes                                                   |
-| `## Remote API access` | When Jira/Azure DevOps remote access is needed; Bun and `.github/scripts/remote-api.ts` are mandatory |
+### `docs/TEST_CONVENTIONS.md` — fill by repo-scan, refine manually
+
+Repo-scan detects test framework, naming, mocking strategy, fixtures, async patterns. Refine after repo-scan.
 
 ### `docs/ARCHITECTURE.md` — fill progressively
 
-| Section                    | When                                                          |
-|----------------------------|---------------------------------------------------------------|
-| Apps/services and purposes | During first EPIC or system overview session                  |
-| Key flows                  | Each time a major flow is built                               |
-| Runbook patterns           | First time a pattern is used (new endpoint, new module, etc.) |
+| Section                    | When                                         |
+|----------------------------|----------------------------------------------|
+| Apps/services and purposes | During first EPIC or system overview session |
+| Key flows                  | Each time a major flow is built              |
+| Runbook patterns           | First time a pattern is used                 |
 
-### `docs/DECISIONS.md` — one entry per non-obvious constraint
+### `docs/DECISIONS.md` — record non-obvious decisions
 
-Write a `DECISION-NNN` block each time a rule is added to `.ai/AGENTS.md` or `.ai/profiles/` that needs rationale.
+Written automatically by `ticket-review` (architectural choices), `debug` (escalation gate), and `pr-review`
+(design concerns). Also written manually for any non-obvious constraint.
 
 ### `docs/LESSONS.md` — one entry per dangerous pattern found
 
-Two triggers: (1) after bugs that reveal "never again" patterns, (2) when an EPIC memory file expires — extract
-failure/lesson entries before deleting the memory file.
+Two triggers: (1) after bugs that reveal "never again" patterns, (2) when an EPIC memory file expires.
 
-### `docs/CHANGELOG.md` — one entry per completed EPIC
-
-One line per EPIC. Delete the corresponding `.ai/memory/` file after logging.
-
-### `.ai/memory/` — EPIC context files expire
+### `docs/memory/` — EPIC context files expire
 
 Expiry days set by team size (solo=60, small=30, medium=21, large=14). Before deleting an expired memory file:
 
@@ -272,31 +285,16 @@ Expiry days set by team size (solo=60, small=30, medium=21, large=14). Before de
 3. Write one-line summary → `docs/CHANGELOG.md`
 4. Delete the memory file
 
-### `docs/qa/` — EPIC QA summaries (when QA mode is active)
-
-Generated automatically when an EPIC closes. One file per EPIC: `docs/qa/{epic-slug}.qa.md`. Testers use this as the
-primary reference for what to verify and in what order.
-
-### `.ai/skills/{module}.md` — create on first touch
-
-Written by the agent when a module's interface is first encountered. Max 150 lines. Updated when public interface
-changes.
-
 ---
 
 ## Key resources
 
-| Resource                                                                       | Purpose                                                              |
-|--------------------------------------------------------------------------------|----------------------------------------------------------------------|
-| [.ai/AGENTS.md](.ai/AGENTS.md)                                                 | Workflow rules, triage, read order, standards, output format         |
-| [.ai/profiles/project.md](.ai/profiles/project.md)                             | Project-specific technical facts, auth/error/testing, build commands |
-| [.ai/profiles/team.md](.ai/profiles/team.md)                                   | Team process, branch/PR, QA, traceability, review defaults           |
-| [.ai/profiles/runtime.md](.ai/profiles/runtime.md)                             | AI tools, model routing, remote API helper rules                     |
-| [.ai/routing.md](.ai/routing.md)                                               | Role detection, context-by-role map, executor guide                  |
-| [.ai/exec-context.md](.ai/exec-context.md)                                     | Executor context generated from project profile + reusable rules     |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)                                   | System architecture, runbook patterns                                |
-| [docs/CUTOFF.md](docs/CUTOFF.md)                                               | What is documented vs what exists only in code                       |
-| [.ai/standards/](.ai/standards/)                                               | Code conventions, security, testing, UI, definition of done          |
-| [.github/skills/ticket-review/SKILL.md](.github/skills/ticket-review/SKILL.md) | Ticket analysis, review docs, and task planning                      |
-| [.github/skills/pr-review/SKILL.md](.github/skills/pr-review/SKILL.md)         | PR/local-diff review against ticket requirements                     |
-| [docs/qa/](docs/qa/)                                                           | EPIC QA summaries for testers                                        |
+| Resource                                               | Purpose                              |
+|--------------------------------------------------------|--------------------------------------|
+| [docs/PROJECT_CONTEXT.md](docs/PROJECT_CONTEXT.md)     | Always-on project facts              |
+| [docs/profiles/](docs/profiles/)                       | YAML data files (source of truth)    |
+| [docs/CODE_CONVENTIONS.md](docs/CODE_CONVENTIONS.md)   | Project-specific coding conventions  |
+| [docs/TEST_CONVENTIONS.md](docs/TEST_CONVENTIONS.md)   | Project-specific test conventions    |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)           | System architecture                  |
+| [docs/DECISIONS.md](docs/DECISIONS.md)                 | Architecture decisions and rationale |
+| [docs/WORKFLOW_DIAGRAMS.md](docs/WORKFLOW_DIAGRAMS.md) | Visual workflow reference            |
