@@ -28,6 +28,9 @@ AI Agent Workflow = Primary rules + Core workflow + Project profile + Runtime co
 
 **Claude Code:**
 
+1. Add marketplace
+2. Install Ritus
+
 ```text
 /plugin marketplace add precise-alloy/ritus#plugin
 /plugin install ritus
@@ -35,8 +38,14 @@ AI Agent Workflow = Primary rules + Core workflow + Project profile + Runtime co
 
 **GitHub Copilot CLI:**
 
+1. Add the marketplace
+2. Fetch the plugin manifest
+3. Install Ritus
+
 ```text
-copilot plugin install precise-alloy/ritus#plugin
+/plugin marketplace add precise-alloy/ritus#plugin
+/plugin marketplace browse precise-alloy-marketplace
+/plugin install ritus@precise-alloy-marketplace
 ```
 
 After plugin install, tell your AI agent:
