@@ -67,8 +67,12 @@ const STRATEGIES = {
 function getPluginVersion() {
   const manifestPath = join(pluginRoot, ".claude-plugin", "plugin.json");
   if (existsSync(manifestPath)) {
-    const manifest = JSON.parse(readFileSync(manifestPath, "utf-8"));
-    return manifest.version || "1.0.0";
+    try {
+      const manifest = JSON.parse(readFileSync(manifestPath, "utf-8"));
+      return manifest.version || "1.0.0";
+    } catch (_) {
+      return "1.0.0";
+    }
   }
   return "1.0.0";
 }
@@ -150,13 +154,13 @@ function apply() {
     for (const f of created) console.log("  + " + f);
   }
 
-  if (skipped.length > 0 && created.length > 0) {
+  if (skipped.length > 0) {
     console.log("Skipped " + skipped.length + " file(s):");
     for (const entry of skipped) console.log("  - " + entry.file + " (" + entry.reason + ")");
   }
 
   if (created.length === 0) {
-    console.log("ritus: all files up to date (v" + pluginVersion + ")");
+    console.log("ritus: project files up to date (v" + pluginVersion + ")");
   }
 }
 

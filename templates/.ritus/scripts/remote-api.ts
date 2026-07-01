@@ -11,6 +11,14 @@ const PROVIDER_MAP = new Map(PROVIDERS.map((p) => [p.name, p]));
 
 const HELP_FLAGS = new Set(['-h', '--help', 'help']);
 
+function getCliArgs(argv: string[]): string[] {
+  if (argv[1] === 'run') {
+    return argv.slice(3);
+  }
+
+  return argv.slice(2);
+}
+
 function printUsage(): void {
   const usageLines = PROVIDERS.flatMap((p) => p.usageLines());
   const exampleLines = PROVIDERS.flatMap((p) => p.exampleLines());
@@ -110,8 +118,8 @@ async function runCheckEnv(): Promise<void> {
 async function main(): Promise<void> {
   await loadLocalEnv();
 
-  const argsStartIndex = Bun.argv[1] === 'run' ? 3 : 2;
-  const [system, action, target, extra] = Bun.argv.slice(argsStartIndex);  if (!system) {
+  const [system, action, target, extra] = getCliArgs(Bun.argv);
+  if (!system) {
     printUsage();
     process.exit(2);
   }

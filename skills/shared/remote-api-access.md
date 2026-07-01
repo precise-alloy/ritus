@@ -25,7 +25,7 @@ bun run .ritus/scripts/remote-api.ts jira attachment-download <KEY_OR_URL> <OUTP
 
 # Azure DevOps (ADO)
 bun run .ritus/scripts/remote-api.ts ado pr <PR_URL>                        # PR metadata
-bun run .ritus/scripts/remote-api.ts ado issue <WORK_ITEM_URL_OR_ID>        # work item details
+bun run .ritus/scripts/remote-api.ts ado issue <WORK_ITEM_URL_OR_ID> [fields]  # work item details
 bun run .ritus/scripts/remote-api.ts ado comments <WORK_ITEM_URL_OR_ID>     # work item comments
 bun run .ritus/scripts/remote-api.ts ado changelog <WORK_ITEM_URL_OR_ID>    # work item updates
 
