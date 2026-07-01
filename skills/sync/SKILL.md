@@ -16,19 +16,19 @@ When you need to scaffold project files without running the full setup interview
 
 ## Commands
 
-The sync script lives at `skills/sync/script/sync.cjs` relative to the plugin root. To find the correct path,
-use the skill directory you loaded this file from — the script is at `script/sync.cjs` next to this SKILL.md.
+The sync script lives at `skills/sync/script/sync.ts` relative to the plugin root. To find the correct path,
+use the skill directory you loaded this file from — the script is at `script/sync.ts` next to this SKILL.md.
 
 ### Check (report only, no writes)
 
 ```bash
-node "<path-to-this-skill>/script/sync.cjs" --check
+bun "<path-to-this-skill>/script/sync.ts" --check
 ```
 
 ### Apply (create missing files)
 
 ```bash
-node "<path-to-this-skill>/script/sync.cjs" --apply
+bun "<path-to-this-skill>/script/sync.ts" --apply
 ```
 
 Replace `<path-to-this-skill>` with the absolute path of the directory containing this SKILL.md file.

@@ -1,12 +1,9 @@
-#!/usr/bin/env node
-/* eslint-disable @typescript-eslint/no-require-imports */
+#!/usr/bin/env bun
 
-"use strict";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { dirname, join } from "node:path";
 
-const { existsSync, mkdirSync, readFileSync, writeFileSync } = require("node:fs");
-const { dirname, join } = require("node:path");
-
-function findPluginRoot(startDir) {
+function findPluginRoot(startDir: string): string | null {
   let dir = startDir;
   while (dir !== dirname(dir)) {
     if (existsSync(join(dir, "templates")) && existsSync(join(dir, "skills"))) return dir;
@@ -18,10 +15,10 @@ function findPluginRoot(startDir) {
 const pluginRoot =
   process.env.CLAUDE_PLUGIN_ROOT ||
   process.env.PLUGIN_ROOT ||
-  findPluginRoot(__dirname);
+  findPluginRoot(import.meta.dirname);
 
 if (!pluginRoot) {
-  console.error("ritus: could not locate plugin root (no templates/ + skills/ directory found above " + __dirname + ")");
+  console.error("ritus: could not locate plugin root (no templates/ + skills/ directory found above " + import.meta.dirname + ")");
   process.exit(1);
 }
 
@@ -31,7 +28,9 @@ const projectRoot =
 
 const templateDir = join(pluginRoot, "templates");
 
-const STRATEGIES = {
+type Strategy = "user-owned" | "append-only" | "scaffold" | "project-specific";
+
+const STRATEGIES: Record<Strategy, string[]> = {
   "user-owned": [
     "docs/profiles/project.yml",
     "docs/profiles/team.yml",
@@ -64,35 +63,35 @@ const STRATEGIES = {
   ],
 };
 
-function getPluginVersion() {
-  const manifestPath = join(pluginRoot, ".claude-plugin", "plugin.json");
+function getPluginVersion(): string {
+  const manifestPath = join(pluginRoot!, ".claude-plugin", "plugin.json");
   if (existsSync(manifestPath)) {
     try {
       const manifest = JSON.parse(readFileSync(manifestPath, "utf-8"));
       return manifest.version || "1.0.0";
-    } catch (_) {
+    } catch {
       return "1.0.0";
     }
   }
   return "1.0.0";
 }
 
-function getStrategy(filePath) {
+function getStrategy(filePath: string): Strategy {
   for (const [strategy, files] of Object.entries(STRATEGIES)) {
-    if (files.includes(filePath)) return strategy;
+    if (files.includes(filePath)) return strategy as Strategy;
   }
   return "user-owned";
 }
 
-function getAllTemplateFiles() {
-  const files = [];
+function getAllTemplateFiles(): string[] {
+  const files: string[] = [];
   for (const fileList of Object.values(STRATEGIES)) {
     files.push(...fileList);
   }
   return files;
 }
 
-function check() {
+function check(): void {
   if (!existsSync(templateDir)) {
     console.log("ritus: templates directory not found at " + templateDir);
     process.exit(1);
@@ -100,7 +99,7 @@ function check() {
 
   const pluginVersion = getPluginVersion();
   const files = getAllTemplateFiles();
-  const missing = [];
+  const missing: string[] = [];
 
   for (const file of files) {
     const projectPath = join(projectRoot, file);
@@ -122,7 +121,7 @@ function check() {
   for (const f of missing) console.log("  + " + f);
 }
 
-function apply() {
+function apply(): void {
   if (!existsSync(templateDir)) {
     console.log("ritus: templates directory not found at " + templateDir);
     process.exit(1);
@@ -130,8 +129,8 @@ function apply() {
 
   const pluginVersion = getPluginVersion();
   const files = getAllTemplateFiles();
-  const created = [];
-  const skipped = [];
+  const created: string[] = [];
+  const skipped: { file: string; reason: string }[] = [];
 
   for (const file of files) {
     const projectPath = join(projectRoot, file);
@@ -146,7 +145,7 @@ function apply() {
       continue;
     }
 
-    skipped.push({ file: file, reason: getStrategy(file) + " — already exists" });
+    skipped.push({ file, reason: getStrategy(file) + " — already exists" });
   }
 
   if (created.length > 0) {
@@ -175,7 +174,7 @@ switch (command) {
     apply();
     break;
   default:
-    console.log("Usage: sync.cjs [--check | --apply]");
+    console.log("Usage: sync.ts [--check | --apply]");
     console.log("");
     console.log("  --check   Report missing files (safe, no writes)");
     console.log("  --apply   Create missing files, never overwrite existing");

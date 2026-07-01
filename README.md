@@ -202,7 +202,7 @@ skills/
   debug/SKILL.md
   setup/SKILL.md
   sync/SKILL.md
-    script/sync.cjs              ← project file scaffolding script
+    script/sync.ts               ← project file scaffolding script
   repo-scan/SKILL.md
   code-conventions/SKILL.md
   testing-policy/SKILL.md
