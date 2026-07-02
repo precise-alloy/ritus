@@ -56,6 +56,7 @@ const STRATEGIES: Record<Strategy, string[]> = {
     ".ritus/scripts/providers/types.ts",
     ".ritus/scripts/providers/http.ts",
     ".ritus/scripts/providers/provider-jira.ts",
+    ".ritus/scripts/providers/sanitize.ts",
     ".ritus/scripts/providers/provider-ado.ts",
     ".ritus/scripts/providers/provider-github.ts",
     ".ritus/scripts/tsconfig.json",
