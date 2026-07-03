@@ -117,14 +117,14 @@ async function getJiraComments(target: string, extra?: string): Promise<unknown>
   const baseUrl = `${jiraBaseUrl()}/rest/api/3/issue/${encodeURIComponent(ticketKey)}/comment`;
   const headers = jiraHeaders();
 
-let limit: number | undefined;
-if (extra) {
-  const n = parseInt(extra, 10);
-  if (Number.isFinite(n) && n > 0) {
-    const maxLimit = JIRA_PAGE_SIZE * JIRA_MAX_COMMENTS;
-    limit = Math.min(n, maxLimit);
+  let limit: number | undefined;
+  if (extra) {
+    const n = parseInt(extra, 10);
+    if (Number.isFinite(n) && n > 0) {
+      const maxLimit = JIRA_PAGE_SIZE * JIRA_MAX_COMMENTS;
+      limit = Math.min(n, maxLimit);
+    }
   }
-}
 
   let total: number;
   let comments: unknown[];
