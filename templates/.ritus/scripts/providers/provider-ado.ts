@@ -157,16 +157,12 @@ function parseLimit(extra?: string): number | undefined {
 
 function takeLatest<T>(items: T[], limit: number | undefined, dateKey: string): T[] {
   if (!limit || items.length <= limit) return items;
-  const sorted = [...items].sort((a, b) => {
+  const sortedDesc = [...items].sort((a, b) => {
     const da = String((a as Record<string, unknown>)[dateKey] ?? '');
     const db = String((b as Record<string, unknown>)[dateKey] ?? '');
     return db.localeCompare(da);
   });
-  return sorted.slice(0, limit).sort((a, b) => {
-    const da = String((a as Record<string, unknown>)[dateKey] ?? '');
-    const db = String((b as Record<string, unknown>)[dateKey] ?? '');
-    return da.localeCompare(db);
-  });
+  return sortedDesc.slice(0, limit).reverse();
 }
 
 async function getAdoPrThreads(target: string, extra?: string): Promise<unknown> {
