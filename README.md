@@ -1,9 +1,19 @@
+<p align="center">
+  <a href="https://strix.ai/">
+    <img src="https://github.com/precise-alloy/.github/raw/main/images/ritus-banner.png" alt="Ritus Banner" width="100%">
+  </a>
+</p>
+
+<div align="center">
+  
 # Ritus
 
-**Pronounced:** *REE-tus* `/ˈriː.tus/` - from Latin, meaning a prescribed rite or procedure.
+</div>
 
-A generic, project-agnostic AI-assisted development workflow. Skill-based architecture with on-demand loading,
-chain-based routing, and independent verification. Works with Claude Code, GitHub Copilot, and any language or stack.
+Pronounced: *REE-tus* `/ˈriː.tus/` - from Latin, meaning a prescribed rite or procedure.
+
+A disciplined workflow for reliable AI-assisted development. Ritus uses skill-based architecture, on-demand loading, chain-based routing, and independent verification to work across Claude Code, GitHub Copilot, and any language or stack.
+
 
 ---
 
@@ -32,7 +42,7 @@ AI Agent Workflow = Primary rules + Core workflow + Project profile + Runtime co
 2. Install Ritus
 
 ```text
-/plugin marketplace add precise-alloy/ritus#plugin
+/plugin marketplace add precise-alloy/ritus
 /plugin install ritus
 ```
 
@@ -43,7 +53,7 @@ AI Agent Workflow = Primary rules + Core workflow + Project profile + Runtime co
 3. Install Ritus
 
 ```text
-/plugin marketplace add precise-alloy/ritus#plugin
+/plugin marketplace add precise-alloy/ritus
 /plugin marketplace browse precise-alloy-marketplace
 /plugin install ritus@precise-alloy-marketplace
 ```
