@@ -101,7 +101,7 @@ async function fetchGitHubLatestIssueComments(baseUrl: string, headers: Record<s
   const lastPage = parseLinkHeaderLastPage(linkHeader);
 
   if (lastPage === undefined) {
-    // No Link header means all items fit in one page; re-fetch with proper page size
+// No Link header means there are 0–1 total items; the probe response already contains all results.
     const items = Array.isArray(body) ? body : [];
     return items.slice(-limit);
   }

@@ -1,4 +1,4 @@
-// Response sanitization for Jira and ADO API responses.
+// Response sanitization for Jira, Azure DevOps, and GitHub API responses.
 // Strips noisy fields (avatars, self-links, identity GUIDs, pagination metadata)
 // and converts ADF/HTML markup to compact Markdown-flavoured text to reduce agent context token usage.
 
