@@ -44,7 +44,7 @@ This ensures you never stop mid-chain and never skip steps in long context windo
 - **Requirement with ticket:** triage → ticket-review → user approval → execute + verify → pr-review → wrap-up
 - **Exploratory question:** brainstorm → triage → ticket-review → user approval → execute + verify → pr-review → wrap-up
 - **Bug report:** debug (4 phases) → pr-review → wrap-up
-- **PR review feedback:** address-feedback → execute + verify → local commit (human pushes)
+- **PR review feedback:** address-feedback → execute + verify → [pr-review re-check] → wrap-up → local commit (human pushes)
 
 ## Skill invocation
 
