@@ -103,7 +103,7 @@ missing project files. Run the setup again to create any new files. Existing use
 
 | Component | What it contains                                                                            |
 |-----------|---------------------------------------------------------------------------------------------|
-| 16 skills | On-demand workflow and standard skills (includes `start-ritus` meta-skill for auto-routing) |
+| 18 skills | On-demand workflow and standard skills (includes `start-ritus` meta-skill for auto-routing) |
 
 **By setup / repo-scan (user-owned in target project):**
 
@@ -134,6 +134,8 @@ in the `start-ritus` skill and in each skill's dispatch instructions section.
 | `execute-task`  | Implement a task file — load context, implement steps, report                   |
 | `verify-task`   | Independent per-task verification (dispatched as fresh haiku subagent)          |
 | `pr-review`     | Adversarial review at ticket/PR level (dispatched as fresh sonnet subagent)     |
+| `address-feedback` | Read PR review comments, generate fix tasks, commit locally (no push)        |
+| `wrap-up`       | Post-review cleanup — promote exploration entries, verify docs, report status   |
 | `debug`         | Systematic 4-phase root cause investigation with evidence grading               |
 | `setup`         | Setup interview — write YAML profiles, render docs/PROJECT_CONTEXT.md           |
 | `sync`          | Scaffold or check project files — create missing docs, profiles, scripts        |
@@ -153,9 +155,11 @@ in the `start-ritus` skill and in each skill's dispatch instructions section.
 
 ```text
 Explore/brainstorm:   brainstorm → triage → ticket-review
-Plan/implement:       triage → ticket-review → execute-task → verify-task (haiku subagent)
-Debug/fix:            debug → execute-task → verify-task (haiku subagent)
-Review:               pr-review (sonnet subagent)
+Plan/implement:       triage → ticket-review → execute-task → verify-task → pr-review → wrap-up
+Debug/fix:            debug → pr-review → wrap-up
+Review:               pr-review (sonnet subagent) → wrap-up
+Address feedback:     address-feedback → execute-task → verify-task → [pr-review re-check → wrap-up]
+Iterate:              wrap-up → user feedback → triage or brainstorm (restarts chain)
 ```
 
 ---
@@ -174,13 +178,14 @@ Write requirement
     → verify-task subagent (haiku) reviews each task independently
     → pr-review subagent (sonnet) runs adversarial review at ticket level
 
-  If pr-review approves → ready for merge/PR
+  If pr-review approves → wrap-up (promote exploration, verify docs) → ready for merge/PR
   If pr-review rejects  → fix → re-verify → re-review until approved
 
   Human:
     → Reviews diff
-    → Commits
-    → Pushes
+    → Commits + pushes
+    → If PR receives review comments → address-feedback → fix → verify → local commit
+    → Or provides follow-up changes → workflow restarts from triage/brainstorm
 ```
 
 For the full workflow diagram, see [docs/WORKFLOW_DIAGRAMS.md](./docs/WORKFLOW_DIAGRAMS.md).
@@ -205,8 +210,10 @@ skills/
   execute-task/SKILL.md
   verify-task/SKILL.md
   pr-review/SKILL.md
+  address-feedback/SKILL.md
+  wrap-up/SKILL.md
   shared/
-    remote-api-access.md     ← remote API rules (shared by ticket-review + pr-review)
+    remote-api-access.md     ← remote API rules (shared by ticket-review + pr-review + address-feedback)
   debug/SKILL.md
   setup/SKILL.md
   sync/SKILL.md

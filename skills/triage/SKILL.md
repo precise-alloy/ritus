@@ -13,6 +13,16 @@ needs — not how simple it looks.
 
 Run before any context load or task generation. Every incoming change must be classified first.
 
+When starting triage, create this TODO and mark items as you complete them:
+
+TODO:
+
+```markdown
+- [ ] Classify the requirement
+- [ ] State classification + recommended model
+- [ ] Load next skill (ticket-review or implement directly for TRIVIAL)
+```
+
 ## Input handling
 
 If the user provides a **ticket key or URL** (e.g., `PROJ-123`, Jira URL) instead of a plain requirement:

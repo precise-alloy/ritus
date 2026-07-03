@@ -30,6 +30,17 @@ Inputs to provide:
 After all tasks for a ticket are complete, or before opening a PR. This skill runs a full adversarial review of
 cumulative changes.
 
+When starting pr-review, create this TODO and mark items as you complete them:
+
+TODO:
+
+```markdown
+- [ ] Load context and gather input
+- [ ] Adversarial review (Phases 1-5)
+- [ ] Report findings and state verdict
+- [ ] Follow verdict path (Approve → invoke wrap-up / Request Changes → report to orchestrating session)
+```
+
 ## Remote API access
 
 Read `remote-api-access.md` in the `shared` skill directory for full remote API instructions — helper commands, URL parsing,
@@ -332,16 +343,14 @@ After presenting the review:
 
 ## Next
 
-**If verdict is Approve:** the orchestrating session promotes flagged entries from
-`docs/tasks/{branch-slug}/exploration.md` to their target docs (see exploration template for flag → doc mapping),
-then deletes the exploration log. Promotion is append-only — no existing doc content is modified. If any promoted
-entry is questionable, hold it for the next review cycle instead of promoting blindly. Report to the user — the
-work is ready for merge/PR.
+**If verdict is Approve:** invoke the `wrap-up` skill to promote exploration entries, verify doc updates, and report final status.
 
 **If verdict is Request Changes:** the orchestrating session creates a **fix-cycle TODO** and a SIMPLE fix task file
 from the review findings using the SIMPLE template in `task-files.md`:
 
-```
+TODO:
+
+```markdown
 - [ ] Create fix task from review findings
 - [ ] Implement fix (execute-task subagent)
 - [ ] Verify fix (verify-task subagent)

@@ -26,6 +26,18 @@ UserService"). Go directly to triage.
 
 ## Process
 
+When starting brainstorm, create this TODO and mark items as you complete them:
+
+TODO:
+
+```markdown
+- [ ] Understand the problem (clarifying questions)
+- [ ] Explore the codebase
+- [ ] Propose 2-3 approaches
+- [ ] User picks an approach
+- [ ] Classify the chosen approach (invoke triage)
+```
+
 ### Step 1: Understand the problem
 
 Ask clarifying questions **one at a time**. Focus on:

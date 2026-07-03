@@ -16,6 +16,18 @@ Any bug, test failure, unexpected behavior, or issue investigation. Load this sk
 **Especially** when under time pressure, when a "quick fix" is tempting, when prior fixes have failed, or when the
 issue isn't fully understood.
 
+When starting debug, create this TODO and mark items as you complete them:
+
+TODO:
+
+```markdown
+- [ ] Phase 1: Root cause investigation
+- [ ] Phase 2: Pattern analysis
+- [ ] Phase 3: Hypothesis and testing
+- [ ] Phase 4: Fix and verify
+- [ ] Run pr-review
+```
+
 ## Iron law
 
 **NO FIXES WITHOUT ROOT CAUSE INVESTIGATION FIRST.**
@@ -210,8 +222,8 @@ why the current approach fails, and what alternatives should be considered.
 
 ## Exploration log
 
-During investigation, append codebase findings to `docs/tasks/{branch-slug}/exploration.md` per the exploration
-template. Read the log first to avoid re-discovering what prior agents already found.
+Create `docs/tasks/{branch-slug}/exploration.md` if it doesn't exist, using the header format from
+`skills/ticket-review/templates/exploration.md`. Before starting, read the full log to avoid re-discovering prior work; during investigation, append codebase findings per the exploration template (append-only; flag every entry).
 
 ## Common rationalizations — STOP and return to Phase 1
 
