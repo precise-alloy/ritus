@@ -319,10 +319,12 @@ export function sanitizeJiraIssue(raw: unknown): unknown {
   if (isObject(fields.comment)) {
     const commentBlock = fields.comment as AnyObject;
     const comments = Array.isArray(commentBlock.comments) ? commentBlock.comments : [];
-    fields.comment = {
-      total: comments.length,
+    const total = typeof commentBlock.total === 'number' ? commentBlock.total : comments.length;
+    fields.comment = stripNullish({
+      total,
+      returned: comments.length,
       comments: (comments as unknown[]).map(sanitizeJiraComment),
-    };
+    });
   }
 
   issue.fields = stripNullish(fields);
