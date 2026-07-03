@@ -488,13 +488,13 @@ export function sanitizeAdoUpdate(raw: unknown): unknown {
 
 export function sanitizeAdoWorkItem(raw: unknown): unknown {
   if (!isObject(raw)) return raw;
-  const wi = { ...(raw as AnyObject) };
+const wi = { ...(raw as AnyObject) };
 
-  delete wi._links;
-  delete wi.url;
-  delete wi.rev;
-  delete wi.commentVersionRef;
-
+delete wi._links;
+delete wi.url;
+delete wi.id;
+delete wi.rev;
+delete wi.commentVersionRef;
   if (!isObject(wi.fields)) return wi;
   const fields = { ...(wi.fields as AnyObject) };
 
