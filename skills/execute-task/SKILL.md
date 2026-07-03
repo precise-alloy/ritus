@@ -50,7 +50,7 @@ TODO:
 - [ ] Implement STEPS — exactly as written. If a STEP is unclear: report BLOCKED.
 - [ ] Run build + tests — smoke test + unit tests per DONE WHEN.
 - [ ] Update docs — per DOC UPDATE. Append new findings to `docs/tasks/{branch-slug}/exploration.md` using
-  flagged format from `ticket-review/templates/exploration.md`. Create the file if it doesn't exist.
+  flagged format from `skills/ticket-review/templates/exploration.md`. Create the file if it doesn't exist.
 - [ ] Report — use output format below. One final report, no intermediate dumps.
 - [ ] Dispatch verify-task subagent — fresh subagent (model: haiku, effort: medium). Provide task file path + diff.
   Do not self-verify. Do not report the task as complete until the verify-task subagent passes.
