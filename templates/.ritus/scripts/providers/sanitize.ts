@@ -228,12 +228,14 @@ export function sanitizeJiraChangelog(raw: unknown): unknown {
   if (!isObject(raw)) return raw;
   const entry = raw as AnyObject;
   const items = Array.isArray(entry.items)
-    ? (entry.items as AnyObject[]).map(item => stripNullish({
-        field: item.field,
-        fieldtype: item.fieldtype,
-        fromString: item.fromString,
-        toString: item.toString,
-      }))
+    ? (entry.items as unknown[])
+        .filter(isObject)
+        .map(item => stripNullish({
+          field: item.field,
+          fieldtype: item.fieldtype,
+          fromString: item.fromString,
+          toString: item.toString,
+        }))
     : entry.items;
 
   return stripNullish({
