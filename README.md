@@ -211,6 +211,7 @@ skills/
   verify-task/SKILL.md
   pr-review/SKILL.md
   address-feedback/SKILL.md
+  wrap-up/SKILL.md
   shared/
     remote-api-access.md     ← remote API rules (shared by ticket-review + pr-review + address-feedback)
   debug/SKILL.md
