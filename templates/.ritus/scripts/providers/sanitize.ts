@@ -258,31 +258,31 @@ export function sanitizeJiraIssue(raw: unknown): unknown {
   if (!isObject(issue.fields)) return issue;
   const fields = { ...(issue.fields as AnyObject) };
 
-for (const [key, value] of Object.entries(fields)) {
-  if (value === null || value === undefined) {
-    delete fields[key];
-    continue;
-  }
+  for (const [key, value] of Object.entries(fields)) {
+    if (value === null || value === undefined) {
+      delete fields[key];
+      continue;
+    }
 
-  if (Array.isArray(value)) {
-    const cleaned = (value as unknown[])
-      .map((item) => {
-        if (isAdfNode(item)) return adfToText(item).trim();
-        if (isJiraIdentity(item)) return flattenJiraIdentity(item);
-        if (isObject(item)) {
-          const obj = { ...(item as AnyObject) };
-          delete obj.self;
-          delete obj.avatarUrls;
-          return obj;
-        }
-        return item;
-      })
-      .filter((v) => v !== null && v !== undefined);
+    if (Array.isArray(value)) {
+      const cleaned = (value as unknown[])
+        .map((item) => {
+          if (isAdfNode(item)) return adfToText(item).trim();
+          if (isJiraIdentity(item)) return flattenJiraIdentity(item);
+          if (isObject(item)) {
+            const obj = { ...(item as AnyObject) };
+            delete obj.self;
+            delete obj.avatarUrls;
+            return obj;
+          }
+          return item;
+        })
+        .filter((v) => v !== null && v !== undefined);
 
-    if (cleaned.length === 0) delete fields[key];
-    else fields[key] = cleaned;
-    continue;
-  }
+      if (cleaned.length === 0) delete fields[key];
+      else fields[key] = cleaned;
+      continue;
+    }
 
   if (isAdfNode(value)) {
     fields[key] = adfToText(value).trim();
