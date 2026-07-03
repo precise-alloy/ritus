@@ -1,5 +1,6 @@
 import type { Provider, RequestHeaders } from './types.ts';
 import { basicAuth, requestJson, requireEnv } from './http.ts';
+import { sanitizeAdoWorkItem, sanitizeAdoComment, sanitizeAdoUpdate, sanitizeAdoPr, sanitizeAdoPrThread } from './sanitize.ts';
 
 const ADO_API_VERSION = '7.0';
 const ADO_COMMENTS_API_VERSION = '7.0-preview.4';
@@ -81,6 +82,14 @@ function parseAzureDevOpsPrUrl(prUrl: string): AzureDevOpsPullRequestRef {
 // Work item URL / ID parsing (new)
 // ---------------------------------------------------------------------------
 
+function extractWorkItemId(segments: string[], minEditIdx: number, rawUrl: string): string {
+  const editIdx = segments.indexOf('_workitems');
+  if (editIdx === -1 || editIdx < minEditIdx || segments[editIdx + 1] !== 'edit' || !segments[editIdx + 2]) {
+    throw new Error(`Unsupported Azure DevOps work item URL shape: ${rawUrl}`);
+  }
+  return segments[editIdx + 2];
+}
+
 function parseAdoWorkItemUrl(urlOrId: string): AdoWorkItemRef {
   if (/^\d+$/.test(urlOrId)) {
     const org = process.env.AZURE_DEVOPS_ORG?.trim();
@@ -108,26 +117,18 @@ function parseAdoWorkItemUrl(urlOrId: string): AdoWorkItemRef {
     .map((segment) => decodeURIComponent(segment));
 
   if (host === 'dev.azure.com') {
-    const editIdx = segments.indexOf('_workitems');
-    if (editIdx === -1 || editIdx < 2 || segments[editIdx + 1] !== 'edit' || !segments[editIdx + 2]) {
-      throw new Error(`Unsupported Azure DevOps work item URL shape: ${urlOrId}`);
-    }
     return {
       organization: segments[0],
       project: segments[1],
-      workItemId: segments[editIdx + 2],
+      workItemId: extractWorkItemId(segments, 2, urlOrId),
     };
   }
 
   if (host.endsWith('.visualstudio.com')) {
-    const editIdx = segments.indexOf('_workitems');
-    if (editIdx === -1 || editIdx < 1 || segments[editIdx + 1] !== 'edit' || !segments[editIdx + 2]) {
-      throw new Error(`Unsupported Azure DevOps work item URL shape: ${urlOrId}`);
-    }
     return {
       organization: host.replace('.visualstudio.com', ''),
       project: segments[0],
-      workItemId: segments[editIdx + 2],
+      workItemId: extractWorkItemId(segments, 1, urlOrId),
     };
   }
 
@@ -144,7 +145,43 @@ async function getAdoPr(target: string): Promise<unknown> {
 
   return {
     request: parsed,
-    pullRequest: await requestJson(url, adoHeaders()),
+    pullRequest: sanitizeAdoPr(await requestJson(url, adoHeaders())),
+  };
+}
+
+function parseLimit(extra?: string): number | undefined {
+  if (!extra) return undefined;
+  const n = parseInt(extra, 10);
+  return Number.isFinite(n) && n > 0 ? n : undefined;
+}
+
+function takeLatest<T>(items: T[], limit: number | undefined, dateKey: string): T[] {
+  if (!limit || items.length <= limit) return items;
+  const sortedDesc = [...items].sort((a, b) => {
+    const da = String((a as Record<string, unknown>)[dateKey] ?? '');
+    const db = String((b as Record<string, unknown>)[dateKey] ?? '');
+    return db.localeCompare(da);
+  });
+  return sortedDesc.slice(0, limit).reverse();
+}
+
+async function getAdoPrThreads(target: string, extra?: string): Promise<unknown> {
+  const parsed = parseAzureDevOpsPrUrl(target);
+  const limit = parseLimit(extra);
+  const url = `${adoBaseUrl(parsed.organization, parsed.project)}/_apis/git/repositories/${encodeURIComponent(parsed.repository)}/pullrequests/${encodeURIComponent(parsed.pullRequestId)}/threads?api-version=${ADO_API_VERSION}`;
+
+  const result = (await requestJson(url, adoHeaders())) as { count?: number; value?: unknown[] };
+  const allThreads = (result?.value ?? []).map(sanitizeAdoPrThread);
+  const threads = takeLatest(allThreads, limit, 'publishedDate');
+
+  return {
+    request: parsed,
+    ...(limit ? { limit } : {}),
+    threads: {
+      total: allThreads.length,
+      returned: threads.length,
+      threads,
+    },
   };
 }
 
@@ -161,21 +198,26 @@ async function getAdoWorkItem(target: string, extra?: string): Promise<unknown> 
   return {
     workItemId: parsed.workItemId,
     ...(extra ? { fields: extra.split(',').map(f => f.trim()).filter(Boolean) } : {}),
-    workItem: await requestJson(url, adoHeaders()),
+    workItem: sanitizeAdoWorkItem(await requestJson(url, adoHeaders())),
   };
 }
 
-async function getAdoWorkItemComments(target: string): Promise<unknown> {
+async function getAdoWorkItemComments(target: string, extra?: string): Promise<unknown> {
   const parsed = parseAdoWorkItemUrl(target);
+  const limit = parseLimit(extra);
   const url = `${adoBaseUrl(parsed.organization, parsed.project)}/_apis/wit/workitems/${encodeURIComponent(parsed.workItemId)}/comments?api-version=${ADO_COMMENTS_API_VERSION}`;
 
   const result = (await requestJson(url, adoHeaders())) as { totalCount?: number; comments?: unknown[] };
+  const allComments = (result?.comments ?? []).map(sanitizeAdoComment);
+  const comments = takeLatest(allComments, limit, 'createdDate');
 
   return {
     workItemId: parsed.workItemId,
+    ...(limit ? { limit } : {}),
     comments: {
-      total: result?.totalCount ?? (result?.comments ?? []).length,
-      comments: result?.comments ?? [],
+      total: result?.totalCount ?? allComments.length,
+      returned: comments.length,
+      comments,
     },
   };
 }
@@ -209,7 +251,7 @@ async function getAdoWorkItemUpdates(target: string): Promise<unknown> {
     workItemId: parsed.workItemId,
     changelog: {
       total: allUpdates.length,
-      updates: allUpdates,
+      updates: allUpdates.map(sanitizeAdoUpdate),
     },
   };
 }
@@ -224,14 +266,16 @@ export const adoProvider: Provider = {
   requiredEnvKeys: ['AZURE_DEVOPS_READONLY_PAT'],
   actions: {
     'pr': getAdoPr,
+    'pr-threads': getAdoPrThreads,
     'issue': getAdoWorkItem,
     'comments': getAdoWorkItemComments,
     'changelog': getAdoWorkItemUpdates,
   },
   usageLines: () => [
     'bun run .ritus/scripts/remote-api.ts ado pr <pull-request-url>',
+    'bun run .ritus/scripts/remote-api.ts ado pr-threads <pull-request-url> [count]',
     'bun run .ritus/scripts/remote-api.ts ado issue <work-item-url-or-id> [fields]',
-    'bun run .ritus/scripts/remote-api.ts ado comments <work-item-url-or-id>',
+    'bun run .ritus/scripts/remote-api.ts ado comments <work-item-url-or-id> [count]',
     'bun run .ritus/scripts/remote-api.ts ado changelog <work-item-url-or-id>',
   ],
   exampleLines: () => {
@@ -239,6 +283,8 @@ export const adoProvider: Provider = {
     const wiUrl = process.env.EXAMPLE_ADO_WORK_ITEM_URL || 'https://dev.azure.com/your-org/your-project/_workitems/edit/12345';
     return [
       `bun run .ritus/scripts/remote-api.ts ado pr ${prUrl}`,
+      `bun run .ritus/scripts/remote-api.ts ado pr-threads ${prUrl}`,
+      `bun run .ritus/scripts/remote-api.ts ado pr-threads ${prUrl} 20`,
       `bun run .ritus/scripts/remote-api.ts ado issue ${wiUrl}`,
       `bun run .ritus/scripts/remote-api.ts ado issue ${wiUrl} System.Title,System.State,System.Description`,
       `bun run .ritus/scripts/remote-api.ts ado comments ${wiUrl}`,

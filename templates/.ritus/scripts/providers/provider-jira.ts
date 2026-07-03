@@ -1,8 +1,10 @@
 import { basename, join } from 'node:path';
 import type { Provider, RequestHeaders } from './types.ts';
 import { basicAuth, requestBinary, requestJson, requireEnv } from './http.ts';
+import { sanitizeJiraIssue, sanitizeJiraComment, sanitizeJiraChangelog } from './sanitize.ts';
 
 const JIRA_PAGE_SIZE = 100;
+const JIRA_MAX_COMMENT_PAGES = 200;
 
 function jiraBaseUrl(): string {
   return requireEnv('JIRA_BASE_URL').replace(/\/+$/, '');
@@ -76,20 +78,74 @@ async function getJiraIssue(target: string, extra?: string): Promise<unknown> {
   return {
     ticketKey,
     fields: requestedFields.split(',').map(f => f.trim()).filter(Boolean),
-    issue: await requestJson(url, jiraHeaders()),
+    issue: sanitizeJiraIssue(await requestJson(url, jiraHeaders())),
   };
 }
 
-async function getJiraComments(target: string): Promise<unknown> {
+async function fetchJiraLatestComments(baseUrl: string, headers: RequestHeaders, limit: number): Promise<{ total: number; items: unknown[] }> {
+  // Probe request to discover total count
+  const separator = baseUrl.includes('?') ? '&' : '?';
+  const probeUrl = `${baseUrl}${separator}startAt=0&maxResults=1`;
+  const probe = (await requestJson(probeUrl, headers)) as JiraPage;
+  const total = typeof probe?.total === 'number' ? probe.total : 0;
+
+  if (total === 0) {
+    return { total: 0, items: [] };
+  }
+
+  const startAt = Math.max(0, total - limit);
+  const items: unknown[] = [];
+  let offset = startAt;
+
+  for (let i = 0; i < JIRA_MAX_COMMENT_PAGES && offset < total; i++) {
+    const pagedUrl = `${baseUrl}${separator}startAt=${offset}&maxResults=${JIRA_PAGE_SIZE}`;
+    const page = (await requestJson(pagedUrl, headers)) as JiraPage;
+    const pageItems = (page?.comments ?? []) as unknown[];
+    items.push(...pageItems);
+
+    const fetched = pageItems.length;
+    const maxResults = typeof page?.maxResults === 'number' ? page.maxResults : JIRA_PAGE_SIZE;
+    if (fetched === 0 || fetched < maxResults) break;
+    offset += fetched;
+  }
+
+  return { total, items: items.slice(-limit) };
+}
+
+async function getJiraComments(target: string, extra?: string): Promise<unknown> {
   const ticketKey = parseJiraKey(target);
   const baseUrl = `${jiraBaseUrl()}/rest/api/3/issue/${encodeURIComponent(ticketKey)}/comment`;
-  const { items } = await fetchAllJiraPages(baseUrl, jiraHeaders(), 'comments');
+  const headers = jiraHeaders();
+
+  let limit: number | undefined;
+  if (extra) {
+    const n = parseInt(extra, 10);
+    if (Number.isFinite(n) && n > 0) {
+      const maxLimit = JIRA_PAGE_SIZE * JIRA_MAX_COMMENT_PAGES;
+      limit = Math.min(n, maxLimit);
+    }
+  }
+
+  let total: number;
+  let comments: unknown[];
+
+  if (limit) {
+    const result = await fetchJiraLatestComments(baseUrl, headers, limit);
+    total = result.total;
+    comments = result.items.map(sanitizeJiraComment);
+  } else {
+    const { items } = await fetchAllJiraPages(baseUrl, headers, 'comments');
+    total = items.length;
+    comments = items.map(sanitizeJiraComment);
+  }
 
   return {
     ticketKey,
+    ...(limit ? { limit } : {}),
     comments: {
-      total: items.length,
-      comments: items,
+      total,
+      returned: comments.length,
+      comments,
     },
   };
 }
@@ -103,7 +159,7 @@ async function getJiraChangelog(target: string): Promise<unknown> {
     ticketKey,
     changelog: {
       total: items.length,
-      values: items,
+      values: items.map(sanitizeJiraChangelog),
     },
   };
 }
@@ -194,7 +250,7 @@ export const jiraProvider: Provider = {
   },
   usageLines: () => [
     'bun run .ritus/scripts/remote-api.ts jira issue <ticket-key-or-url> [fields]',
-    'bun run .ritus/scripts/remote-api.ts jira comments <ticket-key-or-url>',
+    'bun run .ritus/scripts/remote-api.ts jira comments <ticket-key-or-url> [count]',
     'bun run .ritus/scripts/remote-api.ts jira changelog <ticket-key-or-url>',
     'bun run .ritus/scripts/remote-api.ts jira attachments <ticket-key-or-url>',
     'bun run .ritus/scripts/remote-api.ts jira attachment-download <ticket-key-or-url> <output-dir>',
@@ -206,6 +262,7 @@ export const jiraProvider: Provider = {
       `bun run .ritus/scripts/remote-api.ts jira issue ${key}`,
       `bun run .ritus/scripts/remote-api.ts jira issue ${url} summary,description,status,issuetype,comment`,
       `bun run .ritus/scripts/remote-api.ts jira comments ${key}`,
+      `bun run .ritus/scripts/remote-api.ts jira comments ${key} 20`,
       `bun run .ritus/scripts/remote-api.ts jira attachments ${key}`,
       `bun run .ritus/scripts/remote-api.ts jira attachment-download ${key} .jira-attachments/${key}`,
     ];

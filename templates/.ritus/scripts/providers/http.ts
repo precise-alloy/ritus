@@ -146,6 +146,11 @@ export async function requestJson(url: string, headers: RequestHeaders): Promise
   return parseJson(await response.text());
 }
 
+export async function requestJsonWithHeaders(url: string, headers: RequestHeaders): Promise<{ body: unknown; headers: Headers }> {
+  const response = await requestWithRetry(url, headers);
+  return { body: parseJson(await response.text()), headers: response.headers };
+}
+
 export async function requestBinary(url: string, headers: RequestHeaders, outputPath: string): Promise<number> {
   const response = await requestWithRetry(url, headers);
   const buffer = await response.arrayBuffer();
