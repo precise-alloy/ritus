@@ -158,7 +158,7 @@ Explore/brainstorm:   brainstorm → triage → ticket-review
 Plan/implement:       triage → ticket-review → execute-task → verify-task → pr-review → wrap-up
 Debug/fix:            debug → pr-review → wrap-up
 Review:               pr-review (sonnet subagent) → wrap-up
-Address feedback:     address-feedback → execute-task → verify-task → [pr-review re-check] → wrap-up
+Address feedback:     address-feedback → execute-task → verify-task → [pr-review re-check → wrap-up]
 Iterate:              wrap-up → user feedback → triage or brainstorm (restarts chain)
 ```
 
