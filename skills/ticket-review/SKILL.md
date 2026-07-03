@@ -401,7 +401,7 @@ until the user approves. The user may adjust task scope, reorder priorities, or 
 Once the user approves:
 
 1. **Create the exploration log** — write `docs/tasks/{branch-slug}/exploration.md` with the header from
-   `ticket-review/templates/exploration.md`. This ensures it exists before any execute-task subagent starts.
+   `skills/ticket-review/templates/exploration.md`. This ensures it exists before any execute-task subagent starts.
 2. **Create the execution TODO list** from the execution plan before dispatching any subagents.
    This is the concrete per-task tracker for the implementation phase:
 
