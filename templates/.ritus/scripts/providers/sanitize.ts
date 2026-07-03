@@ -284,23 +284,23 @@ export function sanitizeJiraIssue(raw: unknown): unknown {
       continue;
     }
 
-  if (isAdfNode(value)) {
-    fields[key] = adfToText(value).trim();
-    continue;
-  }
+    if (isAdfNode(value)) {
+      fields[key] = adfToText(value).trim();
+      continue;
+    }
 
-  if (isJiraIdentity(value)) {
-    fields[key] = flattenJiraIdentity(value);
-    continue;
-  }
+    if (isJiraIdentity(value)) {
+      fields[key] = flattenJiraIdentity(value);
+      continue;
+    }
 
-  if (isObject(value)) {
-    const obj = { ...(value as AnyObject) };
-    delete obj.self;
-    delete obj.avatarUrls;
-    fields[key] = obj;
+    if (isObject(value)) {
+      const obj = { ...(value as AnyObject) };
+      delete obj.self;
+      delete obj.avatarUrls;
+      fields[key] = obj;
+    }
   }
-}
 
   if (isObject(fields.status)) {
     const s = fields.status as AnyObject;
