@@ -109,8 +109,8 @@ async function fetchGitHubLatestIssueComments(baseUrl: string, headers: Record<s
   // lastPage with per_page=1 equals total item count
   const totalItems = lastPage;
   const totalPages = Math.ceil(totalItems / GITHUB_PAGE_SIZE);
-  const startPage = Math.max(1, Math.ceil((totalItems - limit) / GITHUB_PAGE_SIZE));
-
+  const startIndex = Math.max(1, totalItems - limit + 1);
+  const startPage = Math.ceil(startIndex / GITHUB_PAGE_SIZE);
   const items: unknown[] = [];
   for (let page = startPage; page <= totalPages; page++) {
     const url = `${baseUrl}${separator}per_page=${GITHUB_PAGE_SIZE}&page=${page}`;
