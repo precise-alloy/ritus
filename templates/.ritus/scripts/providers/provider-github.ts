@@ -57,7 +57,9 @@ function gitHubHeaders(): Record<string, string> {
 function parseLimit(extra?: string): number | undefined {
   if (!extra) return undefined;
   const n = parseInt(extra, 10);
-  return Number.isFinite(n) && n > 0 ? n : undefined;
+  if (!Number.isFinite(n) || n <= 0) return undefined;
+  const maxLimit = 200 * GITHUB_PAGE_SIZE;
+  return Math.min(n, maxLimit);
 }
 
 async function fetchAllGitHubPages(baseUrl: string, headers: Record<string, string>, limit?: number): Promise<unknown[]> {
