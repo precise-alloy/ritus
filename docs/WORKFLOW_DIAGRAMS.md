@@ -55,7 +55,11 @@ flowchart TD
     AF --> AFFilter["Filter actionable comments\n🧑 user approves list"]
     AFFilter --> AFTask["Generate fix task\n(round N)"]
     AFTask --> AFExec["execute-task subagent\n→ verify-task subagent"]
-    AFExec --> AFCommit["Local commit\n(no push)"]
+    AFExec --> AFRecheck{"pr-review\nre-check?"}
+    AFRecheck -->|"Yes"| AFReview["pr-review 🤖 sonnet subagent"]
+    AFReview --> AFWrapUp["wrap-up\n(promote exploration, verify docs)"]
+    AFRecheck -->|"No / Skip"| AFWrapUp
+    AFWrapUp --> AFCommit["Local commit\n(no push)"]
     AFCommit --> AFDone(["🧑 Human reviews\n+ pushes"])
     AFDone -->|"More review comments"| AF
 
