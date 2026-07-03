@@ -413,6 +413,7 @@ TODO:
 - [ ] Verify task 002 (verify-task subagent)
   ...
 - [ ] Run pr-review for full ticket (pr-review subagent)
+- [ ] If pr-review approves: run wrap-up (promote exploration, verify docs)
 ```
 
 For parallel groups, list all tasks in the group together. Mark each item as subagents complete. If verify-task
