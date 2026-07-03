@@ -33,7 +33,7 @@ argument-hint: Provide the user's request so the router can choose the next appl
 
 ## Workflow tracking
 
-**MANDATORY:** Every workflow skill creates its TODO as the **first action** before any work begins. The TODO lists
+**MANDATORY:** Core workflow skills in the execution chain (brainstorm/triage/ticket-review/execute-task/verify-task/pr-review/address-feedback/wrap-up/debug) create their TODO as the **first action** before any work begins. The TODO lists
 the skill's internal steps with the chain to the next skill as the last item. Mark items as you complete them.
 This ensures you never stop mid-chain and never skip steps in long context windows.
 
@@ -44,7 +44,7 @@ This ensures you never stop mid-chain and never skip steps in long context windo
 - **Requirement with ticket:** triage → ticket-review → user approval → execute + verify → pr-review → wrap-up
 - **Exploratory question:** brainstorm → triage → ticket-review → user approval → execute + verify → pr-review → wrap-up
 - **Bug report:** debug (4 phases) → pr-review → wrap-up
-- **PR review feedback:** address-feedback → execute + verify → [pr-review re-check] → wrap-up → local commit (human pushes)
+- **PR review feedback:** address-feedback → execute + verify → [pr-review re-check] → wrap-up
 
 ## Skill invocation
 
