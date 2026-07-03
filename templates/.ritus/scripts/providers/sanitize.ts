@@ -72,7 +72,8 @@ export function adfToText(node: unknown, depth = 0): string {
       return adfToText(content, depth) + '\n\n';
 
     case 'heading': {
-      const level = (attrs?.level as number) ?? 2;
+      const rawLevel = Number(attrs?.level);
+      const level = Number.isFinite(rawLevel) ? Math.min(6, Math.max(1, Math.trunc(rawLevel))) : 2;
       return '\n' + '#'.repeat(level) + ' ' + adfToText(content, depth) + '\n\n';
     }
 
@@ -172,6 +173,9 @@ export function htmlToText(html: unknown): string {
     const cp = parseInt(hex, 16);
     return cp >= 0 && cp <= 0x10ffff ? String.fromCodePoint(cp) : '';
   });
+
+  // Guard against entity-decoding reintroducing tag-shaped sequences (e.g. "&lt;script&gt;").
+  text = text.replace(/<\/?[a-z][^>]*>/gi, '');
 
   text = text.replace(/\n{3,}/g, '\n\n');
   return text.trim();
