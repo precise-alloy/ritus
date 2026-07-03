@@ -228,7 +228,7 @@ flowchart TD
     end
 
     subgraph "On-demand (skill activation)"
-        SK["17 skills\n📦 workflow plugin"]
+        SK["18 skills\n📦 workflow plugin"]
     end
 
     subgraph "Subagent dispatch (defined in skills)"
