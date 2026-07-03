@@ -1,6 +1,6 @@
 # Ritus
 
-**Pronounced:** *REE-tus* `/ˈriː.tus/` - from Latin, meaning a prescribed rite or procedure.
+**Pronounced:** *REE-tus* `/ˈriː.tus/`
 
 A generic, project-agnostic AI-assisted development workflow. Skill-based architecture with on-demand loading,
 chain-based routing, and independent verification. Works with Claude Code, GitHub Copilot, and any language or stack.

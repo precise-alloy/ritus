@@ -161,15 +161,17 @@ export function adfToText(node: unknown, depth = 0): string {
 
 export function htmlToText(html: unknown): string {
   if (typeof html !== 'string') return '';
-  if (!hasHtmlTags(html)) return html;
-
+  const hadHtmlTags = hasHtmlTags(html);
   let text = html;
-  text = text.replace(/<br\s*\/?>/gi, '\n');
-  text = text.replace(/<\/(?:p|div|tr)>/gi, '\n');
-  text = text.replace(/<li[^>]*>/gi, '\n- ');
-  text = text.replace(/<\/(?:h[1-6])>/gi, '\n');
-  text = text.replace(/<h[1-6][^>]*>/gi, '\n');
-  text = text.replace(/<[^>]*>/g, '');
+
+  if (hadHtmlTags) {
+    text = text.replace(/<br\s*\/?>/gi, '\n');
+    text = text.replace(/<\/(?:p|div|tr)>/gi, '\n');
+    text = text.replace(/<li[^>]*>/gi, '\n- ');
+    text = text.replace(/<\/(?:h[1-6])>/gi, '\n');
+    text = text.replace(/<h[1-6][^>]*>/gi, '\n');
+    text = text.replace(/<[^>]*>/g, '');
+  }
 
   text = text.replace(/&amp;/g, '&');
   text = text.replace(/&lt;/g, '<');
@@ -612,7 +614,7 @@ export function sanitizeAdoPrThread(raw: unknown): unknown {
     const dates = (thread.comments as unknown[])
       .filter(c => isObject(c))
       .map(c => (c as AnyObject).publishedDate as string | undefined)
-      .filter(Boolean) as string[];
+      .filter((date): date is string => typeof date === 'string' && date.length > 0);
     if (dates.length > 0) {
       cleaned.publishedDate = dates.sort().pop();
     }

@@ -17,7 +17,8 @@ PR review comments to actionable task files for execute-task.
 **Hard gate — before any other action, create this TODO list and follow it exactly.**
 
 TODO:
-```text
+
+```markdown
 - [ ] Fetch and filter PR comments
 - [ ] Present filtered list to user for approval
 - [ ] Generate fix task file (round N)
