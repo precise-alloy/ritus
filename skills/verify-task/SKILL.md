@@ -1,6 +1,6 @@
 ---
 name: verify-task
-description: Dispatched as a fresh subagent after execute-task — verifies DONE WHEN conditions independently. Do not invoke directly; the orchestrating session dispatches this as a haiku subagent
+description: Dispatched as a fresh subagent after execute-task — verifies DONE WHEN conditions independently. Do not invoke directly; the orchestrating session dispatches this using the TRIVIAL tier model/effort from docs/PROJECT_CONTEXT.md ## Model routing
 argument-hint: Provide the task file path, changed files, implementation summary, and validation evidence
 ---
 
@@ -11,8 +11,17 @@ prevents bias; that's why this runs in a fresh subagent.
 
 ## When to use
 
-After each task is implemented by `execute-task`. This is the final step in the chain.
+After each task is implemented by `execute-task`.
 
+When starting verify-task, create this TODO and mark items as you complete them:
+
+TODO:
+
+```markdown
+- [ ] Phase 1: DONE WHEN verification (conditions + scope + standards + build/test/lint)
+- [ ] Phase 2: Adversarial review (fault injection, contracts, regression, security)
+- [ ] Report verdict (PASS/FAIL with evidence)
+```
 
 ## Subagent dispatch instructions
 

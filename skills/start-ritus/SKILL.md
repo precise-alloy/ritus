@@ -33,30 +33,18 @@ argument-hint: Provide the user's request so the router can choose the next appl
 
 ## Workflow tracking
 
-After identifying the user's intent and before starting work, create a TODO list with the planned workflow steps.
-This makes the plan visible to both you and the user, and prevents steps from being silently skipped.
+**MANDATORY:** Every workflow skill creates its TODO as the **first action** before any work begins. The TODO lists
+the skill's internal steps with the chain to the next skill as the last item. Mark items as you complete them.
+This ensures you never stop mid-chain and never skip steps in long context windows.
 
 **Skip for TRIVIAL tasks** — a single-step fix doesn't need a TODO.
 
-For all other intents, create a TODO list based on the skill chain. Examples:
+### Expected workflow chains (reference only — each skill creates its own TODO)
 
-For a new requirement:
-```text
-- [ ] Classify the requirement (triage)
-- [ ] Analyze and generate task files (ticket-review)
-- [ ] Present tasks for user approval
-```
-
-For a bug report:
-```text
-- [ ] Investigate root cause (debug — 4 phases)
-- [ ] Fix and verify
-- [ ] Run pr-review
-- [ ] Promote exploration.md entries to target docs
-```
-
-Mark each item as you complete it. The detailed execution TODO (per-task implementation) is created later by
-ticket-review after the user approves the task files.
+- **Requirement with ticket:** triage → ticket-review → user approval → execute + verify → pr-review → wrap-up
+- **Exploratory question:** brainstorm → triage → ticket-review → user approval → execute + verify → pr-review → wrap-up
+- **Bug report:** debug (4 phases) → pr-review → wrap-up
+- **PR review feedback:** address-feedback → execute + verify → local commit (human pushes)
 
 ## Skill invocation
 
@@ -77,6 +65,7 @@ Never use a skill name as the agent type — skill names are not agent types.
 | `execute-task` | per triage | per triage | Implement STEPS exactly; do not redesign |
 | `verify-task` | haiku | medium | Read-only except build/test/lint; never fix; never trust implementer claims |
 | `pr-review` | sonnet | high | Adversarial; never apply fixes; use `origin/` refs; default to "Request changes" |
+| `address-feedback` | per triage | per triage | Fetch PR comments, generate fix task, dispatch execute-task; never push |
 
 Parallel vs sequential grouping is determined by `ticket-review`'s execution plan. When in doubt, run sequentially.
 
@@ -100,7 +89,7 @@ These thoughts mean STOP — you're rationalizing:
 
 When multiple skills could apply, use this order:
 
-1. **Process skills first** (brainstorm, debug, triage) — these determine HOW to approach the task
+1. **Process skills first** (brainstorm, debug, triage, address-feedback) — these determine HOW to approach the task
 2. **Implementation skills second** (execute-task, ticket-review) — these guide execution
 3. **Standard skills alongside** (code-conventions, testing-policy, tdd, security, definition-of-done) — these are loaded by the implementation skill when applicable
 

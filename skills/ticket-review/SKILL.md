@@ -13,6 +13,20 @@ approval — then generate tasks. Rushing to task generation produces tasks that
 
 After triage classifies the change. This skill produces task files and execution plans.
 
+When starting ticket-review, create this TODO and mark items as you complete them:
+
+TODO:
+
+```markdown
+- [ ] Gather input (requirement source + context)
+- [ ] Check existing work (review files, task files, memory)
+- [ ] Fetch and analyze requirements
+- [ ] Create review document + user review gate
+- [ ] Generate task files + self-review
+- [ ] Present to user for approval
+- [ ] Create execution TODO and dispatch
+```
+
 ## Step 1: Gather Input
 
 Ask the user for:
@@ -384,17 +398,21 @@ task, add the task.
 After self-review, **present the task files and execution plan to the user for review.** Do not dispatch subagents
 until the user approves. The user may adjust task scope, reorder priorities, or request changes.
 
-Once the user approves, create an **execution TODO list** from the execution plan before dispatching any subagents.
-This replaces the high-level planning TODO from ritus with a concrete per-task tracker:
+Once the user approves:
 
-```text
+1. **Create the exploration log** — write `docs/tasks/{branch-slug}/exploration.md` with the header from
+   `ticket-review/templates/exploration.md`. This ensures it exists before any execute-task subagent starts.
+2. **Create the execution TODO list** from the execution plan before dispatching any subagents.
+   This is the concrete per-task tracker for the implementation phase:
+
+TODO:
+```markdown
 - [ ] Implement task 001: <name> (execute-task subagent)
 - [ ] Verify task 001 (verify-task subagent)
 - [ ] Implement task 002: <name> (execute-task subagent)
 - [ ] Verify task 002 (verify-task subagent)
   ...
 - [ ] Run pr-review for full ticket (pr-review subagent)
-- [ ] Promote exploration.md entries to target docs (LESSONS, DECISIONS, ARCHITECTURE, CUTOFF)
 ```
 
 For parallel groups, list all tasks in the group together. Mark each item as subagents complete. If verify-task
@@ -403,7 +421,7 @@ returns FAIL, add fix items inline before marking the original task done.
 Then dispatch `execute-task` following the execution plan:
 
 - **Parallel groups**: dispatch multiple `execute-task` subagents simultaneously. Each execute-task dispatches its own
-  `verify-task` subagent (model: haiku, effort: medium) per execute-task's `## Next` section.
+  `verify-task` subagent (model: haiku, effort: medium) per execute-task's Process checklist.
 - **Sequential groups**: wait for previous group's tasks to all pass `verify-task` subagent before starting.
 
 Do not implement tasks in this session.

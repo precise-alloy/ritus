@@ -17,6 +17,7 @@ flowchart TD
     InputType -->|"Clear requirement / ticket"| TR["triage"]
     InputType -->|"Bug report"| DB["debug"]
     InputType -->|"Review changes / PR"| CR["pr-review 🤖 sonnet subagent"]
+    InputType -->|"Fix PR review comments"| AF["address-feedback"]
 
     BS --> UserPicks{"User picks\napproach?"}
     UserPicks -->|"Explore more"| BS
@@ -26,7 +27,9 @@ flowchart TD
 
     Class -->|TRIVIAL| Direct["Implement directly\n(no task file)"]
     Direct --> SelfVerify["Build + test ✅"]
-    SelfVerify --> Report(["Report to user\n🧑 human commits"])
+    SelfVerify --> Report{"Report to user"}
+    Report -->|"Done"| TrivialDone(["🧑 human commits"])
+    Report -->|"Follow-up changes"| InputType
 
     Class -->|SIMPLE| GT["ticket-review"]
     Class -->|STANDARD| GT
@@ -40,11 +43,21 @@ flowchart TD
     AllDone --> CR
 
     CR --> Verdict{Verdict?}
-    Verdict -->|"Approve ✅"| Promote["Promote exploration.md\nentries to target docs"]
-    Promote --> HumanFinal(["🧑 Human reviews diff\ncommits + pushes"])
+    Verdict -->|"Approve ✅"| WrapUp["wrap-up\n(promote exploration, verify docs)"]
+    WrapUp --> HumanFinal{"🧑 Human reviews diff"}
+    HumanFinal -->|"Finalize"| Done(["Commits + pushes"])
+    Done -->|"PR has review comments"| AF
+    HumanFinal -->|"Follow-up changes"| InputType
     Verdict -->|"Request changes"| FixTask["Create SIMPLE fix task\nfrom review findings"]
     FixTask --> FixExec["execute-task subagent\n→ verify-task subagent"]
     FixExec --> CR
+
+    AF --> AFFilter["Filter actionable comments\n🧑 user approves list"]
+    AFFilter --> AFTask["Generate fix task\n(round N)"]
+    AFTask --> AFExec["execute-task subagent\n→ verify-task subagent"]
+    AFExec --> AFCommit["Local commit\n(no push)"]
+    AFCommit --> AFDone(["🧑 Human reviews\n+ pushes"])
+    AFDone -->|"More review comments"| AF
 
     DB --> DBPhases["4-phase investigation\n(see Diagram 3)"]
     DBPhases --> DBFix["Fix applied + tested\nin same session"]
@@ -163,6 +176,7 @@ flowchart LR
         B["brainstorm / triage\n/ ticket-review"]
         C["execute-task\n+ standards skills"]
         D["debug\n(investigation)"]
+        E["address-feedback\n(PR comment fixes)"]
     end
 
     subgraph "Fresh Subagent — haiku"
@@ -177,6 +191,7 @@ flowchart LR
     V -- "PASS / FAIL" --> C
     C -- "all tasks verified" --> R
     R -- "Approve / Request changes" --> C
+    E -- "dispatch fix task" --> C
 ```
 
 ## 5. Standards Loading Matrix
@@ -213,7 +228,7 @@ flowchart TD
     end
 
     subgraph "On-demand (skill activation)"
-        SK["16 skills\n📦 workflow plugin"]
+        SK["17 skills\n📦 workflow plugin"]
     end
 
     subgraph "Subagent dispatch (defined in skills)"
