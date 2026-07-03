@@ -86,19 +86,21 @@ async function getGitHubPrComments(target: string, extra?: string): Promise<unkn
   let reviewComments = await fetchAllGitHubPages(reviewUrl, headers, limit);
   reviewComments.reverse();
 
-  const issueUrl = `${repoBase}/issues/${encodeURIComponent(parsed.pullNumber)}/comments?sort=created&direction=desc`;
-  let issueComments = await fetchAllGitHubPages(issueUrl, headers, limit);
-  issueComments.reverse();
+  const issueUrl = `${repoBase}/issues/${encodeURIComponent(parsed.pullNumber)}/comments`;
+  let issueComments = await fetchAllGitHubPages(issueUrl, headers);
+  if (limit && issueComments.length > limit) {
+    issueComments = issueComments.slice(-limit);
+  }
 
   return {
     request: parsed,
     ...(limit ? { limit } : {}),
     reviewComments: {
-      total: reviewComments.length,
+      returned: reviewComments.length,
       comments: reviewComments.map(sanitizeGitHubPrComment),
     },
     issueComments: {
-      total: issueComments.length,
+      returned: issueComments.length,
       comments: issueComments.map(sanitizeGitHubIssueComment),
     },
   };

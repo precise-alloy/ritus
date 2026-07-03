@@ -1,6 +1,6 @@
 // Response sanitization for Jira and ADO API responses.
 // Strips noisy fields (avatars, self-links, identity GUIDs, pagination metadata)
-// and converts ADF/HTML markup to plain text to reduce agent context token usage.
+// and converts ADF/HTML markup to compact Markdown-flavoured text to reduce agent context token usage.
 
 // ---------------------------------------------------------------------------
 // Internal helpers
@@ -164,9 +164,12 @@ export function htmlToText(html: unknown): string {
   text = text.replace(/&quot;/g, '"');
   text = text.replace(/&#39;/g, "'");
   text = text.replace(/&nbsp;/g, ' ');
-  text = text.replace(/&#x2F;/g, '/');
   text = text.replace(/&#(\d+);/g, (_, code) => {
     const cp = Number(code);
+    return cp >= 0 && cp <= 0x10ffff ? String.fromCodePoint(cp) : '';
+  });
+  text = text.replace(/&#x([0-9a-fA-F]+);/g, (_, hex) => {
+    const cp = parseInt(hex, 16);
     return cp >= 0 && cp <= 0x10ffff ? String.fromCodePoint(cp) : '';
   });
 
@@ -252,9 +255,10 @@ export function sanitizeJiraIssue(raw: unknown): unknown {
     }
 
     if (isObject(value)) {
-      const obj = value as AnyObject;
+      const obj = { ...(value as AnyObject) };
       delete obj.self;
       delete obj.avatarUrls;
+      fields[key] = obj;
     }
   }
 
@@ -589,8 +593,9 @@ export function sanitizeAdoPrThread(raw: unknown): unknown {
 
   if (Array.isArray(thread.comments)) {
     cleaned.comments = (thread.comments as unknown[]).map(cleanAdoPrThreadComment);
-    const dates = (thread.comments as AnyObject[])
-      .map(c => c.publishedDate as string | undefined)
+    const dates = (thread.comments as unknown[])
+      .filter(c => isObject(c))
+      .map(c => (c as AnyObject).publishedDate as string | undefined)
       .filter(Boolean) as string[];
     if (dates.length > 0) {
       cleaned.publishedDate = dates.sort().pop();

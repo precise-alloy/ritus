@@ -14,17 +14,22 @@ locally. Never push — the human reviews the diff and pushes when ready.
 After a PR is created and reviewers (human or AI) have left comments that need code changes. This skill bridges
 PR review comments to actionable task files for execute-task.
 
-When starting address-feedback, create this TODO and mark items as you complete them:
+**Hard gate — before any other action, create this TODO list and follow it exactly.**
 
-```markdown
-## Address Feedback — Round N
-
-- [ ] Generate fix task from PR comments
-- [ ] Implement fixes (execute-task subagent)
-- [ ] Verify fixes (verify-task subagent)
-- [ ] Create local commit
+TODO:
+```text
+- [ ] Fetch and filter PR comments
+- [ ] Present filtered list to user for approval
+- [ ] Generate fix task file (round N)
+- [ ] Dispatch execute-task subagent — do NOT implement fixes in this session
+- [ ] Dispatch verify-task subagent — do NOT self-verify
+- [ ] Ask user about pr-review re-check
+- [ ] Create local commit — do NOT push
 - [ ] Present questions to user (if any)
 ```
+
+Mark each item as completed. If any step fails, stop and report — do not skip.
+Do not implement fixes in this session — this session orchestrates, a fresh subagent implements.
 
 ## Step 1: Gather Input
 
@@ -171,30 +176,15 @@ files:
   - tests/utils.test.ts  # update test for renamed function
 ```
 
-## Step 6: Implementation and Verification
+## Step 6: Execute TODO
 
-Mark each item as subagents complete. If verify-task returns FAIL, add fix items inline before marking done.
-
-Then dispatch:
-
-1. Dispatch a fresh `execute-task` subagent with the fix task file path.
-2. execute-task implements each step, runs tests.
-3. After execute-task completes, dispatch `verify-task` (model: haiku, effort: medium).
-4. If verify-task passes, create a local commit with message:
+Follow the TODO list created at the start. The TODO is the authoritative sequence — refer to it for dispatch
+targets, model/effort configs, and gates. Commit message format:
 
 ```text
 fix(review): address PR review feedback (round N)
 
 - <one-line summary per fix>
-```
-
-5. Do NOT push. Report to the user:
-
-```text
-Round N fixes committed locally (<commit-hash>).
-- N comments addressed
-- K questions flagged (see below)
-Review the changes and push when ready.
 ```
 
 ## Step 7: Handle Questions
@@ -212,18 +202,11 @@ You may want to reply to these directly on the PR.
 
 ## Hard constraints
 
-- Never push to remote — local commit only
-- Never modify files outside the paths referenced in comments
-- If a comment references a file that doesn't exist, flag it to the user and skip
-- If execute-task or verify-task fails, stop and present the failure to the user — do not auto-retry
-- Load `code-conventions` and `security` companion skills when applicable (same as execute-task)
-- Present the filtered comment list to the user and wait for approval before generating task files
+- If a comment references a file that doesn't exist, flag it and skip
+- If execute-task or verify-task fails, stop and report — do not auto-retry
+- Load `code-conventions` and `security` companion skills when applicable
 
 ## Next
 
-After all fixes are committed locally:
-
-- If the user wants to re-check the changes: invoke `pr-review` for an adversarial review of the fixes.
-- If the user is satisfied: they review the diff, push, and the review cycle continues.
-- If the user provides more feedback after pushing: invoke `address-feedback` again — it auto-detects the next
-  round number.
+After the user pushes and receives more review comments, invoke `address-feedback` again — it auto-detects the
+next round number.
