@@ -31,7 +31,7 @@ TODO:
 ```markdown
 - [ ] Read task file — Two formats exist:
   - SIMPLE (3-section): TASK + DONE WHEN + VERIFY only. Skip PRIOR CONTEXT, PATTERN, DOC UPDATE steps.
-  - STANDARD/EPIC (full): TASK, PATTERN, CONTEXT, GOAL, STEPS, DONE WHEN, VERIFY, DOC UPDATE, COMMIT.
+  - STANDARD/EPIC (full): TASK, PRIOR CONTEXT (if present), PATTERN, CONTEXT, GOAL, STEPS, DONE WHEN, VERIFY, DOC UPDATE, COMMIT.
 - [ ] Load context — Read CONTEXT files + `docs/tasks/{branch-slug}/exploration.md` (prior findings from other
   subagents). For bug fixes, grep `docs/LESSONS.md` and `docs/DECISIONS.md` for affected module.
 - [ ] Load standard skills — see table below. **Blocking step.**
