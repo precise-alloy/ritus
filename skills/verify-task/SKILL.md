@@ -1,6 +1,6 @@
 ---
 name: verify-task
-description: Dispatched as a fresh subagent after execute-task — verifies DONE WHEN conditions independently. Do not invoke directly; the orchestrating session dispatches this using the TRIVIAL tier model/effort from docs/PROJECT_CONTEXT.md ## Model routing
+description: Dispatched as a fresh subagent after execute-task — verifies DONE WHEN conditions independently. Do not invoke directly; the orchestrating session dispatches this as a fresh haiku subagent (effort: medium).
 argument-hint: Provide the task file path, changed files, implementation summary, and validation evidence
 ---
 
