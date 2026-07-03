@@ -553,7 +553,7 @@ function cleanAdoReviewer(v: unknown): unknown {
 
 function cleanAdoCommitRef(v: unknown): unknown {
   if (!isObject(v)) return v;
-  return { commitId: (v as AnyObject).commitId };
+  return stripNullish({ commitId: (v as AnyObject).commitId });
 }
 
 export function sanitizeAdoPr(raw: unknown): unknown {
