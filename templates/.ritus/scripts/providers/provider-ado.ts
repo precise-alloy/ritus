@@ -172,7 +172,7 @@ function takeLatest<T>(items: T[], limit: number | undefined, dateKey: string): 
 async function getAdoPrThreads(target: string, extra?: string): Promise<unknown> {
   const parsed = parseAzureDevOpsPrUrl(target);
   const limit = parseLimit(extra);
-  const url = `${adoBaseUrl(parsed.organization, parsed.project)}/_apis/git/repositories/${encodeURIComponent(parsed.repository)}/pullRequests/${encodeURIComponent(parsed.pullRequestId)}/threads?api-version=${ADO_API_VERSION}`;
+  const url = `${adoBaseUrl(parsed.organization, parsed.project)}/_apis/git/repositories/${encodeURIComponent(parsed.repository)}/pullrequests/${encodeURIComponent(parsed.pullRequestId)}/threads?api-version=${ADO_API_VERSION}`;
 
   const result = (await requestJson(url, adoHeaders())) as { count?: number; value?: unknown[] };
   const allThreads = (result?.value ?? []).map(sanitizeAdoPrThread);

@@ -78,8 +78,20 @@ export function adfToText(node: unknown, depth = 0): string {
     }
 
     case 'bulletList':
-    case 'orderedList':
       return adfToText(content, depth + 1);
+
+    case 'orderedList': {
+      const rawStart = Number(attrs?.order);
+      const start = Number.isFinite(rawStart) ? Math.max(1, Math.trunc(rawStart)) : 1;
+      const items = Array.isArray(content) ? content : [];
+      const indent = '  '.repeat(Math.max(0, depth));
+      return items.map((child, idx) => {
+        if (!isObject(child)) return '';
+        const li = child as AnyObject;
+        const liContent = li.content as unknown[] | undefined;
+        return indent + `${start + idx}. ` + adfToText(liContent, depth + 1).trim() + '\n';
+      }).join('');
+    }
 
     case 'listItem': {
       const indent = '  '.repeat(Math.max(0, depth - 1));
