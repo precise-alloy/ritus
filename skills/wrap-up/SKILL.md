@@ -1,6 +1,6 @@
 ---
 name: wrap-up
-description: Use when promoting exploration entries, verifying doc updates, and reporting final status. TRIGGER — invoke after pr-review returns Approve verdict, or when user says "wrap up", "finalize", "what's left to do"
+description: Use after pr-review returns an Approve verdict to promote exploration entries, verify doc updates, and report final status. TRIGGER — invoke only after pr-review approves.
 argument-hint: Provide the branch slug and pr-review verdict
 ---
 
