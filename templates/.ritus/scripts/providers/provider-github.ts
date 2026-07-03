@@ -1,5 +1,5 @@
 import type { Provider } from './types.ts';
-import { requestJson } from './http.ts';
+import { requestJson, requestJsonWithHeaders } from './http.ts';
 import { sanitizeGitHubPr, sanitizeGitHubPrComment, sanitizeGitHubIssueComment } from './sanitize.ts';
 
 const GITHUB_PAGE_SIZE = 100;
@@ -76,6 +76,52 @@ async function fetchAllGitHubPages(baseUrl: string, headers: Record<string, stri
   return items;
 }
 
+function parseLinkHeaderLastPage(linkHeader: string | null): number | undefined {
+  if (!linkHeader) return undefined;
+  const lastMatch = linkHeader.match(/<([^>]+)>;\s*rel="last"/);
+  if (!lastMatch) return undefined;
+  try {
+    const url = new URL(lastMatch[1]);
+    const page = url.searchParams.get('page');
+    if (!page) return undefined;
+    const parsed = parseInt(page, 10);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+async function fetchGitHubLatestIssueComments(baseUrl: string, headers: Record<string, string>, limit: number): Promise<unknown[]> {
+  // Make a probe request with per_page=1 to discover total via Link header
+  const separator = baseUrl.includes('?') ? '&' : '?';
+  const probeUrl = `${baseUrl}${separator}per_page=1&page=1`;
+  const { body, headers: responseHeaders } = await requestJsonWithHeaders(probeUrl, headers);
+
+  const linkHeader = responseHeaders.get('link');
+  const lastPage = parseLinkHeaderLastPage(linkHeader);
+
+  if (lastPage === undefined) {
+    // No Link header means all items fit in one page; re-fetch with proper page size
+    const items = Array.isArray(body) ? body : [];
+    return items.slice(-limit);
+  }
+
+  // lastPage with per_page=1 equals total item count
+  const totalItems = lastPage;
+  const totalPages = Math.ceil(totalItems / GITHUB_PAGE_SIZE);
+  const startPage = Math.max(1, Math.ceil((totalItems - limit) / GITHUB_PAGE_SIZE));
+
+  const items: unknown[] = [];
+  for (let page = startPage; page <= totalPages; page++) {
+    const url = `${baseUrl}${separator}per_page=${GITHUB_PAGE_SIZE}&page=${page}`;
+    const result = await requestJson(url, headers);
+    const pageItems = Array.isArray(result) ? result : [];
+    items.push(...pageItems);
+  }
+
+  return items.slice(-limit);
+}
+
 async function getGitHubPrComments(target: string, extra?: string): Promise<unknown> {
   const parsed = parseGitHubPrUrl(target);
   const headers = gitHubHeaders();
@@ -87,10 +133,9 @@ async function getGitHubPrComments(target: string, extra?: string): Promise<unkn
   reviewComments.reverse();
 
   const issueUrl = `${repoBase}/issues/${encodeURIComponent(parsed.pullNumber)}/comments`;
-  let issueComments = await fetchAllGitHubPages(issueUrl, headers);
-  if (limit && issueComments.length > limit) {
-    issueComments = issueComments.slice(-limit);
-  }
+  let issueComments = limit
+    ? await fetchGitHubLatestIssueComments(issueUrl, headers, limit)
+    : await fetchAllGitHubPages(issueUrl, headers);
 
   return {
     request: parsed,

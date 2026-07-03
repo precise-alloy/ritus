@@ -81,10 +81,34 @@ async function getJiraIssue(target: string, extra?: string): Promise<unknown> {
   };
 }
 
+async function fetchJiraLatestComments(baseUrl: string, headers: RequestHeaders, limit: number): Promise<{ total: number; items: unknown[] }> {
+  // Probe request to discover total count
+  const separator = baseUrl.includes('?') ? '&' : '?';
+  const probeUrl = `${baseUrl}${separator}startAt=0&maxResults=1`;
+  const probe = (await requestJson(probeUrl, headers)) as JiraPage;
+  const total = typeof probe?.total === 'number' ? probe.total : 0;
+
+  if (total === 0) {
+    return { total: 0, items: [] };
+  }
+
+  const startAt = Math.max(0, total - limit);
+  const items: unknown[] = [];
+
+  for (let offset = startAt; offset < total; offset += JIRA_PAGE_SIZE) {
+    const pagedUrl = `${baseUrl}${separator}startAt=${offset}&maxResults=${JIRA_PAGE_SIZE}`;
+    const page = (await requestJson(pagedUrl, headers)) as JiraPage;
+    const pageItems = (page?.comments ?? []) as unknown[];
+    items.push(...pageItems);
+  }
+
+  return { total, items: items.slice(-limit) };
+}
+
 async function getJiraComments(target: string, extra?: string): Promise<unknown> {
   const ticketKey = parseJiraKey(target);
   const baseUrl = `${jiraBaseUrl()}/rest/api/3/issue/${encodeURIComponent(ticketKey)}/comment`;
-  const { items } = await fetchAllJiraPages(baseUrl, jiraHeaders(), 'comments');
+  const headers = jiraHeaders();
 
   let limit: number | undefined;
   if (extra) {
@@ -92,16 +116,24 @@ async function getJiraComments(target: string, extra?: string): Promise<unknown>
     if (Number.isFinite(n) && n > 0) limit = n;
   }
 
-  const allComments = items.map(sanitizeJiraComment);
-  const comments = limit && allComments.length > limit
-    ? allComments.slice(-limit)
-    : allComments;
+  let total: number;
+  let comments: unknown[];
+
+  if (limit) {
+    const result = await fetchJiraLatestComments(baseUrl, headers, limit);
+    total = result.total;
+    comments = result.items.map(sanitizeJiraComment);
+  } else {
+    const { items } = await fetchAllJiraPages(baseUrl, headers, 'comments');
+    total = items.length;
+    comments = items.map(sanitizeJiraComment);
+  }
 
   return {
     ticketKey,
     ...(limit ? { limit } : {}),
     comments: {
-      total: allComments.length,
+      total,
       returned: comments.length,
       comments,
     },
