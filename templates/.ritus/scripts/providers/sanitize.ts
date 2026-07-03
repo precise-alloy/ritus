@@ -404,7 +404,7 @@ export function sanitizeGitHubPrComment(raw: unknown): unknown {
     path: c.path,
     line: c.line,
     original_line: c.original_line,
-    diff_hunk: c.diff_hunk,
+    diff_hunk: typeof c.diff_hunk === 'string' ? c.diff_hunk.slice(0, 2000) : c.diff_hunk,
     created_at: c.created_at,
     updated_at: c.updated_at,
     in_reply_to_id: c.in_reply_to_id,
