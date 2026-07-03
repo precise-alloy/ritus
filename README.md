@@ -4,8 +4,6 @@
   </a>
 </p>
 
-<div align="center">
-
 # Ritus
 
 **Pronounced:** *REE-tus* `/ˈriː.tus/` - from Latin, meaning a prescribed rite or procedure.
