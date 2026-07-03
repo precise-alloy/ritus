@@ -165,7 +165,10 @@ export function htmlToText(html: unknown): string {
   text = text.replace(/&#39;/g, "'");
   text = text.replace(/&nbsp;/g, ' ');
   text = text.replace(/&#x2F;/g, '/');
-  text = text.replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)));
+  text = text.replace(/&#(\d+);/g, (_, code) => {
+    const cp = Number(code);
+    return cp >= 0 && cp <= 0x10ffff ? String.fromCodePoint(cp) : '';
+  });
 
   text = text.replace(/\n{3,}/g, '\n\n');
   return text.trim();
@@ -586,6 +589,12 @@ export function sanitizeAdoPrThread(raw: unknown): unknown {
 
   if (Array.isArray(thread.comments)) {
     cleaned.comments = (thread.comments as unknown[]).map(cleanAdoPrThreadComment);
+    const dates = (thread.comments as AnyObject[])
+      .map(c => c.publishedDate as string | undefined)
+      .filter(Boolean) as string[];
+    if (dates.length > 0) {
+      cleaned.publishedDate = dates.sort().pop();
+    }
   }
 
   return stripNullish(cleaned);
