@@ -359,7 +359,7 @@ const GITHUB_PR_DELETE_FIELDS = new Set([
 function cleanGitHubRef(ref: unknown): unknown {
   if (!isObject(ref)) return ref;
   const r = ref as AnyObject;
-  const repo = isObject(r.repo) ? { full_name: (r.repo as AnyObject).full_name } : undefined;
+  const repo = isObject(r.repo) ? stripNullish({ full_name: (r.repo as AnyObject).full_name }) : undefined;
   return stripNullish({ ref: r.ref, sha: r.sha, repo });
 }
 
