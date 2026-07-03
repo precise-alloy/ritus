@@ -4,9 +4,13 @@
   </a>
 </p>
 
+<div align="center">
+  
 # Ritus
 
-**Pronounced:** *REE-tus* `/ˈriː.tus/` - from Latin, meaning a prescribed rite or procedure.
+</div>
+
+Pronounced: *REE-tus* `/ˈriː.tus/` - from Latin, meaning a prescribed rite or procedure.
 
 A disciplined workflow for reliable AI-assisted development. Ritus uses skill-based architecture, on-demand loading, chain-based routing, and independent verification to work across Claude Code, GitHub Copilot, and any language or stack.
 
