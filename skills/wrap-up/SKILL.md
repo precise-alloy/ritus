@@ -79,7 +79,7 @@ Report to the user:
 
 ## Hard rules
 
-- Never skip promotion — unflagged exploration entries are lost knowledge.
+- Never skip promotion when the exploration log has entries — unpromoted exploration entries are lost knowledge.
 - Never modify existing doc content when promoting — append only.
 - If doc updates are missing, report them — do not apply them yourself. The execute-task subagent owns implementation.
 
