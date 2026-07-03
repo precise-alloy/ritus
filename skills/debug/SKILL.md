@@ -223,8 +223,7 @@ why the current approach fails, and what alternatives should be considered.
 ## Exploration log
 
 Create `docs/tasks/{branch-slug}/exploration.md` if it doesn't exist, using the header format from
-`ticket-review/templates/exploration.md`. During investigation, append codebase findings per the exploration
-template. Read the log first to avoid re-discovering what prior agents already found.
+`skills/ticket-review/templates/exploration.md`. During investigation, append codebase findings per the exploration
 
 ## Common rationalizations — STOP and return to Phase 1
 
