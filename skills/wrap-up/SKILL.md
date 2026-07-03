@@ -10,8 +10,8 @@ argument-hint: Provide the branch slug and pr-review verdict
 
 ## When to use
 
-After pr-review returns an Approve verdict. This is the terminal skill in the workflow chain — it ensures
-post-implementation cleanup happens instead of being forgotten.
+After pr-review returns an Approve verdict. If pr-review has not run or the verdict is not Approve, stop and instruct the user to run pr-review first.
+This is the terminal skill in the workflow chain — it ensures post-implementation cleanup happens instead of being forgotten.
 
 When starting wrap-up, create this TODO and mark items as you complete them:
 
