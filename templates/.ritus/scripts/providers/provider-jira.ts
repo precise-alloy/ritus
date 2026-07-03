@@ -4,7 +4,7 @@ import { basicAuth, requestBinary, requestJson, requireEnv } from './http.ts';
 import { sanitizeJiraIssue, sanitizeJiraComment, sanitizeJiraChangelog } from './sanitize.ts';
 
 const JIRA_PAGE_SIZE = 100;
-const JIRA_MAX_COMMENTS = 200;
+const JIRA_MAX_COMMENT_PAGES = 200;
 
 function jiraBaseUrl(): string {
   return requireEnv('JIRA_BASE_URL').replace(/\/+$/, '');
@@ -97,7 +97,7 @@ async function fetchJiraLatestComments(baseUrl: string, headers: RequestHeaders,
   const items: unknown[] = [];
   let offset = startAt;
 
-  for (let i = 0; i < JIRA_MAX_COMMENTS && offset < total; i++) {
+  for (let i = 0; i < JIRA_MAX_COMMENT_PAGES && offset < total; i++) {
     const pagedUrl = `${baseUrl}${separator}startAt=${offset}&maxResults=${JIRA_PAGE_SIZE}`;
     const page = (await requestJson(pagedUrl, headers)) as JiraPage;
     const pageItems = (page?.comments ?? []) as unknown[];
@@ -121,7 +121,7 @@ async function getJiraComments(target: string, extra?: string): Promise<unknown>
   if (extra) {
     const n = parseInt(extra, 10);
     if (Number.isFinite(n) && n > 0) {
-      const maxLimit = JIRA_PAGE_SIZE * JIRA_MAX_COMMENTS;
+      const maxLimit = JIRA_PAGE_SIZE * JIRA_MAX_COMMENT_PAGES;
       limit = Math.min(n, maxLimit);
     }
   }
