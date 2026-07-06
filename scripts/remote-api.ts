@@ -1,7 +1,7 @@
 #!/usr/bin/env bun
 
 import { loadLocalEnv, requireEnv } from './providers/http.ts';
-import type { EnvCheckResult, EnvKeyStatus, Provider, ProviderEnvStatus } from './providers/types.ts';
+import type { EnvCheckResult, EnvKeyStatus, EnvMapping, Provider, ProviderEnvStatus, ProviderInstance, ProviderInstanceConfig } from './providers/types.ts';
 import { jiraProvider } from './providers/provider-jira.ts';
 import { adoProvider } from './providers/provider-ado.ts';
 import { githubProvider } from './providers/provider-github.ts';
@@ -10,6 +10,355 @@ const PROVIDERS: Provider[] = [jiraProvider, adoProvider, githubProvider];
 const PROVIDER_MAP = new Map(PROVIDERS.map((p) => [p.name, p]));
 
 const HELP_FLAGS = new Set(['-h', '--help', 'help']);
+
+// ---------------------------------------------------------------------------
+// team.yml parsing — extracts ticket_providers / git_providers lists
+// ---------------------------------------------------------------------------
+
+function parseYamlValue(value: string): string | string[] {
+  if (value.startsWith('[')) {
+    if (!value.endsWith(']')) {
+      throw new Error(`Unbalanced brackets in YAML array value: ${value}`);
+    }
+    return value.slice(1, -1).split(',').map(s => s.trim().replace(/^["']|["']$/g, '')).filter(Boolean);
+  }
+  return value.replace(/^["']|["']$/g, '');
+}
+
+function parseProviderSection(lines: string[], startIdx: number): ProviderInstanceConfig[] {
+  const configs: ProviderInstanceConfig[] = [];
+  let current: Partial<ProviderInstanceConfig> | null = null;
+  let envObj: EnvMapping | null = null;
+  let envIndent = 0;
+
+  for (let i = startIdx; i < lines.length; i++) {
+    const raw = lines[i];
+    const trimmed = raw.trim();
+    if (!trimmed || trimmed.startsWith('#')) continue;
+
+    const indent = raw.search(/\S/);
+    if (indent === 0) break;
+
+    if (trimmed.startsWith('- ')) {
+      // Finalize previous entry
+      if (current) {
+        if (envObj) current.env = envObj;
+        if (current.type && current.name) configs.push(current as ProviderInstanceConfig);
+      }
+      current = {};
+      envObj = null;
+
+      const inline = trimmed.slice(2).trim();
+      if (inline) {
+        const ci = inline.indexOf(':');
+        if (ci > 0) {
+          const key = inline.slice(0, ci).trim();
+          const val = inline.slice(ci + 1).trim();
+          if (key === 'type') current.type = val.replace(/^["']|["']$/g, '');
+          else if (key === 'name') current.name = val.replace(/^["']|["']$/g, '');
+          else if (key === 'key_prefixes') {
+            const parsed = parseYamlValue(val);
+            if (Array.isArray(parsed)) current.keyPrefixes = parsed;
+          }
+        }
+      }
+    } else if (current) {
+      const ci = trimmed.indexOf(':');
+      if (ci > 0) {
+        const key = trimmed.slice(0, ci).trim();
+        const val = trimmed.slice(ci + 1).trim();
+
+        if (envObj !== null && indent > envIndent) {
+          const envVarName = val.replace(/^["']|["']$/g, '');
+          if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(envVarName)) {
+            throw new Error(`Invalid env var name "${envVarName}" in team.yml: must match [A-Za-z_][A-Za-z0-9_]*`);
+          }
+          envObj[key] = envVarName;
+        } else {
+          if (envObj !== null) {
+            current.env = envObj;
+            envObj = null;
+          }
+          if (key === 'env' && !val) {
+            envObj = {};
+            envIndent = indent;
+          } else if (key === 'type') {
+            current.type = val.replace(/^["']|["']$/g, '');
+          } else if (key === 'name') {
+            current.name = val.replace(/^["']|["']$/g, '');
+          } else if (key === 'key_prefixes') {
+            const parsed = parseYamlValue(val);
+            if (Array.isArray(parsed)) current.keyPrefixes = parsed;
+          }
+        }
+      }
+    }
+  }
+
+  if (current) {
+    if (envObj) current.env = envObj;
+    if (current.type && current.name) configs.push(current as ProviderInstanceConfig);
+  }
+
+  for (const config of configs) {
+    if (!config.type?.trim()) {
+      throw new Error('Empty "type" in team.yml ticket_providers/git_providers entry');
+    }
+    if (!config.name?.trim()) {
+      throw new Error('Empty "name" in team.yml ticket_providers/git_providers entry');
+    }
+    if (config.keyPrefixes) {
+      for (const prefix of config.keyPrefixes) {
+        if (!/^[A-Z][A-Z0-9]*$/i.test(prefix)) {
+          throw new Error(`Invalid key_prefix "${prefix}" for ${config.type}:${config.name}: must be alphanumeric starting with a letter`);
+        }
+      }
+    }
+  }
+
+  return configs;
+}
+
+function parseTeamYaml(content: string): { ticketProviders?: ProviderInstanceConfig[]; gitProviders?: ProviderInstanceConfig[] } {
+  const lines = content.split(/\r?\n/);
+  let ticketProviders: ProviderInstanceConfig[] | undefined;
+  let gitProviders: ProviderInstanceConfig[] | undefined;
+
+  for (let i = 0; i < lines.length; i++) {
+    const trimmed = lines[i].trim();
+    if (trimmed.startsWith('#')) continue;
+    if (trimmed === 'ticket_providers:') {
+      const items = parseProviderSection(lines, i + 1);
+      if (items.length > 0) ticketProviders = items;
+    } else if (trimmed === 'git_providers:') {
+      const items = parseProviderSection(lines, i + 1);
+      if (items.length > 0) gitProviders = items;
+    }
+  }
+
+  return { ticketProviders, gitProviders };
+}
+
+// ---------------------------------------------------------------------------
+// Instance loading — builds ProviderInstance[] from team.yml or defaults
+// ---------------------------------------------------------------------------
+
+type LoadedInstances = {
+  instances: ProviderInstance[];
+  hasTeamConfig: boolean;
+};
+
+function buildInstance(provider: Provider, config: ProviderInstanceConfig): ProviderInstance {
+  const envMapping = config.env
+    ? { ...provider.defaultEnvMapping, ...config.env }
+    : { ...provider.defaultEnvMapping };
+  return { provider, config, envMapping };
+}
+
+async function loadInstances(): Promise<LoadedInstances> {
+  const teamYamlPath = `${process.cwd()}/docs/profiles/team.yml`;
+  const file = Bun.file(teamYamlPath);
+
+  if (!(await file.exists())) {
+    return { instances: buildDefaultInstances(), hasTeamConfig: false };
+  }
+
+  const content = await file.text();
+  const { ticketProviders, gitProviders } = parseTeamYaml(content);
+
+  if (!ticketProviders && !gitProviders) {
+    return { instances: buildDefaultInstances(), hasTeamConfig: false };
+  }
+
+  const instances: ProviderInstance[] = [];
+
+  if (ticketProviders) {
+    for (const config of ticketProviders) {
+      const provider = PROVIDERS.find(p => p.name === config.type);
+      if (provider) instances.push(buildInstance(provider, config));
+    }
+  }
+
+  if (gitProviders) {
+    for (const config of gitProviders) {
+      const provider = PROVIDERS.find(p => p.name === config.type);
+      if (provider) instances.push(buildInstance(provider, config));
+    }
+  }
+
+  // Add default instances for providers not covered by team.yml lists
+  const coveredTypes = new Set(instances.map(i => i.provider.name));
+  for (const provider of PROVIDERS) {
+    if (!coveredTypes.has(provider.name)) {
+      instances.push(buildInstance(provider, { type: provider.name, name: 'default' }));
+    }
+  }
+
+  return { instances, hasTeamConfig: true };
+}
+
+function buildDefaultInstances(): ProviderInstance[] {
+  return PROVIDERS.map(provider =>
+    buildInstance(provider, { type: provider.name, name: 'default' }),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Instance-aware target matching
+// ---------------------------------------------------------------------------
+
+function canInstanceHandleTarget(instance: ProviderInstance, action: string, target: string): boolean {
+  const { provider, config, envMapping } = instance;
+
+  if (!(action in provider.actions)) return false;
+
+  // GitHub: custom hostname matching for GHE support
+  if (provider.name === 'github') {
+    return canGitHubInstanceHandle(instance, action, target);
+  }
+
+  // ADO: org/project matching for multi-instance
+  if (provider.name === 'ado') {
+    return canAdoInstanceHandle(instance, action, target);
+  }
+
+  // Jira (and others): standard canHandleTarget + key prefix filtering
+  if (!provider.canHandleTarget(action, target)) return false;
+
+  if (config.keyPrefixes && config.keyPrefixes.length > 0) {
+    const key = extractTicketPrefix(target);
+    if (key) {
+      return config.keyPrefixes.some(p => p.toUpperCase() === key);
+    }
+  }
+
+  return true;
+}
+
+function extractTicketPrefix(target: string): string | undefined {
+  const bareMatch = target.match(/^([A-Z][A-Z0-9]+)-\d+$/i);
+  if (bareMatch) return bareMatch[1].toUpperCase();
+  const urlMatch = target.match(/\/browse\/([A-Z][A-Z0-9]+)-\d+/i);
+  if (urlMatch) return urlMatch[1].toUpperCase();
+  return undefined;
+}
+
+function canGitHubInstanceHandle(instance: ProviderInstance, action: string, target: string): boolean {
+  let url: URL;
+  try {
+    url = new URL(target);
+  } catch {
+    return false;
+  }
+
+  const prActions = new Set(['pr', 'comments']);
+  const issueActions = new Set(['issue', 'issue-comments']);
+
+  let pathMatch = false;
+  if (prActions.has(action)) {
+    pathMatch = /\/[^/]+\/[^/]+\/pull\/\d+\/?$/.test(url.pathname);
+  } else if (issueActions.has(action)) {
+    pathMatch = /\/[^/]+\/[^/]+\/issues\/\d+\/?$/.test(url.pathname);
+  }
+
+  if (!pathMatch) return false;
+
+  const expectedHostname = getExpectedGitHubHostname(instance.envMapping);
+  return url.hostname.toLowerCase() === expectedHostname.toLowerCase();
+}
+
+function getExpectedGitHubHostname(envMapping: EnvMapping): string {
+  if (envMapping.api_base_url) {
+    const apiUrl = process.env[envMapping.api_base_url]?.trim();
+    if (apiUrl) {
+      try {
+        return new URL(apiUrl).hostname;
+      } catch { /* fall through */ }
+    }
+  }
+  return 'github.com';
+}
+
+function canAdoInstanceHandle(instance: ProviderInstance, action: string, target: string): boolean {
+  if (!instance.provider.canHandleTarget(action, target)) return false;
+
+  const isBareId = /^\d+$/.test(target);
+  const { envMapping } = instance;
+  const orgEnvVar = envMapping.org;
+  const projectEnvVar = envMapping.project;
+
+  if (isBareId) {
+    if (!orgEnvVar || !projectEnvVar) return false;
+    const instanceOrg = process.env[orgEnvVar]?.trim();
+    const instanceProject = process.env[projectEnvVar]?.trim();
+    return !!(instanceOrg && instanceProject);
+  }
+
+  if (!orgEnvVar || !projectEnvVar) return true;
+
+  const instanceOrg = process.env[orgEnvVar]?.trim();
+  const instanceProject = process.env[projectEnvVar]?.trim();
+  if (!instanceOrg || !instanceProject) return true;
+
+  try {
+    const url = new URL(target);
+    const segments = url.pathname.split('/').filter(Boolean).map(s => decodeURIComponent(s));
+    let urlOrg: string | undefined;
+    let urlProject: string | undefined;
+    const host = url.hostname.toLowerCase();
+
+    if (host === 'dev.azure.com' && segments.length >= 2) {
+      urlOrg = segments[0];
+      urlProject = segments[1];
+    } else if (host.endsWith('.visualstudio.com')) {
+      urlOrg = host.replace('.visualstudio.com', '');
+      urlProject = segments[0];
+    }
+
+    if (urlOrg && urlProject) {
+      return urlOrg.toLowerCase() === instanceOrg.toLowerCase() &&
+             urlProject.toLowerCase() === instanceProject.toLowerCase();
+    }
+  } catch {
+    // Not a URL — should have been caught by isBareId check above
+  }
+
+  return true;
+}
+
+// ---------------------------------------------------------------------------
+// Instance-aware credential checking
+// ---------------------------------------------------------------------------
+
+function checkInstanceEnv(instance: ProviderInstance): ProviderEnvStatus {
+  const envMapping = instance.envMapping;
+  const keys: EnvKeyStatus[] = Object.entries(envMapping)
+    .filter(([logicalKey]) => logicalKey !== 'api_base_url')
+    .map(([, envVarName]) => ({
+      name: envVarName,
+      present: !!process.env[envVarName]?.trim(),
+    }));
+
+  // GitHub special case: GH_TOKEN fallback for GITHUB_TOKEN
+  if (instance.provider.name === 'github') {
+    const tokenKey = keys.find(k => k.name === 'GITHUB_TOKEN');
+    if (tokenKey && !tokenKey.present && !!process.env.GH_TOKEN?.trim()) {
+      tokenKey.present = true;
+    }
+  }
+
+  const hasMultipleOfType = instance.config.name !== 'default';
+  const label = hasMultipleOfType
+    ? `${instance.provider.label} (${instance.config.name})`
+    : instance.provider.label;
+
+  return {
+    name: hasMultipleOfType ? `${instance.provider.name}-${instance.config.name}` : instance.provider.name,
+    label,
+    keys,
+    ok: keys.every(k => k.present),
+  };
+}
 
 function getScriptCmd(): string {
   const scriptPath = Bun.argv[1] === 'run' ? Bun.argv[2] : Bun.argv[1];
@@ -30,7 +379,12 @@ function printUsage(): void {
   const exampleLines = PROVIDERS.flatMap((p) => p.exampleLines(cmd));
   console.error(`Usage:
   ${cmd} check-env
-${usageLines.map((l) => '  ' + l).join('\n')}
+
+  Provider-agnostic (auto-detect):
+    ${cmd} <action> <target> [extra]
+
+  Explicit provider:
+${usageLines.map((l) => '    ' + l).join('\n')}
 
 Examples:
 ${exampleLines.map((l) => '  ' + l).join('\n')}`);
@@ -58,11 +412,19 @@ function checkProviderEnv(provider: Provider): ProviderEnvStatus {
   };
 }
 
-async function checkEnv(): Promise<EnvCheckResult> {
+async function checkEnv(loaded?: LoadedInstances): Promise<EnvCheckResult> {
   const envLocalPath = `${process.cwd()}/.env.local`;
   const envLocalExists = await Bun.file(envLocalPath).exists();
 
-  const providers = PROVIDERS.map(checkProviderEnv);
+  const { instances, hasTeamConfig } = loaded ?? await loadInstances();
+
+  let providers: ProviderEnvStatus[];
+  if (hasTeamConfig) {
+    providers = instances.map(checkInstanceEnv);
+  } else {
+    providers = PROVIDERS.map(checkProviderEnv);
+  }
+
   const keys = providers.flatMap((p) => p.keys);
   const missing = keys.filter((k) => !k.present).map((k) => k.name);
 
@@ -77,7 +439,8 @@ async function checkEnv(): Promise<EnvCheckResult> {
 }
 
 async function runCheckEnv(): Promise<void> {
-  const result = await checkEnv();
+  const loaded = await loadInstances();
+  const result = await checkEnv(loaded);
   console.log(JSON.stringify(result, null, 2));
 
   if (!result.envLocalExists) {
@@ -124,40 +487,129 @@ async function runCheckEnv(): Promise<void> {
 async function main(): Promise<void> {
   await loadLocalEnv();
 
-  const [system, action, target, extra] = getCliArgs(Bun.argv);
-  if (!system) {
+  const args = getCliArgs(Bun.argv);
+  const firstArg = args[0];
+
+  if (!firstArg) {
     printUsage();
     process.exit(2);
   }
 
-  if (HELP_FLAGS.has(system)) {
+  if (HELP_FLAGS.has(firstArg)) {
     printUsage();
     process.exit(0);
   }
 
-  if (system === 'check-env') {
+  if (firstArg === 'check-env') {
     await runCheckEnv();
     return;
   }
 
-  const provider = PROVIDER_MAP.get(system);
-  if (!provider) {
-    printUsage();
-    process.exit(2);
-  }
+  const { instances } = await loadInstances();
 
-  if (!action || !target) {
-    printUsage();
-    process.exit(2);
-  }
+  let provider: Provider;
+  let action: string;
+  let target: string;
+  let extra: string | undefined;
+  let resolvedEnvMapping: EnvMapping | undefined;
 
-  if (provider.name === 'github') {
-    if (!process.env.GITHUB_TOKEN?.trim() && !process.env.GH_TOKEN?.trim()) {
-      throw new Error('Missing GITHUB_TOKEN (or GH_TOKEN). Populate it in .env.local before using this helper.');
+  if (PROVIDER_MAP.has(firstArg)) {
+    // Explicit dispatch: <provider> <action> <target> [extra]
+    const explicitProvider = PROVIDER_MAP.get(firstArg)!;
+    action = args[1];
+    target = args[2];
+    extra = args[3];
+
+    if (!action || !target) {
+      printUsage();
+      process.exit(2);
+    }
+
+    // Resolve the best matching instance for this provider + target
+    const matchingInstances = instances.filter(
+      (inst) => inst.provider.name === explicitProvider.name &&
+                checkInstanceEnv(inst).ok &&
+                canInstanceHandleTarget(inst, action, target),
+    );
+
+    if (matchingInstances.length === 1) {
+      provider = matchingInstances[0].provider;
+      resolvedEnvMapping = matchingInstances[0].envMapping;
+    } else {
+      // Fall back to default instance for this provider
+      const defaultInstance = instances.find(
+        (inst) => inst.provider.name === explicitProvider.name && inst.config.name === 'default',
+      );
+      provider = explicitProvider;
+      resolvedEnvMapping = defaultInstance?.envMapping;
     }
   } else {
-    for (const key of provider.requiredEnvKeys) {
-      requireEnv(key);
+    // Auto-detect mode: <action> <target> [extra]
+    action = firstArg;
+    target = args[1];
+    extra = args[2];
+
+    if (!target) {
+      console.error(`Auto-detect mode requires both <action> and <target>.`);
+      printUsage();
+      process.exit(2);
+    }
+
+    const candidates = instances.filter(
+      (inst) => checkInstanceEnv(inst).ok && canInstanceHandleTarget(inst, action, target),
+    );
+
+    if (candidates.length === 0) {
+      const configured = instances.filter((inst) => checkInstanceEnv(inst).ok);
+      const configuredNames = configured.map((inst) => {
+        const label = inst.config.name !== 'default'
+          ? `${inst.provider.name} (${inst.config.name})`
+          : `${inst.provider.name} (${inst.provider.label})`;
+        return label;
+      });
+      console.error(`No configured provider can handle: ${action} ${target}`);
+      if (configuredNames.length > 0) {
+        console.error(`Configured providers: ${configuredNames.join(', ')}`);
+      } else {
+        console.error('No providers are configured. Run check-env for details.');
+      }
+      console.error(`\nTo use a specific provider: ${getScriptCmd()} <provider> ${action} ${target}`);
+      process.exit(2);
+    }
+
+    if (candidates.length > 1) {
+      const hasDuplicateTypes = new Set(candidates.map(c => c.provider.name)).size < candidates.length;
+      const candidateNames = candidates.map((inst) => {
+        return (hasDuplicateTypes || inst.config.name !== 'default')
+          ? `${inst.provider.name} (${inst.config.name})`
+          : inst.provider.name;
+      }).join(', ');
+      console.error(`Ambiguous target: multiple providers can handle "${action} ${target}": ${candidateNames}`);
+      console.error('Disambiguate by specifying the provider explicitly:');
+      for (const c of candidates) {
+        console.error(`  ${getScriptCmd()} ${c.provider.name} ${action} ${target}`);
+      }
+      process.exit(2);
+    }
+
+    provider = candidates[0].provider;
+    resolvedEnvMapping = candidates[0].envMapping;
+  }
+
+  // Validate credentials using resolved env mapping or provider defaults
+  const envMapping = resolvedEnvMapping ?? provider.defaultEnvMapping;
+  if (provider.name === 'github') {
+    const tokenEnvVar = envMapping.token ?? 'GITHUB_TOKEN';
+    const token = process.env[tokenEnvVar]?.trim();
+    if (!token && tokenEnvVar === 'GITHUB_TOKEN' && !process.env.GH_TOKEN?.trim()) {
+      throw new Error('Missing GITHUB_TOKEN (or GH_TOKEN). Populate it in .env.local before using this helper.');
+    } else if (!token && tokenEnvVar !== 'GITHUB_TOKEN') {
+      throw new Error(`Missing ${tokenEnvVar}. Populate it in .env.local before using this helper.`);
+    }
+  } else {
+    for (const [logicalKey, envVarName] of Object.entries(envMapping)) {
+      if (logicalKey === 'api_base_url') continue;
+      requireEnv(envVarName);
     }
   }
 
@@ -168,7 +620,7 @@ async function main(): Promise<void> {
     process.exit(2);
   }
 
-  const result = await handler(target, extra);
+  const result = await handler(target, extra, resolvedEnvMapping);
   console.log(JSON.stringify(result, null, 2));
 }
 

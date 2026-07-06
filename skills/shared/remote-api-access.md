@@ -20,6 +20,48 @@ bun --version
 
 If Bun is not installed or the command is unavailable, stop immediately and ask the user to install Bun. Do not continue remote analysis or review with another runtime or ad-hoc HTTP calls.
 
+## Auto-detected invocation
+
+The preferred syntax omits the provider name. The script auto-detects the provider from the target URL or key shape
+combined with configured credentials:
+
+```bash
+bun run "<plugin-root>/scripts/remote-api.ts" <action> <target> [extra]
+```
+
+Examples:
+
+```bash
+bun run "<plugin-root>/scripts/remote-api.ts" pr "https://github.com/owner/repo/pull/42"
+bun run "<plugin-root>/scripts/remote-api.ts" pr "https://dev.azure.com/org/proj/_git/repo/pullrequest/1"
+bun run "<plugin-root>/scripts/remote-api.ts" issue "PROJ-123"
+bun run "<plugin-root>/scripts/remote-api.ts" issue "https://github.com/owner/repo/issues/7"
+bun run "<plugin-root>/scripts/remote-api.ts" comments "PROJ-123"
+bun run "<plugin-root>/scripts/remote-api.ts" comments "https://github.com/owner/repo/pull/42" 10
+```
+
+Auto-detection logic:
+
+1. Filters to providers with valid credentials (`.env.local` keys present).
+2. Filters further to providers whose `canHandleTarget(action, target)` returns true (URL hostname / key pattern match).
+3. Exactly 1 match: uses that provider. 0 matches: actionable error listing configured providers. >1 match: ambiguous error with explicit disambiguation commands.
+
+## Explicit provider (override)
+
+When auto-detection is ambiguous or you need a specific provider, use the explicit syntax:
+
+```bash
+bun run "<plugin-root>/scripts/remote-api.ts" <provider> <action> <target> [extra]
+```
+
+This is the original syntax and remains fully supported. Use it as a fallback when auto-detection cannot resolve the
+provider (e.g., a bare numeric ID that could be either an ADO work item or a Jira key from a numeric-prefix project).
+
+## Command catalogue
+
+> Commands below use **explicit provider syntax** for reference. To use auto-detection instead, omit the provider
+> prefix — e.g., `bun run "<plugin-root>/scripts/remote-api.ts" pr <URL>` instead of `github pr <URL>`.
+
 If the command you need is not listed, run `bun run "<plugin-root>/scripts/remote-api.ts"` with no arguments to print the current subcommand list:
 
 ```bash
@@ -35,12 +77,16 @@ bun run "<plugin-root>/scripts/remote-api.ts" jira attachment-download <KEY_OR_U
 
 # Azure DevOps (ADO)
 bun run "<plugin-root>/scripts/remote-api.ts" ado pr <PR_URL>                        # PR metadata
+bun run "<plugin-root>/scripts/remote-api.ts" ado pr-threads <PR_URL> [count]        # PR review threads
 bun run "<plugin-root>/scripts/remote-api.ts" ado issue <WORK_ITEM_URL_OR_ID> [fields]  # work item details
 bun run "<plugin-root>/scripts/remote-api.ts" ado comments <WORK_ITEM_URL_OR_ID>     # work item comments
 bun run "<plugin-root>/scripts/remote-api.ts" ado changelog <WORK_ITEM_URL_OR_ID>    # work item updates
 
 # GitHub
 bun run "<plugin-root>/scripts/remote-api.ts" github pr <PR_URL>                     # PR metadata
+bun run "<plugin-root>/scripts/remote-api.ts" github comments <PR_URL> [count]       # PR review comments
+bun run "<plugin-root>/scripts/remote-api.ts" github issue <ISSUE_URL> [fields]      # issue details
+bun run "<plugin-root>/scripts/remote-api.ts" github issue-comments <ISSUE_URL> [count]  # issue comments
 ```
 
 ## URL parsing
@@ -73,6 +119,12 @@ Bare numeric IDs (e.g. `12345`) are also accepted when `AZURE_DEVOPS_ORG` and `A
 
 ```text
 https://github.com/<owner>/<repo>/pull/<number>
+```
+
+### GitHub Issue URLs
+
+```text
+https://github.com/<owner>/<repo>/issues/<number>
 ```
 
 If a needed call is missing from the helper, stop and ask the user before falling back to anything else. Extending the helper is preferred over working around it.
@@ -114,3 +166,54 @@ Interpret the result:
 - Exit 1 with no providers configured — tell the user which keys are missing and ask them to fill those values, then re-run the skill.
 
 Authentication or authorization failures (`401`, `403`, invalid credentials, PAT expired/revoked, permission-style `404`) are hard stops for remote analysis or review. Ask the user to provide valid access for the failing system before continuing.
+
+## Multi-instance env configuration
+
+Projects that use multiple instances of the same provider (e.g., two Jira tenants or github.com + GitHub Enterprise)
+configure routing and env var mapping in `docs/profiles/team.yml`.
+
+Default instances use standard env var names (backward compatible). Additional instances declare custom env var names
+in their `env:` block — users pick their own env var names. Routing config lives in `team.yml`; `.env.local` carries
+only credentials.
+
+```yaml
+# docs/profiles/team.yml — routing config
+ticket_providers:
+  - type: jira
+    name: primary
+    key_prefixes: ["PROJ", "CORE"]
+    # omit env: → uses default keys (JIRA_BASE_URL, JIRA_PAT, JIRA_EMAIL)
+  - type: jira
+    name: external
+    key_prefixes: ["EXT"]
+    env:
+      base_url: JIRA_EXT_BASE_URL
+      pat: JIRA_EXT_PAT
+      email: JIRA_EXT_EMAIL
+
+git_providers:
+  - type: github
+    name: public
+    # omit env: → uses default keys (GITHUB_TOKEN)
+  - type: github
+    name: enterprise
+    env:
+      token: GHE_TOKEN
+      api_base_url: GHE_API_URL
+```
+
+```dotenv
+# .env.local — credentials with natural names
+JIRA_BASE_URL=https://company.atlassian.net
+JIRA_PAT=xxx
+JIRA_EMAIL=user@company.com
+JIRA_EXT_BASE_URL=https://other.atlassian.net
+JIRA_EXT_PAT=yyy
+JIRA_EXT_EMAIL=user@other.com
+GHE_TOKEN=ghp_...
+GHE_API_URL=https://github.corp.com/api/v3
+```
+
+When a target matches multiple instances (e.g., a Jira key prefix defined in two instances), the script returns a
+hard error listing the candidates with explicit disambiguation commands. Single-instance setups do not need any
+`team.yml` changes — existing scalar fields and env var names continue to work.

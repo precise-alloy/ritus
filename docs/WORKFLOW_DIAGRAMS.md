@@ -35,7 +35,9 @@ flowchart TD
     Class -->|STANDARD| GT
     Class -->|EPIC| GT
 
-    GT --> HumanTasks{"🧑 Human reviews\ntask files?"}
+    GT --> HumanReview{"🧑 Human reviews\nreview document?"}
+    HumanReview -->|"Adjust"| GT
+    HumanReview -->|"Approve"| HumanTasks{"🧑 Human reviews\ntask files?"}
     HumanTasks -->|"Adjust"| GT
     HumanTasks -->|"Approve"| Loop["Task execution loop\n(see Diagram 2)"]
 
@@ -64,8 +66,11 @@ flowchart TD
     AFDone -->|"More review comments"| AF
 
     DB --> DBPhases["4-phase investigation\n(see Diagram 3)"]
-    DBPhases --> DBFix["Fix applied + tested\nin same session"]
-    DBFix --> CR
+    DBPhases --> DBInvestigationApproval{"🧑 User approves\ninvestigation + fix?"}
+    DBInvestigationApproval -->|"Approve"| DBFix["Fix applied + tested\nin same session"]
+    DBInvestigationApproval -->|"Adjust"| DBPhases
+    DBFix --> DBVerify["verify-task 🤖 haiku\n(fresh subagent)"]
+    DBVerify --> CR
 ```
 
 **Legend:** 🧑 = human-in-the-loop gate. 🤖 = runs as a dedicated subagent with specified model.
@@ -111,10 +116,13 @@ flowchart TD
     Scope -->|"Yes"| Standards{"Standards\ngates pass?"}
     Scope -->|"Violation"| Fail
 
-    Standards -->|"Yes"| P2{"Phase 2:\nAdversarial review?"}
+    Standards -->|"Yes"| QA{"QA file\nchecks pass?"}
     Standards -->|"Fail"| Fail(["FAIL ❌\nwith specific gaps"])
 
-    P2 -->|"Fault injection\nContract changes\nRegression risk\nSecurity quick check"| P2Result{"Issues found?"}
+    QA -->|"Yes"| P2{"Phase 2:\nAdversarial review?"}
+    QA -->|"Fail"| Fail
+
+    P2 -->|"Fault injection\nImplicit contract changes\nRegression risk\nSecurity quick check"| P2Result{"Issues found?"}
     P2Result -->|"No"| Pass(["PASS ✅\nwith evidence"])
     P2Result -->|"Yes"| Fail
 ```
@@ -152,10 +160,14 @@ flowchart TD
         P3["Form single hypothesis\nclearly stated, specific"]
         P3 --> P3b["Test minimally\none variable at a time"]
         P3b --> P3c{"Hypothesis\nconfirmed?"}
-        P3c -->|"Yes"| P4
+        P3c -->|"Yes"| CaseFile["Create investigation case file\ndocs/tasks/{branch-slug}/investigation-{slug}.md"]
         P3c -->|"No"| P3d["New hypothesis\ndo NOT layer fixes"]
         P3d --> P3
     end
+
+    CaseFile --> DBInvestigationApproval{"🧑 User approves\ninvestigation + proposed fix?"}
+    DBInvestigationApproval -->|"Approve"| P4
+    DBInvestigationApproval -->|"Adjust"| P3
 
     subgraph "Phase 4 — Fix & Verify"
         P4["Create failing test\nmust FAIL before fix"]
@@ -166,7 +178,8 @@ flowchart TD
     P4c --> Escalation{"3+ fix\nattempts failed?"}
     Escalation -->|"Yes"| Stop(["🧑 STOP\nDocument architectural finding\ndiscuss with user"])
     Escalation -->|"No"| Done(["Report fix\n🧑 user commits"])
-    Done --> CR(["→ pr-review\n🤖 sonnet subagent"])
+    Done --> VT(["→ verify-task 🤖 haiku"])
+    VT --> CR(["→ pr-review\n🤖 sonnet subagent"])
 ```
 
 ## 4. Context and Model Architecture
@@ -178,9 +191,12 @@ flowchart LR
     subgraph "Orchestrator Session (inherits user's model)"
         A["CLAUDE.md\n+ start-ritus skill\n+ docs/PROJECT_CONTEXT.md\n(always loaded)"]
         B["brainstorm / triage\n/ ticket-review"]
-        C["execute-task\n+ standards skills"]
         D["debug\n(investigation)"]
         E["address-feedback\n(PR comment fixes)"]
+    end
+
+    subgraph "Fresh Subagent — per triage model/effort"
+        C["execute-task skill 🤖\n+ standards skills"]
     end
 
     subgraph "Fresh Subagent — haiku"
@@ -191,10 +207,11 @@ flowchart LR
         R["pr-review skill 🤖\nStandards loaded conditionally by skill"]
     end
 
+    B -- "dispatch per task" --> C
     C -- "dispatch per task" --> V
-    V -- "PASS / FAIL" --> C
-    C -- "all tasks verified" --> R
-    R -- "Approve / Request changes" --> C
+    V -- "PASS / FAIL" --> B
+    B -- "all tasks verified" --> R
+    R -- "Approve / Request changes" --> B
     E -- "dispatch fix task" --> C
 ```
 
@@ -208,7 +225,7 @@ flowchart TD
 
     Check -->|"Any code change"| CC["code-conventions\n+ docs/CODE_CONVENTIONS.md"]
     Check -->|"New service / endpoint\n/ worker / bug fix"| TP["testing-policy\n+ docs/TEST_CONVENTIONS.md"]
-    Check -->|"New business logic\nor bug fix"| TDD["tdd\n(red-green-refactor)"]
+    Check -->|"New business logic\n/ API endpoint / bug fix"| TDD["tdd\n(red-green-refactor)"]
     Check -->|"Auth / billing / migration\n/ tenant / infra / contracts"| SEC["security"]
     Check -->|"STANDARD or EPIC"| DOD["definition-of-done"]
 
@@ -246,6 +263,10 @@ flowchart TD
         TST["docs/TEST_CONVENTIONS.md\n🧑 filled by repo-scan"]
         ARCH["docs/ARCHITECTURE.md\n🧑 filled progressively"]
         DEC["docs/DECISIONS.md\n🧑 auto + manual"]
+        LES["docs/LESSONS.md\n🧑 auto + manual"]
+        CUT["docs/CUTOFF.md\n🧑 filled by repo-scan"]
+        STK["docs/STAKEHOLDERS.md\n🧑 manual"]
+        CHG["docs/CHANGELOG.md\n🧑 auto + manual"]
     end
 
     subgraph "Work artifacts (never touched by upgrades)"
@@ -261,6 +282,9 @@ flowchart TD
     YML -->|"renders"| PC
     SK -->|"references"| COD
     SK -->|"references"| TST
+    SK -->|"references"| LES
+    SK -->|"references"| CUT
+    SK -->|"references"| STK
 ```
 
 **Legend:** 🧑 user-owned (preserved on upgrade) · 📦 workflow package (replaced on upgrade) · 🔄 rendered · 📝 work artifacts

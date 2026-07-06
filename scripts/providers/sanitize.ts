@@ -435,6 +435,44 @@ export function sanitizeGitHubPrComment(raw: unknown): unknown {
   });
 }
 
+const GITHUB_ISSUE_URL_FIELDS = new Set([
+  'url', 'repository_url', 'labels_url', 'comments_url', 'events_url',
+  'html_url', 'timeline_url',
+]);
+
+const GITHUB_ISSUE_DELETE_FIELDS = new Set([
+  'node_id', 'id', 'author_association', 'active_lock_reason',
+  'performed_via_github_app',
+]);
+
+export function sanitizeGitHubIssue(raw: unknown): unknown {
+  if (!isObject(raw)) return raw;
+  const issue = { ...(raw as AnyObject) };
+
+  for (const key of GITHUB_ISSUE_URL_FIELDS) delete issue[key];
+  for (const key of GITHUB_ISSUE_DELETE_FIELDS) delete issue[key];
+
+  if (isGitHubUser(issue.user)) issue.user = flattenGitHubUser(issue.user);
+  if (isGitHubUser(issue.closed_by)) issue.closed_by = flattenGitHubUser(issue.closed_by);
+
+  if (Array.isArray(issue.assignees)) {
+    issue.assignees = (issue.assignees as unknown[]).map(flattenGitHubUser);
+  }
+
+  if (Array.isArray(issue.labels)) {
+    issue.labels = (issue.labels as AnyObject[]).map(l => ({ name: l.name }));
+  }
+
+  if (isObject(issue.milestone)) {
+    issue.milestone = { title: (issue.milestone as AnyObject).title };
+  }
+
+  // Remove the pull_request sub-object if present (indicates this is a PR, not a pure issue)
+  delete issue.pull_request;
+
+  return stripNullish(issue);
+}
+
 export function sanitizeGitHubIssueComment(raw: unknown): unknown {
   if (!isObject(raw)) return raw;
   const c = raw as AnyObject;

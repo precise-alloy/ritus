@@ -68,13 +68,15 @@ Record as: `{{TEAM_SIZE}}`
 
 Drives: tasks/ naming, PR reviewer count, memory expiry, setup question scope.
 
-**If `solo`: skip Q5, Q9, Q10 — auto-derive defaults and continue to Q4.**
+**If `solo`: skip Q5, Q9, Q10 — auto-derive defaults (both scalar and list fields are populated) and continue to Q4.**
 
-| Auto-derived for solo | Value       |
-|-----------------------|-------------|
-| Q5 — Git platform     | `GitHub`    |
-| Q9 — Ticket format    | `none`      |
-| Q10 — Workflow owner  | `developer` |
+| Auto-derived for solo      | Value                  |
+|----------------------------|------------------------|
+| Q5 — Git platform          | `GitHub`               |
+| Q5 — Git platforms (list)  | `["GitHub"]`           |
+| Q9 — Ticket format         | `none`                 |
+| Q9 — Ticket providers      | `[]` (empty list)      |
+| Q10 — Workflow owner       | `developer`            |
 
 ---
 
@@ -93,17 +95,29 @@ Pre-fills: `docs/profiles/project.yml` fields `primary_language` and `framework`
 
 ---
 
-### Q5 — Git platform
+### Q5 — Git platform(s)
 
 Ask:
 
-> "Which **git platform** does the team use?"
+> "Which **git platform(s)** does the team use? (comma-separated if multiple, e.g. 'GitHub, Azure DevOps')"
 
 Options: `GitHub` / `GitLab` / `Azure DevOps` / `Bitbucket` / `other`
 
-Record as: `{{GIT_PLATFORM}}`
+Accept one or more values.
 
-Drives: PR template format, branch convention details.
+Record as: `{{GIT_PLATFORM}}` (first selection — scalar, backward compat) and `{{GIT_PLATFORMS}}` (list of all selections).
+(See Step 2 § backward compatibility for why both scalar and list fields are maintained.)
+
+- **Single selection** (e.g. "GitHub"): set `{{GIT_PLATFORM}}` = `GitHub`, `{{GIT_PLATFORMS}}` = `["GitHub"]`.
+- **Multiple selections** (e.g. "GitHub, Azure DevOps"): set `{{GIT_PLATFORM}}` = first value (`GitHub`), `{{GIT_PLATFORMS}}` = `["GitHub", "Azure DevOps"]`.
+
+For each platform beyond the first, ask a follow-up:
+
+> "For **{platform}**, do you want to configure a named instance with custom env vars? (yes/no — default: no)"
+
+If yes, capture instance name and env var overrides per the `git_providers` structure shown in `skills/shared/remote-api-access.md` § Multi-instance env configuration.
+
+Drives: PR template format, branch convention details, `git_providers` list in team.yml.
 
 ---
 
@@ -159,16 +173,36 @@ Drives: model routing table in `docs/profiles/runtime.yml`.
 
 ---
 
-### Q9 — Ticket system
+### Q9 — Ticket system(s)
 
 Ask:
 
-> "Does the team use a **ticket/issue tracker**? If yes, what prefix format?
-> (e.g. `PROJ-123` for Jira · `#123` for GitHub Issues · `none`)"
+> "Does the team use a **ticket/issue tracker**? If yes, list all ticket systems and their key prefix formats.
+> (e.g. 'Jira: PROJ, CORE' · 'GitHub Issues: #' · 'ADO: #' · 'none')"
+>
+> "If you use **multiple ticket systems**, list each on a separate line or comma-separated. Example:
+> 'Jira with prefixes PROJ and CORE, and GitHub Issues for this repo'"
 
-Record as: `{{TICKET_FORMAT}}` (or `none`)
+Accept one or more ticket systems. For each, capture:
+- **type**: `jira` / `github-issues` / `ado`
+- **key prefixes**: the prefix patterns used (e.g. `PROJ`, `CORE`, `#`)
+- **instance name** (optional): a human-friendly label (e.g. `primary`, `external`)
 
-Drives: branch naming format.
+Record primary format as: `{{TICKET_FORMAT}}` (scalar, backward compat — use the first ticket system's format, e.g. `PROJ-123` or `#123`; set to `none` if no systems).
+
+Record full list as: `{{TICKET_PROVIDERS}}` (list of all configured systems with type/name/key_prefixes).
+
+- **Single system** (e.g. "Jira: PROJ"): set `{{TICKET_FORMAT}}` = `PROJ-123`, `{{TICKET_PROVIDERS}}` = `[{type: jira, name: default, key_prefixes: ["PROJ"]}]`.
+- **Multiple systems** (e.g. "Jira: PROJ, CORE and GitHub Issues: #"): set `{{TICKET_FORMAT}}` = `PROJ-123` (first system's format), `{{TICKET_PROVIDERS}}` = `[{type: jira, name: primary, key_prefixes: ["PROJ", "CORE"]}, {type: github-issues, name: default, key_prefixes: ["#"]}]`.
+- **None**: set `{{TICKET_FORMAT}}` = `none`, `{{TICKET_PROVIDERS}}` = `[]`.
+
+For Jira systems with multiple instances (same type, different servers), ask:
+
+> "For the **{name}** Jira instance, do you want to configure custom env var names? (yes/no — default: no, uses JIRA_BASE_URL / JIRA_PAT / JIRA_EMAIL)"
+
+If yes, capture the env var mapping per the `ticket_providers[].env` structure shown in `skills/shared/remote-api-access.md` § Multi-instance env configuration.
+
+Drives: branch naming format, `ticket_providers` list in team.yml.
 
 ---
 
@@ -231,6 +265,11 @@ test/{slug}                tests only
 If `{{TICKET_FORMAT}}` is `none`: omit ticket segment → `feat/{slug}`.
 
 If `{{TICKET_FORMAT}}` is set: `feat/PROJ-123-{slug}` or `feat/#123-{slug}`.
+
+**When multiple ticket systems are configured** (`{{TICKET_PROVIDERS}}` has >1 entry): use the **first** provider's
+format as the primary for branch naming. The branch format template uses only one ticket prefix style — developers
+choose the relevant ticket key when creating the branch. Example: if `ticket_providers` lists Jira (PROJ, CORE)
+first and GitHub Issues (#) second, the branch format uses `PROJ-123` style as the example.
 
 ### PR reviewer count → `{{PR_REVIEWERS}}`
 
@@ -331,8 +370,15 @@ Leave empty for repo-scan or first work session:
 Fill these fields:
 
 - `team_size`, `git_platform`, `git_flow`, `workflow_owner`, `ticket_format`, `qa_mode`
+- `git_platforms` (list) — always populate from `{{GIT_PLATFORMS}}`
+- `ticket_providers` (list) — always populate from `{{TICKET_PROVIDERS}}`; omit (or leave commented) when empty
+- `git_providers` (list) — populate when multiple git platforms are configured or when any platform has custom env vars; omit (or leave commented) for single-platform setups with default env vars
 - Derived fields: `memory_expiry_days`, `branch_format`, `tasks_path_convention`, `pr_reviewers`,
-  `default_base_branch`, `traceability_policy` (use derivation rules from §Derived values above)
+  `default_base_branch`, `traceability_policy` (use derivation rules from § Derived values above)
+
+**Backward compatibility:** Always fill the scalar fields (`git_platform`, `ticket_format`) with the primary
+(first) value, even when list fields are populated. This ensures older skill versions that read only the scalar
+fields continue to work.
 
 ### Step 3: Fill `docs/profiles/runtime.yml`
 
@@ -340,7 +386,7 @@ Fill these fields:
 
 - `ai_tools` — auto-detect from platform: `Claude Code` if `CLAUDE_PLUGIN_ROOT` is set, `GitHub Copilot` if
   `PLUGIN_ROOT` is set, otherwise ask the user
-- `model_routing` — paste the correct table from §Model routing table above
+- `model_routing` — paste the correct table from § Model routing table above
 
 ### Step 4: Render `docs/PROJECT_CONTEXT.md` from all `.yml` files
 

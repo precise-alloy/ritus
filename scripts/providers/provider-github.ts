@@ -1,8 +1,12 @@
-import type { Provider } from './types.ts';
+import type { EnvMapping, Provider } from './types.ts';
 import { requestJson, requestJsonWithHeaders } from './http.ts';
-import { sanitizeGitHubPr, sanitizeGitHubPrComment, sanitizeGitHubIssueComment } from './sanitize.ts';
+import { sanitizeGitHubPr, sanitizeGitHubPrComment, sanitizeGitHubIssueComment, sanitizeGitHubIssue } from './sanitize.ts';
 
 const GITHUB_PAGE_SIZE = 100;
+
+const GITHUB_DEFAULT_ENV: EnvMapping = {
+  token: 'GITHUB_TOKEN',
+};
 
 type GitHubPullRequestRef = {
   owner: string;
@@ -10,22 +14,48 @@ type GitHubPullRequestRef = {
   pullNumber: string;
 };
 
-function getGitHubToken(): string {
-  const token = (process.env.GITHUB_TOKEN ?? process.env.GH_TOKEN)?.trim();
+function getApiBaseUrl(env: EnvMapping): string {
+  if (env.api_base_url) {
+    const url = process.env[env.api_base_url]?.trim();
+    if (url) return url.replace(/\/+$/, '');
+  }
+  return 'https://api.github.com';
+}
+
+function getExpectedHostname(env: EnvMapping): string {
+  if (env.api_base_url) {
+    const apiUrl = process.env[env.api_base_url]?.trim();
+    if (apiUrl) {
+      try {
+        return new URL(apiUrl).hostname;
+      } catch { /* fall through */ }
+    }
+  }
+  return 'github.com';
+}
+
+function getGitHubToken(env: EnvMapping): string {
+  const tokenEnvVar = env.token;
+  const token = process.env[tokenEnvVar]?.trim();
   if (!token) {
-    throw new Error('Missing GITHUB_TOKEN (or GH_TOKEN). Populate it in .env.local before using this helper.');
+    // GH_TOKEN fallback only for the default GITHUB_TOKEN mapping
+    if (tokenEnvVar === 'GITHUB_TOKEN') {
+      const ghToken = process.env.GH_TOKEN?.trim();
+      if (ghToken) return ghToken;
+    }
+    throw new Error(`Missing ${tokenEnvVar}. Populate it in .env.local before using this helper.`);
   }
   return token;
 }
 
-function parseGitHubPrUrl(prUrl: string): GitHubPullRequestRef {
+function parseGitHubPrUrl(prUrl: string, expectedHostname = 'github.com'): GitHubPullRequestRef {
   let parsed: URL;
   try {
     parsed = new URL(prUrl);
   } catch {
     throw new Error(`Invalid GitHub PR URL: ${prUrl}`);
   }
-  if (parsed.hostname !== 'github.com') {
+  if (parsed.hostname.toLowerCase() !== expectedHostname.toLowerCase()) {
     throw new Error(`Unsupported GitHub host: ${parsed.hostname}`);
   }
   const match = parsed.pathname.match(/^\/([^/]+)\/([^/]+)\/pull\/(\d+)\/?$/);
@@ -36,19 +66,46 @@ function parseGitHubPrUrl(prUrl: string): GitHubPullRequestRef {
   return { owner: match[1], repo: match[2], pullNumber: match[3] };
 }
 
-async function getGitHubPr(target: string): Promise<unknown> {
-  const parsed = parseGitHubPrUrl(target);
-  const url = `https://api.github.com/repos/${encodeURIComponent(parsed.owner)}/${encodeURIComponent(parsed.repo)}/pulls/${encodeURIComponent(parsed.pullNumber)}`;
+type GitHubIssueRef = {
+  owner: string;
+  repo: string;
+  issueNumber: string;
+};
+
+function parseGitHubIssueUrl(issueUrl: string, expectedHostname = 'github.com'): GitHubIssueRef {
+  let parsed: URL;
+  try {
+    parsed = new URL(issueUrl);
+  } catch {
+    throw new Error(`Invalid GitHub Issue URL: ${issueUrl}`);
+  }
+  if (parsed.hostname.toLowerCase() !== expectedHostname.toLowerCase()) {
+    throw new Error(`Unsupported GitHub host: ${parsed.hostname}`);
+  }
+  const match = parsed.pathname.match(/^\/([^/]+)\/([^/]+)\/issues\/(\d+)\/?$/);
+
+  if (!match) {
+    throw new Error(`Could not parse a GitHub Issue URL from: ${issueUrl}`);
+  }
+  return { owner: match[1], repo: match[2], issueNumber: match[3] };
+}
+
+async function getGitHubPr(target: string, extra?: string, envMapping?: EnvMapping): Promise<unknown> {
+  const env = envMapping ?? GITHUB_DEFAULT_ENV;
+  const hostname = getExpectedHostname(env);
+  const apiBase = getApiBaseUrl(env);
+  const parsed = parseGitHubPrUrl(target, hostname);
+  const url = `${apiBase}/repos/${encodeURIComponent(parsed.owner)}/${encodeURIComponent(parsed.repo)}/pulls/${encodeURIComponent(parsed.pullNumber)}`;
 
   return {
     request: parsed,
-    pullRequest: sanitizeGitHubPr(await requestJson(url, gitHubHeaders())),
+    pullRequest: sanitizeGitHubPr(await requestJson(url, gitHubHeaders(env))),
   };
 }
 
-function gitHubHeaders(): Record<string, string> {
+function gitHubHeaders(env: EnvMapping): Record<string, string> {
   return {
-    Authorization: `Bearer ${getGitHubToken()}`,
+    Authorization: `Bearer ${getGitHubToken(env)}`,
     Accept: 'application/vnd.github+json',
     'X-GitHub-Api-Version': '2022-11-28',
   };
@@ -124,10 +181,13 @@ async function fetchGitHubLatestIssueComments(baseUrl: string, headers: Record<s
   return items.slice(-limit);
 }
 
-async function getGitHubPrComments(target: string, extra?: string): Promise<unknown> {
-  const parsed = parseGitHubPrUrl(target);
-  const headers = gitHubHeaders();
-  const repoBase = `https://api.github.com/repos/${encodeURIComponent(parsed.owner)}/${encodeURIComponent(parsed.repo)}`;
+async function getGitHubPrComments(target: string, extra?: string, envMapping?: EnvMapping): Promise<unknown> {
+  const env = envMapping ?? GITHUB_DEFAULT_ENV;
+  const hostname = getExpectedHostname(env);
+  const apiBase = getApiBaseUrl(env);
+  const parsed = parseGitHubPrUrl(target, hostname);
+  const headers = gitHubHeaders(env);
+  const repoBase = `${apiBase}/repos/${encodeURIComponent(parsed.owner)}/${encodeURIComponent(parsed.repo)}`;
   const limit = parseLimit(extra);
 
   const reviewUrl = `${repoBase}/pulls/${encodeURIComponent(parsed.pullNumber)}/comments?sort=created&direction=desc`;
@@ -153,24 +213,93 @@ async function getGitHubPrComments(target: string, extra?: string): Promise<unkn
   };
 }
 
+async function getGitHubIssue(target: string, extra?: string, envMapping?: EnvMapping): Promise<unknown> {
+  const env = envMapping ?? GITHUB_DEFAULT_ENV;
+  const hostname = getExpectedHostname(env);
+  const apiBase = getApiBaseUrl(env);
+  const parsed = parseGitHubIssueUrl(target, hostname);
+  const url = `${apiBase}/repos/${encodeURIComponent(parsed.owner)}/${encodeURIComponent(parsed.repo)}/issues/${encodeURIComponent(parsed.issueNumber)}`;
+
+  return {
+    request: parsed,
+    issue: sanitizeGitHubIssue(await requestJson(url, gitHubHeaders(env))),
+  };
+}
+
+async function getGitHubIssueComments(target: string, extra?: string, envMapping?: EnvMapping): Promise<unknown> {
+  const env = envMapping ?? GITHUB_DEFAULT_ENV;
+  const hostname = getExpectedHostname(env);
+  const apiBase = getApiBaseUrl(env);
+  const parsed = parseGitHubIssueUrl(target, hostname);
+  const headers = gitHubHeaders(env);
+  const limit = parseLimit(extra);
+  const baseUrl = `${apiBase}/repos/${encodeURIComponent(parsed.owner)}/${encodeURIComponent(parsed.repo)}/issues/${encodeURIComponent(parsed.issueNumber)}/comments?sort=created&direction=asc`;
+
+  const comments = limit
+    ? await fetchGitHubLatestIssueComments(baseUrl, headers, limit)
+    : await fetchAllGitHubPages(baseUrl, headers);
+
+  return {
+    request: parsed,
+    ...(limit ? { limit } : {}),
+    comments: {
+      returned: comments.length,
+      comments: comments.map(sanitizeGitHubIssueComment),
+    },
+  };
+}
+
 export const githubProvider: Provider = {
   name: 'github',
   label: 'GitHub',
   requiredEnvKeys: ['GITHUB_TOKEN'],
+  defaultEnvMapping: GITHUB_DEFAULT_ENV,
   actions: {
     'pr': getGitHubPr,
     'comments': getGitHubPrComments,
+    'issue': getGitHubIssue,
+    'issue-comments': getGitHubIssueComments,
+  },
+  canHandleTarget(action: string, target: string): boolean {
+    if (!(action in this.actions)) return false;
+
+    let url: URL;
+    try {
+      url = new URL(target);
+    } catch {
+      return false;
+    }
+
+    // Path-pattern matching only; hostname filtering is handled at the instance level
+    // to support both github.com and GitHub Enterprise hosts
+    const prActions = new Set(['pr', 'comments']);
+    const issueActions = new Set(['issue', 'issue-comments']);
+
+    if (prActions.has(action)) {
+      return /\/[^/]+\/[^/]+\/pull\/\d+\/?$/.test(url.pathname);
+    }
+    if (issueActions.has(action)) {
+      return /\/[^/]+\/[^/]+\/issues\/\d+\/?$/.test(url.pathname);
+    }
+
+    return false;
   },
   usageLines: (cmd) => [
     `${cmd} github pr <pull-request-url>`,
     `${cmd} github comments <pull-request-url> [count]`,
+    `${cmd} github issue <issue-url>`,
+    `${cmd} github issue-comments <issue-url> [count]`,
   ],
   exampleLines: (cmd) => {
     const prUrl = process.env.EXAMPLE_GITHUB_PR_URL || 'https://github.com/owner/repo/pull/123';
+    const issueUrl = process.env.EXAMPLE_GITHUB_ISSUE_URL || 'https://github.com/owner/repo/issues/456';
     return [
       `${cmd} github pr ${prUrl}`,
       `${cmd} github comments ${prUrl}`,
       `${cmd} github comments ${prUrl} 20`,
+      `${cmd} github issue ${issueUrl}`,
+      `${cmd} github issue-comments ${issueUrl}`,
+      `${cmd} github issue-comments ${issueUrl} 20`,
     ];
   },
 };

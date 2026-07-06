@@ -63,6 +63,22 @@ Test locations:
 | QA mode            | `{{QA_MODE}}`                 |
 | EPIC memory expiry | `{{MEMORY_EXPIRY_DAYS}}` days |
 
+<!--
+Setup skill rendering instructions for multi-provider support:
+
+When team.yml contains ticket_providers or git_providers lists, the setup skill should:
+1. Replace GIT_PLATFORM with a comma-separated list of types from git_providers
+   (e.g., "GitHub, Azure DevOps"). Fall back to the scalar git_platform if no list.
+2. Replace TICKET_FORMAT with a comma-separated list of types from ticket_providers
+   (e.g., "Jira, GitHub Issues"). Fall back to the scalar ticket_format if no list.
+3. Uncomment and populate the rows below:
+   - Ticket providers: format as "type:name (prefixes: X, Y), ..."
+   - Git providers: format as "type:name, ..."
+If no list fields are present, leave the rows commented out — single-value rendering is correct.
+-->
+<!-- | Ticket providers   | `{{TICKET_PROVIDERS}}`        | -->
+<!-- | Git providers      | `{{GIT_PROVIDERS}}`           | -->
+
 Branch format:
 
 {{BRANCH_FORMAT}}

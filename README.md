@@ -250,9 +250,138 @@ scripts/                         ← remote API integration scripts (plugin-owne
     http.ts                      ← HTTP plumbing (retry, auth, env loading)
     provider-jira.ts             ← Jira Cloud (tickets, comments, changelog, attachments)
     provider-ado.ts              ← Azure DevOps (PRs + work items)
-    provider-github.ts           ← GitHub (PRs)
+    provider-github.ts           ← GitHub (PRs + Issues)
 templates/                       ← plugin-owned (source templates, not copied to projects)
 ```
+
+---
+
+## Remote API — provider-agnostic dispatch
+
+The `scripts/remote-api.ts` CLI supports three providers (Jira, Azure DevOps, GitHub) and two invocation
+modes: auto-detected and explicit.
+
+### Auto-detected (recommended)
+
+The dispatcher infers the provider from the target format:
+
+```bash
+bun run remote-api.ts <action> <target> [extra]
+```
+
+Examples:
+
+```bash
+# Jira — detected from bare key format (PROJ-123)
+bun run remote-api.ts issue PROJ-123
+
+# GitHub PR — detected from github.com URL
+bun run remote-api.ts pr https://github.com/owner/repo/pull/42
+
+# GitHub Issue — detected from github.com/issues URL
+bun run remote-api.ts issue https://github.com/owner/repo/issues/7
+
+# ADO PR — detected from dev.azure.com URL
+bun run remote-api.ts pr https://dev.azure.com/org/project/_git/repo/pullrequest/1
+
+# ADO work item — detected from _workitems URL or bare numeric ID
+bun run remote-api.ts issue 12345
+```
+
+Detection precedence:
+
+1. **Explicit provider** — if the first CLI argument matches a provider name (`jira`, `ado`, `github`),
+   use that provider directly.
+2. **Auto-detect from target** — filter credentialed providers by `canHandleTarget(action, target)`.
+   Exactly one match uses that provider. Zero matches produces an error listing configured providers.
+   Multiple matches produces an ambiguous error with explicit disambiguation commands.
+3. **`team.yml` instance routing** — when `ticket_providers` or `git_providers` lists are defined in
+   `docs/profiles/team.yml`, instance-level filtering narrows candidates by key prefix (Jira),
+   org/project (ADO), or hostname (GitHub).
+
+### How instance routing works
+
+When multiple instances of the same provider are configured in `team.yml`, the dispatcher routes by
+matching the target against each instance's identifying attributes:
+
+- **Jira** — matches the instance whose `key_prefixes` list contains the ticket's project key
+  (e.g., ticket `CORE-42` routes to the instance with `key_prefixes: ["CORE"]`).
+- **Azure DevOps** — matches the instance whose org and project match the target URL.
+- **GitHub** — matches the instance whose hostname matches the target URL
+  (`github.com` for public, custom hostname for Enterprise).
+
+If the target matches **zero** instances, an error lists all configured instances. If the target
+matches **multiple** instances, a hard error lists the candidates with explicit provider-and-instance
+commands for each match.
+
+Single-instance setups require no `team.yml` changes — the default env var names work as before.
+
+### Explicit provider (override)
+
+Use when auto-detection is ambiguous or you want to bypass detection:
+
+```bash
+bun run remote-api.ts <provider> <action> <target> [extra]
+```
+
+Examples:
+
+```bash
+bun run remote-api.ts jira issue PROJ-123
+bun run remote-api.ts github pr https://github.com/owner/repo/pull/42
+bun run remote-api.ts ado pr https://dev.azure.com/org/project/_git/repo/pullrequest/1
+```
+
+### Multi-instance configuration
+
+For teams using multiple instances of the same provider (e.g., two Jira tenants, github.com + GitHub
+Enterprise), configure `docs/profiles/team.yml` with named instances:
+
+```yaml
+ticket_providers:
+  - type: jira
+    name: primary
+    key_prefixes: ["PROJ", "CORE"]
+    # omit env: → uses default env var names (JIRA_BASE_URL, JIRA_PAT, JIRA_EMAIL)
+  - type: jira
+    name: external
+    key_prefixes: ["EXT"]
+    env:
+      base_url: JIRA_EXT_BASE_URL
+      pat: JIRA_EXT_PAT
+      email: JIRA_EXT_EMAIL
+
+git_providers:
+  - type: github
+    name: public
+    # omit env: → uses default env var names (GITHUB_TOKEN)
+  - type: github
+    name: enterprise
+    env:
+      token: GHE_TOKEN
+      api_base_url: GHE_API_URL
+```
+
+Then set credentials in `.env.local` using the env var names declared in `team.yml`:
+
+```env
+JIRA_EXT_BASE_URL=https://other.atlassian.net
+JIRA_EXT_PAT=yyy
+JIRA_EXT_EMAIL=user@other.com
+GHE_TOKEN=ghp_...
+GHE_API_URL=https://github.corp.com/api/v3
+```
+
+Default instances (those without an `env:` block) use the standard env var names from `.env.example`.
+The `check-env` command reports per-instance credential status when `team.yml` lists are present.
+
+### Environment check
+
+```bash
+bun run remote-api.ts check-env
+```
+
+Reports which providers (or instances) are configured and which env vars are missing.
 
 ---
 
