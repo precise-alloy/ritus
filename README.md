@@ -84,6 +84,9 @@ The `/sync` skill copies template files into your project. Files are never overw
 
 Run `/sync check missing` to see what's missing, or `/sync create missing` to create missing files.
 
+Sync also ensures your project's `.gitignore` ignores `.env.local` (which holds your Jira PAT and GitHub token) —
+creating a `.gitignore` if none exists, or appending `.env.local` to an existing one. Secrets are never committed.
+
 For existing codebases, follow up with:
 
 ```text

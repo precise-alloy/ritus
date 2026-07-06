@@ -28,6 +28,7 @@ export type ProviderEnvStatus = {
 export type EnvCheckResult = {
   envLocalPath: string;
   envLocalExists: boolean;
+  envLocalIgnored: boolean | null;
   providers: ProviderEnvStatus[];
   keys: EnvKeyStatus[];
   missing: string[];

@@ -52,9 +52,29 @@ function checkProviderEnv(provider: Provider): ProviderEnvStatus {
   };
 }
 
+async function isEnvLocalIgnored(cwd: string): Promise<boolean | null> {
+  // Returns true if git effectively ignores .env.local, false if it is
+  // tracked/unignored (at risk of being committed), or null when git status
+  // cannot be determined (git missing or not a repository).
+  try {
+    const proc = Bun.spawn(['git', 'check-ignore', '-q', '.env.local'], {
+      cwd,
+      stdout: 'ignore',
+      stderr: 'ignore',
+    });
+    const code = await proc.exited;
+    if (code === 0) return true;
+    if (code === 1) return false;
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 async function checkEnv(): Promise<EnvCheckResult> {
   const envLocalPath = `${process.cwd()}/.env.local`;
   const envLocalExists = await Bun.file(envLocalPath).exists();
+  const envLocalIgnored = envLocalExists ? await isEnvLocalIgnored(process.cwd()) : null;
 
   const providers = PROVIDERS.map(checkProviderEnv);
   const keys = providers.flatMap((p) => p.keys);
@@ -63,6 +83,7 @@ async function checkEnv(): Promise<EnvCheckResult> {
   return {
     envLocalPath,
     envLocalExists,
+    envLocalIgnored,
     providers,
     keys,
     missing,
@@ -89,6 +110,18 @@ async function runCheckEnv(): Promise<void> {
       console.error('');
     }
     process.exit(1);
+  }
+
+  if (result.envLocalIgnored === false) {
+    console.error(
+      `\n⚠  WARNING: .env.local is NOT ignored by git at ${result.envLocalPath}.`,
+    );
+    console.error(
+      'It holds live credentials (Jira PAT, GitHub token) and could be committed.',
+    );
+    console.error(
+      "Add '.env.local' to your .gitignore (run the ritus sync skill to do this automatically).",
+    );
   }
 
   const configured = result.providers.filter((p) => p.ok);

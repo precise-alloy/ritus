@@ -1,7 +1,27 @@
 #!/usr/bin/env bun
 
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { appendFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
+
+// Patterns that cause git to ignore `.env.local`.
+const ENV_LOCAL_IGNORE_PATTERNS = new Set([
+  ".env.local",
+  ".env.local/",
+  ".env.*.local",
+  ".env*",
+  ".env.*",
+  "*.local",
+]);
+
+function gitignoreCoversEnvLocal(content: string): boolean {
+  for (const rawLine of content.split(/\r?\n/)) {
+    let line = rawLine.trim();
+    if (!line || line.startsWith("#")) continue;
+    if (line.startsWith("/")) line = line.slice(1);
+    if (ENV_LOCAL_IGNORE_PATTERNS.has(line)) return true;
+  }
+  return false;
+}
 
 function findPluginRoot(startDir: string): string | null {
   let dir = startDir;
@@ -92,6 +112,39 @@ function getAllTemplateFiles(): string[] {
   return files;
 }
 
+const GITIGNORE_ENV_LOCAL_BLOCK =
+  "\n# Local secrets — never commit (Jira PAT, GitHub token, etc.)\n.env.local\n.env.*.local\n";
+
+function checkGitignore(): "missing" | "needs-update" | null {
+  const projectPath = join(projectRoot, ".gitignore");
+  const templatePath = join(templateDir, ".gitignore");
+
+  if (!existsSync(templatePath)) return null;
+  if (!existsSync(projectPath)) return "missing";
+  if (!gitignoreCoversEnvLocal(readFileSync(projectPath, "utf-8"))) return "needs-update";
+  return null;
+}
+
+function applyGitignore(): "created" | "appended" | null {
+  const projectPath = join(projectRoot, ".gitignore");
+  const templatePath = join(templateDir, ".gitignore");
+
+  if (!existsSync(templatePath)) return null;
+
+  if (!existsSync(projectPath)) {
+    mkdirSync(dirname(projectPath), { recursive: true });
+    writeFileSync(projectPath, readFileSync(templatePath, "utf-8"));
+    return "created";
+  }
+
+  const content = readFileSync(projectPath, "utf-8");
+  if (gitignoreCoversEnvLocal(content)) return null;
+
+  const prefix = content.length > 0 && !content.endsWith("\n") ? "\n" : "";
+  appendFileSync(projectPath, prefix + GITIGNORE_ENV_LOCAL_BLOCK);
+  return "appended";
+}
+
 function check(): void {
   if (!existsSync(templateDir)) {
     console.log("ritus: templates directory not found at " + templateDir);
@@ -113,13 +166,23 @@ function check(): void {
     }
   }
 
-  if (missing.length === 0) {
+  const gitignoreStatus = checkGitignore();
+
+  if (missing.length === 0 && !gitignoreStatus) {
     console.log("ritus: project files up to date (v" + pluginVersion + ")");
     return;
   }
 
-  console.log("ritus: " + missing.length + " file(s) missing. Re-run this script with --apply to create them.");
-  for (const f of missing) console.log("  + " + f);
+  if (missing.length > 0) {
+    console.log("ritus: " + missing.length + " file(s) missing. Re-run this script with --apply to create them.");
+    for (const f of missing) console.log("  + " + f);
+  }
+
+  if (gitignoreStatus === "missing") {
+    console.log("ritus: .gitignore missing. Re-run this script with --apply to create it (ignores .env.local).");
+  } else if (gitignoreStatus === "needs-update") {
+    console.log("ritus: .gitignore does not ignore .env.local. Re-run this script with --apply to append it.");
+  }
 }
 
 function apply(): void {
@@ -149,6 +212,13 @@ function apply(): void {
     skipped.push({ file, reason: getStrategy(file) + " — already exists" });
   }
 
+  const gitignoreResult = applyGitignore();
+  if (gitignoreResult === "created") {
+    created.push(".gitignore");
+  } else if (gitignoreResult === "appended") {
+    console.log("Updated .gitignore: appended .env.local so local secrets are never committed.");
+  }
+
   if (created.length > 0) {
     console.log("Created " + created.length + " file(s):");
     for (const f of created) console.log("  + " + f);
@@ -159,7 +229,7 @@ function apply(): void {
     for (const entry of skipped) console.log("  - " + entry.file + " (" + entry.reason + ")");
   }
 
-  if (created.length === 0) {
+  if (created.length === 0 && !gitignoreResult) {
     console.log("ritus: project files up to date (v" + pluginVersion + ")");
   }
 }

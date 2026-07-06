@@ -102,5 +102,6 @@ Interpret the result:
 - Exit 0 — at least one provider is fully configured. Proceed.
 - Exit 1 with `envLocalExists: false` — report that `.env.local` is missing. Ask the user to copy `.env.example` to `.env.local` and fill in the values. Do NOT create the file yourself.
 - Exit 1 with no providers configured — tell the user which keys are missing and ask them to fill those values, then re-run the skill.
+- `envLocalIgnored: false` (with a `WARNING` on stderr) — `.env.local` is NOT git-ignored and could be committed. Ensure `.gitignore` ignores `.env.local` (running the `sync` skill does this automatically) before proceeding.
 
 Authentication or authorization failures (`401`, `403`, invalid credentials, PAT expired/revoked, permission-style `404`) are hard stops for remote analysis or review. Ask the user to provide valid access for the failing system before continuing.

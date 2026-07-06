@@ -1,0 +1,9 @@
+# Local secrets — never commit (Jira PAT, GitHub token, etc.)
+.env.local
+.env.*.local
+
+# Dependencies
+node_modules/
+
+# Logs
+*.log
