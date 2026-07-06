@@ -68,7 +68,7 @@ or just
 /setup
 ```
 
-The setup skill automatically scaffolds all project files (`docs/`, `.ritus/`, `.env.example`) and runs an
+The setup skill automatically scaffolds all project files (`docs/`, `.env.example`) and runs an
 11-question interview to fill your project profiles.
 
 ## What gets installed
@@ -80,9 +80,11 @@ The `/sync` skill copies template files into your project. Files are never overw
 | **user-owned**       | Created once, you own it — edit freely      | `docs/profiles/project.yml`, `team.yml`, `runtime.yml`, `docs/PROJECT_CONTEXT.md`, `docs/ARCHITECTURE.md`, `docs/CODE_CONVENTIONS.md`, `docs/TEST_CONVENTIONS.md`, `docs/DECISIONS.md`, `docs/LESSONS.md`, `docs/CUTOFF.md`, `docs/STAKEHOLDERS.md` |
 | **append-only**      | Created once, only appended to              | `docs/CHANGELOG.md`                                                                                                                                                                                                                                 |
 | **scaffold**         | Directory placeholder                       | `docs/tasks/README.md`, `docs/memory/README.md`                                                                                                                                                                                                     |
-| **project-specific** | Created once, you own it — extend as needed | `.ritus/scripts/remote-api.ts`, `.ritus/scripts/providers/*`, `.ritus/scripts/tsconfig.json`, `.env.example`                                                                                                                                        |
+| **project-specific** | Created once, you own it — extend as needed | `.env.example`                                                                                                                                                                                                                                      |
 
 Run `/sync check missing` to see what's missing, or `/sync create missing` to create missing files.
+
+**Note for upgrading projects:** If you previously installed Ritus and have a `.ritus/scripts/` directory in your project, it can be safely deleted. These scripts now live in the plugin's `scripts/` directory and are no longer copied into consuming projects.
 
 For existing codebases, follow up with:
 
@@ -241,7 +243,7 @@ docs/                            ← user-owned (scaffolded into target project)
   LESSONS.md
   WORKFLOW_DIAGRAMS.md           ← visual workflow reference (human-only)
   qa/                            ← EPIC QA summaries (when QA mode is active)
-.ritus/scripts/
+scripts/                         ← remote API integration scripts (plugin-owned)
   remote-api.ts                  ← CLI dispatcher for remote API providers
   providers/
     types.ts                     ← Provider interface and shared types
@@ -249,6 +251,7 @@ docs/                            ← user-owned (scaffolded into target project)
     provider-jira.ts             ← Jira Cloud (tickets, comments, changelog, attachments)
     provider-ado.ts              ← Azure DevOps (PRs + work items)
     provider-github.ts           ← GitHub (PRs)
+templates/                       ← plugin-owned (source templates, not copied to projects)
 ```
 
 ---

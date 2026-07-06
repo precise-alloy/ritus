@@ -161,16 +161,16 @@ export const githubProvider: Provider = {
     'pr': getGitHubPr,
     'comments': getGitHubPrComments,
   },
-  usageLines: () => [
-    'bun run .ritus/scripts/remote-api.ts github pr <pull-request-url>',
-    'bun run .ritus/scripts/remote-api.ts github comments <pull-request-url> [count]',
+  usageLines: (cmd) => [
+    `${cmd} github pr <pull-request-url>`,
+    `${cmd} github comments <pull-request-url> [count]`,
   ],
-  exampleLines: () => {
+  exampleLines: (cmd) => {
     const prUrl = process.env.EXAMPLE_GITHUB_PR_URL || 'https://github.com/owner/repo/pull/123';
     return [
-      `bun run .ritus/scripts/remote-api.ts github pr ${prUrl}`,
-      `bun run .ritus/scripts/remote-api.ts github comments ${prUrl}`,
-      `bun run .ritus/scripts/remote-api.ts github comments ${prUrl} 20`,
+      `${cmd} github pr ${prUrl}`,
+      `${cmd} github comments ${prUrl}`,
+      `${cmd} github comments ${prUrl} 20`,
     ];
   },
 };

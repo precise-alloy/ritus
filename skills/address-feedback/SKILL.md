@@ -52,15 +52,15 @@ Fetch PR metadata to get branch info:
 For GitHub:
 
 ```bash
-bun run .ritus/scripts/remote-api.ts github pr "<PR_URL>"
-bun run .ritus/scripts/remote-api.ts github comments "<PR_URL>" [count]
+bun run "<plugin-root>/scripts/remote-api.ts" github pr "<PR_URL>"
+bun run "<plugin-root>/scripts/remote-api.ts" github comments "<PR_URL>" [count]
 ```
 
 For Azure DevOps:
 
 ```bash
-bun run .ritus/scripts/remote-api.ts ado pr "<PR_URL>"
-bun run .ritus/scripts/remote-api.ts ado pr-threads "<PR_URL>" [count]
+bun run "<plugin-root>/scripts/remote-api.ts" ado pr "<PR_URL>"
+bun run "<plugin-root>/scripts/remote-api.ts" ado pr-threads "<PR_URL>" [count]
 ```
 
 If either provider returns `401`, `403`, or a permission-style `404`, stop and ask the user to verify remote access.

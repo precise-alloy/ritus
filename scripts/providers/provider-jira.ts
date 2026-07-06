@@ -248,23 +248,23 @@ export const jiraProvider: Provider = {
     'attachments': getJiraAttachments,
     'attachment-download': downloadJiraAttachments,
   },
-  usageLines: () => [
-    'bun run .ritus/scripts/remote-api.ts jira issue <ticket-key-or-url> [fields]',
-    'bun run .ritus/scripts/remote-api.ts jira comments <ticket-key-or-url> [count]',
-    'bun run .ritus/scripts/remote-api.ts jira changelog <ticket-key-or-url>',
-    'bun run .ritus/scripts/remote-api.ts jira attachments <ticket-key-or-url>',
-    'bun run .ritus/scripts/remote-api.ts jira attachment-download <ticket-key-or-url> <output-dir>',
+  usageLines: (cmd) => [
+    `${cmd} jira issue <ticket-key-or-url> [fields]`,
+    `${cmd} jira comments <ticket-key-or-url> [count]`,
+    `${cmd} jira changelog <ticket-key-or-url>`,
+    `${cmd} jira attachments <ticket-key-or-url>`,
+    `${cmd} jira attachment-download <ticket-key-or-url> <output-dir>`,
   ],
-  exampleLines: () => {
+  exampleLines: (cmd) => {
     const key = process.env.EXAMPLE_JIRA_TICKET_KEY || 'PROJ-123';
     const url = process.env.EXAMPLE_JIRA_TICKET_URL || 'https://your-company.atlassian.net/browse/PROJ-123';
     return [
-      `bun run .ritus/scripts/remote-api.ts jira issue ${key}`,
-      `bun run .ritus/scripts/remote-api.ts jira issue ${url} summary,description,status,issuetype,comment`,
-      `bun run .ritus/scripts/remote-api.ts jira comments ${key}`,
-      `bun run .ritus/scripts/remote-api.ts jira comments ${key} 20`,
-      `bun run .ritus/scripts/remote-api.ts jira attachments ${key}`,
-      `bun run .ritus/scripts/remote-api.ts jira attachment-download ${key} .jira-attachments/${key}`,
+      `${cmd} jira issue ${key}`,
+      `${cmd} jira issue ${url} summary,description,status,issuetype,comment`,
+      `${cmd} jira comments ${key}`,
+      `${cmd} jira comments ${key} 20`,
+      `${cmd} jira attachments ${key}`,
+      `${cmd} jira attachment-download ${key} .jira-attachments/${key}`,
     ];
   },
 };
