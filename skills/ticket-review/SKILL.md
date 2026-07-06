@@ -419,10 +419,12 @@ TODO:
 For parallel groups, list all tasks in the group together. Mark each item as subagents complete. If verify-task
 returns FAIL, add fix items inline before marking the original task done.
 
-Then dispatch `execute-task` following the execution plan:
+Then dispatch `execute-task` following the execution plan. This orchestrating session owns every dispatch —
+`execute-task` returns a report and never dispatches `verify-task` itself (see `verify-task` for the canonical
+control flow):
 
-- **Parallel groups**: dispatch multiple `execute-task` subagents simultaneously. Each execute-task dispatches its own
-  `verify-task` subagent (model: haiku, effort: medium) per execute-task's Process checklist.
-- **Sequential groups**: wait for previous group's tasks to all pass `verify-task` subagent before starting.
+- **Parallel groups**: dispatch multiple `execute-task` subagents simultaneously. When each execute-task returns its
+  report, dispatch a fresh `verify-task` subagent (model: haiku, effort: medium) for that task.
+- **Sequential groups**: wait for the previous group's tasks to all pass their `verify-task` subagent before starting.
 
 Do not implement tasks in this session.

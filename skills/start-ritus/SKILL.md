@@ -56,16 +56,23 @@ it, do not pre-plan the full chain.
 
 ## Subagent configs
 
-The **orchestrating session** is whatever agent loaded start-ritus — typically the main conversation session.
+The **orchestrating session** is whatever agent loaded start-ritus — typically the main conversation session, and
+also the session running an orchestration skill such as `ticket-review`, `address-feedback`, or `debug`.
 When a skill says to dispatch, spawn a **fresh subagent** and instruct it to load the target skill.
 Never use a skill name as the agent type — skill names are not agent types.
 
+**Only the orchestrating session dispatches subagents.** A dispatched subagent (`execute-task`, `verify-task`,
+`pr-review`) never dispatches another subagent — it returns a report and the orchestrating session dispatches the
+next one. `verify-task` holds the canonical description of the execute → verify → re-verify dispatch loop.
+
 | Subagent | Model | Effort | Key constraints |
 |----------|-------|--------|-----------------|
-| `execute-task` | per triage | per triage | Implement STEPS exactly; do not redesign |
+| `execute-task` | per triage | per triage | Implement STEPS exactly; do not redesign; return a report — never dispatch verify-task |
 | `verify-task` | haiku | medium | Read-only except build/test/lint; never fix; never trust implementer claims |
 | `pr-review` | sonnet | high | Adversarial; never apply fixes; use `origin/` refs; default to "Request changes" |
-| `address-feedback` | per triage | per triage | Fetch PR comments, generate fix task, dispatch execute-task; never push |
+
+`address-feedback` is not dispatched as a subagent — it runs in the orchestrating session (it gates on user
+approval) and itself dispatches `execute-task` then `verify-task`.
 
 Parallel vs sequential grouping is determined by `ticket-review`'s execution plan. When in doubt, run sequentially.
 
