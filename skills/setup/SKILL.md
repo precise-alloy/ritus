@@ -268,35 +268,64 @@ If `{{TICKET_FORMAT}}` is set: `feat/PROJ-123-{slug}` or `feat/#123-{slug}`.
 
 ### Model routing table → `{{MODEL_ROUTING}}`
 
+Routing uses **capability tiers**, never hardcoded model IDs. A tier names the _class_ of
+model to dispatch; the concrete model ID is resolved once, per platform, in the **model
+resolution table** below. This keeps model IDs in a single place (`docs/profiles/runtime.yml`
+→ `model_ids`) so they can be updated without editing any skill.
+
+**Capability tiers:**
+
+| Tier     | Use for                                          |
+|----------|--------------------------------------------------|
+| `haiku`  | Fast, cheap — direct edits, per-task verification |
+| `sonnet` | Balanced — cross-module work, PR review          |
+| `opus`   | Deepest reasoning — pure architecture decisions   |
+
+**Model resolution table** — the single source of truth for concrete model IDs. Pick the
+column for the detected platform (Step 3). Model IDs change over time; treat these as
+examples and set them to the current models your platform exposes rather than trusting a
+dated default.
+
+| Tier     | Claude Code (example) | GitHub Copilot (example) |
+|----------|-----------------------|--------------------------|
+| `haiku`  | `claude-haiku-4-5`    | `gpt-5-mini`             |
+| `sonnet` | `claude-sonnet-4-5`   | `gpt-5`                  |
+| `opus`   | `claude-opus-4-1`     | `gpt-5` (high effort)    |
+
+> **GitHub Copilot:** Copilot selects the model in the client and has no programmatic
+> subagent dispatch. Treat the tier as a recommendation — pick the matching model manually
+> and run the verify/review steps as separate passes in a clean context. Cross-agent parity
+> is experimental.
+
 **cost-first:**
 
-| Triage                  | Model                       | Effort | Notes                           |
-|-------------------------|-----------------------------|--------|---------------------------------|
-| TRIVIAL                 | `claude-haiku-4-5-20251001` | low    | Direct edits, single file       |
-| SIMPLE                  | `claude-haiku-4-5-20251001` | medium | 3-section task note             |
-| STANDARD                | `claude-sonnet-4-6`         | medium | Cross-module, design decision   |
-| EPIC                    | `claude-sonnet-4-6`         | high   | Multi-session, new architecture |
-| Batch validate (pre-PR) | `claude-haiku-4-5-20251001` | low    | Diff + task review              |
+| Triage                  | Tier     | Effort | Notes                           |
+|-------------------------|----------|--------|---------------------------------|
+| TRIVIAL                 | `haiku`  | low    | Direct edits, single file       |
+| SIMPLE                  | `haiku`  | medium | 3-section task note             |
+| STANDARD                | `sonnet` | medium | Cross-module, design decision   |
+| EPIC                    | `sonnet` | high   | Multi-session, new architecture |
+| Batch validate (pre-PR) | `haiku`  | low    | Diff + task review              |
 
 **balanced (default):**
 
-| Triage                  | Model                                                              | Effort | Notes                         |
-|-------------------------|--------------------------------------------------------------------|----|-------------------------------|
-| TRIVIAL                 | `claude-haiku-4-5-20251001`                                        | low    | Direct edits, single file     |
-| SIMPLE                  | `claude-haiku-4-5-20251001`                                        | medium | 3-section task note           |
-| STANDARD                | `claude-sonnet-4-6`                                                | high   | Cross-module, design decision |
-| EPIC                    | `claude-sonnet-4-6` · `claude-opus-4-7` (pure arch decisions only) | high   | Multi-session                 |
-| Batch validate (pre-PR) | `claude-haiku-4-5-20251001`                                        | medium | Diff + task review            |
+| Triage                  | Tier                                        | Effort | Notes                         |
+|-------------------------|---------------------------------------------|--------|-------------------------------|
+| TRIVIAL                 | `haiku`                                     | low    | Direct edits, single file     |
+| SIMPLE                  | `haiku`                                     | medium | 3-section task note           |
+| STANDARD                | `sonnet`                                    | high   | Cross-module, design decision |
+| EPIC                    | `sonnet` · `opus` (pure arch decisions only) | high   | Multi-session                 |
+| Batch validate (pre-PR) | `haiku`                                     | medium | Diff + task review            |
 
 **quality-first:**
 
-| Triage                  | Model                       | Effort | Notes                           |
-|-------------------------|-----------------------------|--------|---------------------------------|
-| TRIVIAL                 | `claude-haiku-4-5-20251001` | medium | Direct edits, single file       |
-| SIMPLE                  | `claude-sonnet-4-6`         | medium | 3-section task note             |
-| STANDARD                | `claude-sonnet-4-6`         | high   | Cross-module, design decision   |
-| EPIC                    | `claude-opus-4-7`           | xhigh  | Multi-session, new architecture |
-| Batch validate (pre-PR) | `claude-sonnet-4-6`         | high   | Diff + task review              |
+| Triage                  | Tier     | Effort | Notes                           |
+|-------------------------|----------|--------|---------------------------------|
+| TRIVIAL                 | `haiku`  | medium | Direct edits, single file       |
+| SIMPLE                  | `sonnet` | medium | 3-section task note             |
+| STANDARD                | `sonnet` | high   | Cross-module, design decision   |
+| EPIC                    | `opus`   | xhigh  | Multi-session, new architecture |
+| Batch validate (pre-PR) | `sonnet` | high   | Diff + task review              |
 
 ---
 
@@ -340,7 +369,14 @@ Fill these fields:
 
 - `ai_tools` — auto-detect from platform: `Claude Code` if `CLAUDE_PLUGIN_ROOT` is set, `GitHub Copilot` if
   `PLUGIN_ROOT` is set, otherwise ask the user
-- `model_routing` — paste the correct table from §Model routing table above
+- `model_ids` — the **single** place concrete model IDs live. From the §Model resolution table above, paste the
+  column matching the detected platform (Claude Code or GitHub Copilot) as `haiku` / `sonnet` / `opus` keys.
+  These are examples — confirm they match models the platform currently exposes.
+- `model_routing` — paste the correct tier-based routing table (cost-first / balanced / quality-first) from §Model
+  routing table above. The table references tiers only; it never repeats concrete model IDs.
+
+> On **GitHub Copilot**, `model_routing` is advisory: Copilot has no programmatic subagent dispatch, so apply the
+> tier recommendation by selecting the model in the client and running verify/review as separate clean-context passes.
 
 ### Step 4: Render `docs/PROJECT_CONTEXT.md` from all `.yml` files
 
@@ -367,7 +403,7 @@ Setup complete — {{PROJECT_NAME}}
 WRITTEN:
   docs/profiles/project.yml   project config (name, language, framework)
   docs/profiles/team.yml      team config (size, git workflow, branches)
-  docs/profiles/runtime.yml   runtime config (AI tools, model routing)
+  docs/profiles/runtime.yml   runtime config (AI tools, model IDs, model routing)
   docs/PROJECT_CONTEXT.md     rendered from all profiles
   docs/ARCHITECTURE.md        header filled
 

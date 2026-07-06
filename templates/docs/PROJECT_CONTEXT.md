@@ -97,6 +97,16 @@ Traceability policy: `{{TRACEABILITY_POLICY}}`
 
 `{{AI_TOOLS}}`
 
+## Model resolution
+
+Skills reference capability tiers; concrete model IDs live only here (from `runtime.yml` → `model_ids`).
+
+| Tier     | Model ID           |
+|----------|--------------------|
+| `haiku`  | `{{MODEL_ID_HAIKU}}`  |
+| `sonnet` | `{{MODEL_ID_SONNET}}` |
+| `opus`   | `{{MODEL_ID_OPUS}}`   |
+
 ## Model routing
 
 {{MODEL_ROUTING}}

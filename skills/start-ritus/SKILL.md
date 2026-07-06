@@ -7,7 +7,7 @@ argument-hint: Provide the user's request so the router can choose the next appl
 > **Subagent guard:** If you were dispatched as a subagent to execute a specific task (verify-task, pr-review, or execute-task), skip this skill entirely.
 > Run only the skill you were dispatched to execute.
 >
-> **Mandatory skill check:** Before responding to any task — including clarifying questions — check whether an available skill applies. If a skill covers your task, you **must** invoke it via the Skill tool. Do not skip this check. This is not optional.
+> **Mandatory skill check:** Before responding to any task — including clarifying questions — check whether an available skill applies. If a skill covers your task, you **must** invoke it via your agent's skill-invocation mechanism (the `Skill` tool in Claude Code; a `/command` or reading the matching `SKILL.md` in GitHub Copilot / other agents). Do not skip this check. This is not optional.
 
 # Ritus
 
@@ -48,10 +48,10 @@ This ensures you never stop mid-chain and never skip steps in long context windo
 
 ## Skill invocation
 
-> **Terminology:** "Invoke" = trigger a skill via the Skill tool (user or system action). "Load" = a skill reading another skill's content as a companion standard (skill-to-skill action).
+> **Terminology:** "Invoke" = trigger a skill via your agent's skill-invocation mechanism — the `Skill` tool in Claude Code, or a `/command` / reading the target `SKILL.md` in GitHub Copilot and other agents. "Load" = a skill reading another skill's content as a companion standard (skill-to-skill action).
 
 Before starting work, check which skill matches the user's intent by reading the available skill descriptions.
-Invoke the matching skill via the Skill tool. Each skill's `## Next` section defines what happens after — follow
+Invoke the matching skill. Each skill's `## Next` section defines what happens after — follow
 it, do not pre-plan the full chain.
 
 ## Subagent configs
@@ -60,8 +60,14 @@ The **orchestrating session** is whatever agent loaded start-ritus — typically
 When a skill says to dispatch, spawn a **fresh subagent** and instruct it to load the target skill.
 Never use a skill name as the agent type — skill names are not agent types.
 
-| Subagent | Model | Effort | Key constraints |
-|----------|-------|--------|-----------------|
+> **Platform note:** The `Model` column below is a **capability tier** (`haiku` = fast/cheap,
+> `sonnet` = balanced, `opus` = deepest reasoning), not a model ID. Concrete IDs are resolved once
+> in `docs/profiles/runtime.yml` → `model_ids`. On GitHub Copilot there is no programmatic subagent
+> dispatch: apply the tier by picking the model in the client and run each dispatched skill as a
+> separate pass in a clean context.
+
+| Subagent | Model (tier) | Effort | Key constraints |
+|----------|--------------|--------|-----------------|
 | `execute-task` | per triage | per triage | Implement STEPS exactly; do not redesign |
 | `verify-task` | haiku | medium | Read-only except build/test/lint; never fix; never trust implementer claims |
 | `pr-review` | sonnet | high | Adversarial; never apply fixes; use `origin/` refs; default to "Request changes" |

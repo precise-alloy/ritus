@@ -10,7 +10,9 @@
 
 Pronounced: *REE-tus* `/ˈriː.tus/` - from Latin, meaning a prescribed rite or procedure.
 
-A disciplined workflow for reliable AI-assisted development. Ritus uses skill-based architecture, on-demand loading, chain-based routing, and independent verification to work across Claude Code, GitHub Copilot, and any language or stack.
+A disciplined workflow for reliable AI-assisted development. Ritus uses skill-based architecture, on-demand loading, chain-based routing, and independent verification, in any language or stack.
+
+**Platform support:** Ritus is built for **Claude Code** (first-class — Skill-tool invocation, programmatic subagent dispatch, per-tier model routing). **GitHub Copilot** support is **experimental**: skills load and the workflow applies, but model routing is advisory (you pick the model in the client) and subagent dispatch runs as separate manual passes rather than programmatic fan-out. See [Platform compatibility](#platform-compatibility).
 
 
 ---
@@ -114,6 +116,29 @@ missing project files. Run the setup again to create any new files. Existing use
 | `docs/ARCHITECTURE.md`     | System architecture (header filled, rest progressive)     |
 | `docs/CODE_CONVENTIONS.md` | Project-specific coding conventions (filled by repo-scan) |
 | `docs/TEST_CONVENTIONS.md` | Project-specific test conventions (filled by repo-scan)   |
+
+---
+
+## Platform compatibility
+
+Ritus is authored around Claude Code primitives. The table below maps each Claude-specific
+concept to its GitHub Copilot (or generic-agent) equivalent so the workflow degrades
+predictably instead of silently.
+
+| Ritus concept                | Claude Code                          | GitHub Copilot / generic agent                                  |
+|------------------------------|--------------------------------------|-----------------------------------------------------------------|
+| Skill invocation             | `Skill` tool                         | `/command` or reading the matching `SKILL.md` on demand         |
+| Subagent dispatch            | fresh subagent (programmatic)        | run the step as a separate pass in a clean context (manual)     |
+| Model routing                | per-tier model set at dispatch       | advisory — pick the matching model in the client                |
+| Web fetch (in `pr-review`)   | `WebFetch` tool                      | any built-in web-fetch/browse tool, or paste content manually   |
+| Structured question prompts  | `AskUserQuestion` tool               | numbered plain-text options                                     |
+| Plugin root env var          | `CLAUDE_PLUGIN_ROOT`                 | `PLUGIN_ROOT`                                                   |
+
+**Model IDs are not hardcoded in skills.** Skills reference **capability tiers**
+(`haiku` = fast/cheap, `sonnet` = balanced, `opus` = deepest reasoning). The concrete
+model ID for each tier is resolved once, per platform, in `docs/profiles/runtime.yml`
+(`model_ids`) — the single place to update when models change. On GitHub Copilot the tier
+is a recommendation you apply manually, since Copilot has no programmatic dispatch.
 
 ---
 

@@ -2,8 +2,18 @@
 # Edit this file, then re-run the `setup` skill to regenerate docs/PROJECT_CONTEXT.md.
 # Values like off/no/yes must be quoted: key: "off"
 
-schema_version: 2
+schema_version: 3
 
 # Filled by setup
 ai_tools: ""
+
+# Single source of truth for concrete model IDs (per platform, filled by setup).
+# Skills reference capability tiers (haiku/sonnet/opus), not IDs — update models here only.
+# Model IDs change over time; set these to the models your platform currently exposes.
+model_ids:
+  haiku: ""   # fast/cheap  — e.g. Claude Code: claude-haiku-4-5 · GitHub Copilot: gpt-5-mini
+  sonnet: ""  # balanced    — e.g. Claude Code: claude-sonnet-4-5 · GitHub Copilot: gpt-5
+  opus: ""    # deep reason — e.g. Claude Code: claude-opus-4-1 · GitHub Copilot: gpt-5 (high effort)
+
+# Tier-based routing table (filled by setup). References tiers only, never concrete IDs.
 model_routing: ""

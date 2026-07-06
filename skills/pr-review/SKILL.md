@@ -14,7 +14,7 @@ can prove correctness with evidence at `file:line`.
 When the orchestrating session needs to run pr-review, dispatch a fresh subagent with:
 - **Model:** sonnet
 - **Effort:** high
-- **Tools:** Read, Grep, Glob, Bash, WebFetch
+- **Tools:** read, grep, glob, shell/bash, and a web-fetch capability (the `WebFetch` tool in Claude Code; any built-in web-fetch/browse tool on other agents, or paste the content manually)
 - **Constraints:** adversarial reviewer in fresh context; never apply fixes or modify source files; never create or
   modify environment files (.env, .env.local) — report missing setup to the user; use `git fetch origin` and
   `origin/<branch>` refs — never mutate local branches; default to "Request changes" — the burden of proof is on the
