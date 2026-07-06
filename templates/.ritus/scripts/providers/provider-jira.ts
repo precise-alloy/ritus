@@ -10,6 +10,25 @@ function jiraBaseUrl(): string {
   return requireEnv('JIRA_BASE_URL').replace(/\/+$/, '');
 }
 
+function assertSameJiraHost(rawUrl: string): void {
+  const expectedHost = new URL(jiraBaseUrl()).host;
+
+  let parsed: URL;
+  try {
+    parsed = new URL(rawUrl);
+  } catch {
+    throw new Error(`Invalid Jira attachment URL: ${rawUrl}`);
+  }
+
+  if (parsed.protocol !== 'https:') {
+    throw new Error(`Refusing to download Jira attachment over non-HTTPS URL: ${rawUrl}`);
+  }
+
+  if (parsed.host !== expectedHost) {
+    throw new Error(`Refusing to send Jira credentials to unexpected host ${parsed.host} (expected ${expectedHost})`);
+  }
+}
+
 function jiraHeaders(): RequestHeaders {
   const pat = requireEnv('JIRA_PAT');
   const email = requireEnv('JIRA_EMAIL');
@@ -223,6 +242,7 @@ async function downloadJiraAttachments(target: string, extra?: string): Promise<
   const downloaded: { filename: string; path: string; mimeType: string; size: number }[] = [];
 
   for (const attachment of images) {
+    assertSameJiraHost(attachment.content);
     const safeName = basename(attachment.filename);
     const outputPath = join(outputDir, safeName);
     const bytesWritten = await requestBinary(attachment.content, headers, outputPath);
