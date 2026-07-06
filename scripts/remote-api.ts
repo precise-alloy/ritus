@@ -11,6 +11,11 @@ const PROVIDER_MAP = new Map(PROVIDERS.map((p) => [p.name, p]));
 
 const HELP_FLAGS = new Set(['-h', '--help', 'help']);
 
+function getScriptCmd(): string {
+  const scriptPath = Bun.argv[1] === 'run' ? Bun.argv[2] : Bun.argv[1];
+  return `bun run ${scriptPath}`;
+}
+
 function getCliArgs(argv: string[]): string[] {
   if (argv[1] === 'run') {
     return argv.slice(3);
@@ -20,10 +25,11 @@ function getCliArgs(argv: string[]): string[] {
 }
 
 function printUsage(): void {
-  const usageLines = PROVIDERS.flatMap((p) => p.usageLines());
-  const exampleLines = PROVIDERS.flatMap((p) => p.exampleLines());
+  const cmd = getScriptCmd();
+  const usageLines = PROVIDERS.flatMap((p) => p.usageLines(cmd));
+  const exampleLines = PROVIDERS.flatMap((p) => p.exampleLines(cmd));
   console.error(`Usage:
-  bun run .ritus/scripts/remote-api.ts check-env
+  ${cmd} check-env
 ${usageLines.map((l) => '  ' + l).join('\n')}
 
 Examples:

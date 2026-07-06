@@ -12,8 +12,8 @@ export type Provider = {
   label: string;
   requiredEnvKeys: readonly string[];
   actions: Record<string, ActionHandler>;
-  usageLines: () => string[];
-  exampleLines: () => string[];
+  usageLines: (scriptCmd: string) => string[];
+  exampleLines: (scriptCmd: string) => string[];
 };
 
 export type EnvKeyStatus = { name: string; present: boolean };

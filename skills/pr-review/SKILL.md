@@ -105,13 +105,13 @@ Parse the PR URL using the `## Remote API access` section. Use the provider that
 Fetch the PR details (the `ado` subcommand targets Azure DevOps):
 
 ```bash
-bun run .ritus/scripts/remote-api.ts ado pr "<AZURE_DEVOPS_PR_URL>"
+bun run "<plugin-root>/scripts/remote-api.ts" ado pr "<AZURE_DEVOPS_PR_URL>"
 ```
 
 Fetch GitHub PR details with the `github` subcommand:
 
 ```bash
-bun run .ritus/scripts/remote-api.ts github pr "<GITHUB_PR_URL>"
+bun run "<plugin-root>/scripts/remote-api.ts" github pr "<GITHUB_PR_URL>"
 ```
 
 If this helper returns `401` or `403`, or returns `404` with a permission-style message, stop and ask the user to verify
@@ -220,14 +220,14 @@ Parse ticket keys according to `docs/PROJECT_CONTEXT.md` section `## Team conven
 Fetch each ticket:
 
 ```bash
-bun run .ritus/scripts/remote-api.ts jira issue "<TICKET_KEY_OR_URL>" "summary,description,status,issuetype,comment"
+bun run "<plugin-root>/scripts/remote-api.ts" jira issue "<TICKET_KEY_OR_URL>" "summary,description,status,issuetype,comment"
 ```
 
 The `comment` field in the issue fetch includes comments inline. Only fetch comments separately if the response
 was truncated or you need the full comment history:
 
 ```bash
-bun run .ritus/scripts/remote-api.ts jira comments "<TICKET_KEY_OR_URL>"
+bun run "<plugin-root>/scripts/remote-api.ts" jira comments "<TICKET_KEY_OR_URL>"
 ```
 
 Apply `docs/PROJECT_CONTEXT.md` section `## Requirement source precedence`.

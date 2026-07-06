@@ -271,24 +271,24 @@ export const adoProvider: Provider = {
     'comments': getAdoWorkItemComments,
     'changelog': getAdoWorkItemUpdates,
   },
-  usageLines: () => [
-    'bun run .ritus/scripts/remote-api.ts ado pr <pull-request-url>',
-    'bun run .ritus/scripts/remote-api.ts ado pr-threads <pull-request-url> [count]',
-    'bun run .ritus/scripts/remote-api.ts ado issue <work-item-url-or-id> [fields]',
-    'bun run .ritus/scripts/remote-api.ts ado comments <work-item-url-or-id> [count]',
-    'bun run .ritus/scripts/remote-api.ts ado changelog <work-item-url-or-id>',
+  usageLines: (cmd) => [
+    `${cmd} ado pr <pull-request-url>`,
+    `${cmd} ado pr-threads <pull-request-url> [count]`,
+    `${cmd} ado issue <work-item-url-or-id> [fields]`,
+    `${cmd} ado comments <work-item-url-or-id> [count]`,
+    `${cmd} ado changelog <work-item-url-or-id>`,
   ],
-  exampleLines: () => {
+  exampleLines: (cmd) => {
     const prUrl = process.env.EXAMPLE_ADO_PR_URL || 'https://dev.azure.com/your-org/your-project/_git/your-repo/pullrequest/1234';
     const wiUrl = process.env.EXAMPLE_ADO_WORK_ITEM_URL || 'https://dev.azure.com/your-org/your-project/_workitems/edit/12345';
     return [
-      `bun run .ritus/scripts/remote-api.ts ado pr ${prUrl}`,
-      `bun run .ritus/scripts/remote-api.ts ado pr-threads ${prUrl}`,
-      `bun run .ritus/scripts/remote-api.ts ado pr-threads ${prUrl} 20`,
-      `bun run .ritus/scripts/remote-api.ts ado issue ${wiUrl}`,
-      `bun run .ritus/scripts/remote-api.ts ado issue ${wiUrl} System.Title,System.State,System.Description`,
-      `bun run .ritus/scripts/remote-api.ts ado comments ${wiUrl}`,
-      `bun run .ritus/scripts/remote-api.ts ado changelog ${wiUrl}`,
+      `${cmd} ado pr ${prUrl}`,
+      `${cmd} ado pr-threads ${prUrl}`,
+      `${cmd} ado pr-threads ${prUrl} 20`,
+      `${cmd} ado issue ${wiUrl}`,
+      `${cmd} ado issue ${wiUrl} System.Title,System.State,System.Description`,
+      `${cmd} ado comments ${wiUrl}`,
+      `${cmd} ado changelog ${wiUrl}`,
     ];
   },
 };

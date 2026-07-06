@@ -1,6 +1,16 @@
 # Remote API Access
 
-Every Jira, Azure DevOps, and GitHub REST call MUST go through `.ritus/scripts/remote-api.ts` via `bun run`. No exceptions. Do not use `Invoke-WebRequest`, `curl`, `fetch`, `requests`, GitHub/Azure DevOps MCP tools, or hand-rolled auth headers for these systems. The helper loads `.env.local`, applies the correct auth format for each system, and preserves HTTP status on failure.
+Every Jira, Azure DevOps, and GitHub REST call MUST go through the remote API script via `bun run`. No exceptions. Do not use `Invoke-WebRequest`, `curl`, `fetch`, `requests`, GitHub/Azure DevOps MCP tools, or hand-rolled auth headers for these systems. The helper loads `.env.local`, applies the correct auth format for each system, and preserves HTTP status on failure.
+
+## Script location
+
+The remote API script is located at `<plugin-root>/scripts/remote-api.ts`, where `<plugin-root>` is the ritus plugin installation directory.
+
+To derive `<plugin-root>` from this skill file's base directory: this file is at `<plugin-root>/skills/shared/remote-api-access.md`, so the plugin root is 2 directory levels up from `skills/shared/`.
+
+When invoking the script, use the full path: `bun run "<plugin-root>/scripts/remote-api.ts"`.
+
+## Prerequisites
 
 Bun is mandatory for remote access. Before running any remote helper command, verify Bun is available:
 
@@ -10,27 +20,27 @@ bun --version
 
 If Bun is not installed or the command is unavailable, stop immediately and ask the user to install Bun. Do not continue remote analysis or review with another runtime or ad-hoc HTTP calls.
 
-If the command you need is not listed, run `bun run .ritus/scripts/remote-api.ts` with no arguments to print the current subcommand list:
+If the command you need is not listed, run `bun run "<plugin-root>/scripts/remote-api.ts"` with no arguments to print the current subcommand list:
 
 ```bash
-bun run .ritus/scripts/remote-api.ts                                        # print usage
-bun run .ritus/scripts/remote-api.ts check-env                              # verify .env.local + required keys
+bun run "<plugin-root>/scripts/remote-api.ts"                                        # print usage
+bun run "<plugin-root>/scripts/remote-api.ts" check-env                              # verify .env.local + required keys
 
 # Jira
-bun run .ritus/scripts/remote-api.ts jira issue <KEY_OR_URL> [fields]       # single ticket
-bun run .ritus/scripts/remote-api.ts jira comments <KEY_OR_URL>             # all comments
-bun run .ritus/scripts/remote-api.ts jira changelog <KEY_OR_URL>            # change history
-bun run .ritus/scripts/remote-api.ts jira attachments <KEY_OR_URL>          # list attachments
-bun run .ritus/scripts/remote-api.ts jira attachment-download <KEY_OR_URL> <OUTPUT_DIR>  # download images
+bun run "<plugin-root>/scripts/remote-api.ts" jira issue <KEY_OR_URL> [fields]       # single ticket
+bun run "<plugin-root>/scripts/remote-api.ts" jira comments <KEY_OR_URL>             # all comments
+bun run "<plugin-root>/scripts/remote-api.ts" jira changelog <KEY_OR_URL>            # change history
+bun run "<plugin-root>/scripts/remote-api.ts" jira attachments <KEY_OR_URL>          # list attachments
+bun run "<plugin-root>/scripts/remote-api.ts" jira attachment-download <KEY_OR_URL> <OUTPUT_DIR>  # download images
 
 # Azure DevOps (ADO)
-bun run .ritus/scripts/remote-api.ts ado pr <PR_URL>                        # PR metadata
-bun run .ritus/scripts/remote-api.ts ado issue <WORK_ITEM_URL_OR_ID> [fields]  # work item details
-bun run .ritus/scripts/remote-api.ts ado comments <WORK_ITEM_URL_OR_ID>     # work item comments
-bun run .ritus/scripts/remote-api.ts ado changelog <WORK_ITEM_URL_OR_ID>    # work item updates
+bun run "<plugin-root>/scripts/remote-api.ts" ado pr <PR_URL>                        # PR metadata
+bun run "<plugin-root>/scripts/remote-api.ts" ado issue <WORK_ITEM_URL_OR_ID> [fields]  # work item details
+bun run "<plugin-root>/scripts/remote-api.ts" ado comments <WORK_ITEM_URL_OR_ID>     # work item comments
+bun run "<plugin-root>/scripts/remote-api.ts" ado changelog <WORK_ITEM_URL_OR_ID>    # work item updates
 
 # GitHub
-bun run .ritus/scripts/remote-api.ts github pr <PR_URL>                     # PR metadata
+bun run "<plugin-root>/scripts/remote-api.ts" github pr <PR_URL>                     # PR metadata
 ```
 
 ## URL parsing
@@ -94,7 +104,7 @@ Not all providers need to be configured — only the ones the project uses. `che
 Before fetching remote data, always run the sanctioned env check via Bun. Do not use `Test-Path`, `Get-Content`, `cat .env.local`, or any other ad-hoc check.
 
 ```bash
-bun run .ritus/scripts/remote-api.ts check-env
+bun run "<plugin-root>/scripts/remote-api.ts" check-env
 ```
 
 Interpret the result:

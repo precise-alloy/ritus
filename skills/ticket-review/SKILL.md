@@ -84,14 +84,14 @@ Parse ticket keys/work item IDs according to docs/PROJECT_CONTEXT.md `## Team co
 For Jira tickets:
 
 ```bash
-bun run .ritus/scripts/remote-api.ts jira issue "<TICKET_KEY_OR_URL>" "summary,description,status,issuetype,comment,acceptance_criteria"
+bun run "<plugin-root>/scripts/remote-api.ts" jira issue "<TICKET_KEY_OR_URL>" "summary,description,status,issuetype,comment,acceptance_criteria"
 ```
 
 For Azure DevOps work items:
 
 ```bash
-bun run .ritus/scripts/remote-api.ts ado issue "<WORK_ITEM_URL_OR_ID>" "System.Title,System.Description,System.State,System.WorkItemType,System.Tags"
-bun run .ritus/scripts/remote-api.ts ado comments "<WORK_ITEM_URL_OR_ID>"
+bun run "<plugin-root>/scripts/remote-api.ts" ado issue "<WORK_ITEM_URL_OR_ID>" "System.Title,System.Description,System.State,System.WorkItemType,System.Tags"
+bun run "<plugin-root>/scripts/remote-api.ts" ado comments "<WORK_ITEM_URL_OR_ID>"
 ```
 
 If either provider returns `401`, `403`, or a permission-style `404`, stop and ask the user to verify remote access.
@@ -136,7 +136,7 @@ If the Jira ticket or requirement includes image attachments (screenshots, mocku
 First, download the images locally so they can be viewed:
 
 ```bash
-bun run .ritus/scripts/remote-api.ts jira attachment-download "<TICKET_KEY>" ".jira-attachments/<TICKET_KEY>"
+bun run "<plugin-root>/scripts/remote-api.ts" jira attachment-download "<TICKET_KEY>" ".jira-attachments/<TICKET_KEY>"
 ```
 
 Then read each downloaded image using the `Read` tool (which supports images). The download command returns
