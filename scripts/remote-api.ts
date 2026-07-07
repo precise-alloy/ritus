@@ -678,6 +678,7 @@ async function main(): Promise<void> {
       }
       console.error(`\nTo use a specific provider: ${getScriptCmd()} <provider> ${action} ${target}`);
       process.exit(2);
+    }
 
     if (candidates.length > 1) {
       const hasDuplicateTypes = new Set(candidates.map(c => c.provider.name)).size < candidates.length;
