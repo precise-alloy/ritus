@@ -92,6 +92,7 @@ Not all PR comments need code changes. Classify each comment:
 
 ### Skip (not actionable)
 
+- Comments that you think they're not a valid change request. Analyze the comment and determine if it is a valid request for code changes. If it is not, skip it and report to the user.
 - Resolved/closed threads (ADO: `status !== 'active'`)
 - Reply threads where the last message is from the PR author (likely already addressed)
 - Approvals, praise, acknowledgments ("LGTM", "looks good", "nice work", "+1")

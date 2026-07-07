@@ -68,6 +68,11 @@ function validateAndConvertEntries(entries: unknown, sectionName: string): Provi
       if (prefixes.length > 0) config.keyPrefixes = prefixes;
     }
 
+    if (raw.env && Array.isArray(raw.env)) {
+      console.warn(`Warning: skipping team.yml ${sectionName} entry "${name}": "env" must be a plain object, not an array`);
+      continue;
+    }
+
     if (raw.env && typeof raw.env === 'object') {
       const envObj: EnvMapping = {};
       let hasInvalidEnv = false;
@@ -332,7 +337,7 @@ function canAdoInstanceHandle(instance: ProviderInstance, action: string, target
     // Not a URL — should have been caught by isBareId check above
   }
 
-  return true;
+  return false;
 }
 
 // ---------------------------------------------------------------------------
@@ -340,7 +345,7 @@ function canAdoInstanceHandle(instance: ProviderInstance, action: string, target
 // ---------------------------------------------------------------------------
 
 function checkInstanceEnv(instance: ProviderInstance): ProviderEnvStatus {
-  // Only check credential/auth keys from provider.requiredEnvKeys, not all mapped env vars.
+  // Check credential/auth keys from provider.requiredEnvKeys, plus api_base_url for GitHub.
   // Non-auth keys like ADO_ORG/ADO_PROJECT should not affect the ok status.
   const requiredEnvVarNames = new Set(instance.provider.requiredEnvKeys);
   const envMapping = instance.envMapping;

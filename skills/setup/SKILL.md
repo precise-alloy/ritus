@@ -374,7 +374,7 @@ Fill these fields:
 - `team_size`, `git_platform`, `git_flow`, `workflow_owner`, `ticket_format`, `qa_mode`
 - `git_platforms` (list) — always populate from `{{GIT_PLATFORMS}}`
 - `ticket_providers` (list) — always populate from `{{TICKET_PROVIDERS}}`; omit (or leave commented) when empty
-- `git_providers` (list) — populate when multiple git platforms are configured or when any platform has custom env vars; omit (or leave commented) for single-platform setups with default env vars
+- `git_providers` (list) — populate when multiple git platforms are configured or when any platform has custom env vars; only GitHub and ADO are supported by `remote-api.ts` (other platforms such as GitLab or Bitbucket are not recognized and will produce warnings); omit (or leave commented) for single-platform setups with default env vars
 - Derived fields: `memory_expiry_days`, `branch_format`, `tasks_path_convention`, `pr_reviewers`,
   `default_base_branch`, `traceability_policy` (use derivation rules from § Derived values above)
 

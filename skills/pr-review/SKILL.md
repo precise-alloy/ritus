@@ -216,11 +216,11 @@ Fetch each ticket (the provider is auto-detected from the key/URL shape — work
 and Azure DevOps work item URLs):
 
 ```bash
-bun run "<plugin-root>/scripts/remote-api.ts" issue "<TICKET_KEY_OR_URL>" "summary,description,status,issuetype,comment"
+bun run "<plugin-root>/scripts/remote-api.ts" issue "<TICKET_KEY_OR_URL>" [fields]
 ```
 
-The `comment` field in the issue fetch includes comments inline. Only fetch comments separately if the response
-was truncated or you need the full comment history:
+For Jira, the `comment` field in the issue fetch may include comments inline. For ADO and GitHub, always fetch
+comments separately using the commands below:
 
 ```bash
 # For Jira tickets or ADO work items:
