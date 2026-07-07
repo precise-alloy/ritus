@@ -570,13 +570,24 @@ async function main(): Promise<void> {
       console.error('Disambiguate by configuring distinct key_prefixes, hostnames, or org/project in team.yml.');
       process.exit(2);
     } else {
-      // No match — fall back to default instance for this provider
-      const defaultInstance = instances.find(
-        (inst) => inst.provider.name === explicitProvider.name && inst.config.name === 'default',
-      );
+      // No match. If team.yml defines non-default instances for this provider, fail fast instead of
+      // silently falling back to default env vars (can route to the wrong host/tenant).
+      const providerInstances = instances.filter((inst) => inst.provider.name === explicitProvider.name);
+      const hasCustomInstances = providerInstances.length > 1 || providerInstances.some((inst) => inst.config.name !== 'default');
+
+      if (hasCustomInstances) {
+        const instanceNames = providerInstances
+          .map((inst) => (inst.config.name !== 'default' ? `${inst.provider.name} (${inst.config.name})` : inst.provider.name))
+          .join(', ');
+        console.error(`No configured ${explicitProvider.name} instance can handle "${action} ${target}". Known instances: ${instanceNames}`);
+        console.error('Disambiguate by configuring distinct key_prefixes, hostnames, or org/project in team.yml.');
+        process.exit(2);
+      }
+
+      // Single-instance (default) fallback remains backward compatible.
+      const defaultInstance = providerInstances.find((inst) => inst.config.name === 'default');
       provider = explicitProvider;
       resolvedEnvMapping = defaultInstance?.envMapping;
-    }
   } else {
     // Auto-detect mode: <action> <target> [extra]
     action = firstArg;
