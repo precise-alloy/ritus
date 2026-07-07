@@ -588,6 +588,7 @@ async function main(): Promise<void> {
       const defaultInstance = providerInstances.find((inst) => inst.config.name === 'default');
       provider = explicitProvider;
       resolvedEnvMapping = defaultInstance?.envMapping;
+    }
   } else {
     // Auto-detect mode: <action> <target> [extra]
     action = firstArg;
