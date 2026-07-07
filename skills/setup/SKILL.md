@@ -107,6 +107,7 @@ Accept one or more values.
 
 Record as: `{{GIT_PLATFORM}}` (first selection — scalar, backward compat) and `{{GIT_PLATFORMS}}` (list of all selections).
 (See Step 2 § backward compatibility for why both scalar and list fields are maintained.)
+When generating `docs/profiles/team.yml` `git_providers`, map platform labels to provider types (`GitHub` → `github`, `Azure DevOps` → `ado`).
 
 - **Single selection** (e.g. "GitHub"): set `{{GIT_PLATFORM}}` = `GitHub`, `{{GIT_PLATFORMS}}` = `["GitHub"]`.
 - **Multiple selections** (e.g. "GitHub, Azure DevOps"): set `{{GIT_PLATFORM}}` = first value (`GitHub`), `{{GIT_PLATFORMS}}` = `["GitHub", "Azure DevOps"]`.
