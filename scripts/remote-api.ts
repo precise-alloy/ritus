@@ -638,6 +638,12 @@ async function main(): Promise<void> {
       printUsage();
       process.exit(2);
     }
+    if (!PROVIDERS.some((p) => action in p.actions)) {
+      const actions = [...new Set(PROVIDERS.flatMap((p) => Object.keys(p.actions)))].sort();
+      console.error(`Unknown action "${action}". Available: ${actions.join(', ')}`);
+      printUsage();
+      process.exit(2);
+    }
 
     const candidates = instances.filter(
       (inst) => checkInstanceEnv(inst).ok && canInstanceHandleTarget(inst, action, target),
