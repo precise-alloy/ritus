@@ -191,19 +191,40 @@ async function loadInstances(): Promise<LoadedInstances> {
       }
       if (provider) {
         const key = `${provider.name}:${config.name}`;
-        if (!seen.has(key)) {
-          seen.add(key);
-          const inst = buildInstance(provider, config);
-          if (config.env) {
-            const knownLogicalKeys = new Set(Object.keys(provider.defaultEnvMapping));
-            for (const logicalKey of Object.keys(config.env)) {
-              if (!knownLogicalKeys.has(logicalKey)) {
-                console.warn(`Warning: unknown env key "${logicalKey}" in team.yml git_providers entry "${config.name}" (known keys: ${[...knownLogicalKeys].join(', ')})`);
+        if (seen.has(key)) {
+          const existing = instances.find((inst) => `${inst.provider.name}:${inst.config.name}` === key);
+          if (existing) {
+            if (config.env) {
+              existing.config.env ??= {};
+              for (const [logicalKey, envVar] of Object.entries(config.env)) {
+                const prev = existing.config.env[logicalKey];
+                if (prev && prev !== envVar) {
+                  console.warn(`Warning: conflicting env mapping for "${key}" key "${logicalKey}": keeping "${prev}", ignoring "${envVar}"`);
+                } else {
+                  existing.config.env[logicalKey] = envVar;
+                }
               }
+              existing.envMapping = { ...existing.provider.defaultEnvMapping, ...existing.config.env };
+            }
+            if (config.keyPrefixes?.length) {
+              const prev = existing.config.keyPrefixes ?? [];
+              existing.config.keyPrefixes = [...new Set([...prev, ...config.keyPrefixes])];
             }
           }
-          instances.push(inst);
+          continue;
         }
+
+        seen.add(key);
+        const inst = buildInstance(provider, config);
+        if (config.env) {
+          const knownLogicalKeys = new Set(Object.keys(provider.defaultEnvMapping));
+          for (const logicalKey of Object.keys(config.env)) {
+            if (!knownLogicalKeys.has(logicalKey)) {
+              console.warn(`Warning: unknown env key "${logicalKey}" in team.yml git_providers entry "${config.name}" (known keys: ${[...knownLogicalKeys].join(', ')})`);
+            }
+          }
+        }
+        instances.push(inst);
       }
     }
   }
