@@ -181,6 +181,7 @@ async function loadInstances(): Promise<LoadedInstances> {
           const inst = buildInstance(provider, config);
           if (config.env) {
             const knownLogicalKeys = new Set(Object.keys(provider.defaultEnvMapping));
+            if (provider.name === 'github') knownLogicalKeys.add('api_base_url');
             for (const logicalKey of Object.keys(config.env)) {
               if (!knownLogicalKeys.has(logicalKey)) {
                 console.warn(`Warning: unknown env key "${logicalKey}" in team.yml ticket_providers entry "${config.name}" (known keys: ${[...knownLogicalKeys].join(', ')})`);
