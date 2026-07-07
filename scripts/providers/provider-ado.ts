@@ -300,7 +300,7 @@ export const adoProvider: Provider = {
     if (prActions.has(action)) {
       try {
         const url = new URL(target);
-        return isAdoHost(url.hostname) && /pullrequest/i.test(url.pathname);
+        return isAdoHost(url.hostname) && /\/_git\/[^/]+\/pullrequest\/\d+\/?$/i.test(url.pathname);
       } catch {
         return false;
       }
