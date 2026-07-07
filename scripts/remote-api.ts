@@ -581,6 +581,12 @@ async function main(): Promise<void> {
       process.exit(2);
     }
 
+    if (!(action in explicitProvider.actions)) {
+      console.error(`Unknown action "${action}" for ${explicitProvider.label}. Available: ${Object.keys(explicitProvider.actions).join(', ')}`);
+      printUsage();
+      process.exit(2);
+    }
+
     // Resolve the best matching instance for this provider + target
     const matchingInstances = instances.filter(
       (inst) => inst.provider.name === explicitProvider.name &&
