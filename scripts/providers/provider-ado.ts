@@ -242,7 +242,7 @@ type AdoUpdatesPage = {
 
 async function getAdoWorkItemUpdates(target: string, extra?: string, envMapping?: EnvMapping): Promise<unknown> {
   const env = envMapping ?? ADO_DEFAULT_ENV;
-  const parsed = parseAdoWorkItemUrl(target, envMapping);
+  const parsed = parseAdoWorkItemUrl(target, env);
   const base = `${adoBaseUrl(parsed.organization, parsed.project)}/_apis/wit/workitems/${encodeURIComponent(parsed.workItemId)}/updates`;
   const headers = adoHeaders(env);
 
