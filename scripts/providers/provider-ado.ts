@@ -216,7 +216,7 @@ async function getAdoWorkItem(target: string, extra?: string, envMapping?: EnvMa
 
 async function getAdoWorkItemComments(target: string, extra?: string, envMapping?: EnvMapping): Promise<unknown> {
   const env = envMapping ?? ADO_DEFAULT_ENV;
-  const parsed = parseAdoWorkItemUrl(target, envMapping);
+  const parsed = parseAdoWorkItemUrl(target, env);
   const limit = parseLimit(extra);
   const url = `${adoBaseUrl(parsed.organization, parsed.project)}/_apis/wit/workitems/${encodeURIComponent(parsed.workItemId)}/comments?api-version=${ADO_COMMENTS_API_VERSION}`;
 
