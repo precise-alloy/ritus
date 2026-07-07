@@ -618,10 +618,17 @@ async function main(): Promise<void> {
           ? `${inst.provider.name} (${inst.config.name})`
           : inst.provider.name;
       }).join(', ');
-      console.error(`Ambiguous target: multiple providers can handle "${action} ${target}": ${candidateNames}`);
-      console.error('Disambiguate by specifying the provider explicitly:');
-      for (const c of candidates) {
-        console.error(`  ${getScriptCmd()} ${c.provider.name} ${action} ${target}`);
+
+      if (hasDuplicateTypes) {
+         console.error(`Ambiguous target: multiple instances can handle "${action} ${target}": ${candidateNames}`);
+         console.error('Disambiguate by configuring distinct key_prefixes, hostnames, or org/project in team.yml.');
+       } else {
+         console.error(`Ambiguous target: multiple providers can handle "${action} ${target}": ${candidateNames}`);
+         console.error('Disambiguate by specifying the provider explicitly:');
+
+         for (const c of candidates) {
+           console.error(`  ${getScriptCmd()} ${c.provider.name} ${action} ${target}`);
+         }
       }
       process.exit(2);
     }

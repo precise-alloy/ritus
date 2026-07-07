@@ -33,7 +33,7 @@ Ask the user for:
 
 1. **The requirement source** — either:
    - A plain requirement description (summary of what needs to be done), OR
-   - Ticket URL(s)/key(s) for any configured provider (Jira, Azure DevOps, or GitHub Issues) matching
+   - URL(s)/key(s) for any configured provider (Jira, Azure DevOps, or GitHub Issues) matching
      docs/PROJECT_CONTEXT.md `## Team conventions` ticket format
 2. **Additional context** — verbal decisions, Slack discussions, architectural constraints, priority notes, or anything
    not captured in the requirement/ticket.
