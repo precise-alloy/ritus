@@ -23,8 +23,11 @@ type RawProviderEntry = {
 };
 
 function validateAndConvertEntries(entries: unknown, sectionName: string): ProviderInstanceConfig[] {
-  if (!Array.isArray(entries)) return [];
-
+  if (entries == null) return [];
+  if (!Array.isArray(entries)) {
+    console.warn(`Warning: team.yml ${sectionName} must be a list`);
+    return [];
+  }
   const configs: ProviderInstanceConfig[] = [];
   for (const entry of entries) {
     if (!entry || typeof entry !== 'object') continue;
