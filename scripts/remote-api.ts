@@ -58,12 +58,15 @@ function validateAndConvertEntries(entries: unknown, sectionName: string): Provi
       // Non-alphanumeric prefixes (e.g. "#") are intentionally allowed:
       // GitHub uses hostname matching (not prefix matching) for routing,
       // so the prefix field is only used by Jira-style providers.
-      const rawPrefixes = raw.key_prefixes.map(p => String(p).trim());
-      for (const p of rawPrefixes) {
-        if (!p) {
-          console.warn(`Warning: skipping empty key_prefix for ${type}:${name}`);
+      const rawPrefixes = raw.key_prefixes.map((p) => {
+        if (typeof p !== 'string') {
+          console.warn(`Warning: skipping non-string key_prefix for ${type}:${name}`);
+          return '';
         }
-      }
+        const trimmed = p.trim();
+        if (!trimmed) console.warn(`Warning: skipping empty key_prefix for ${type}:${name}`);
+        return trimmed;
+      });
       const prefixes = rawPrefixes.filter(Boolean);
       if (prefixes.length > 0) config.keyPrefixes = prefixes;
     }
