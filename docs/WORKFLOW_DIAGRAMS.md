@@ -285,6 +285,7 @@ flowchart TD
     SK -->|"references"| LES
     SK -->|"references"| CUT
     SK -->|"references"| STK
+    SK -->|"references"| CHG
 ```
 
 **Legend:** 🧑 user-owned (preserved on upgrade) · 📦 workflow package (replaced on upgrade) · 🔄 rendered · 📝 work artifacts

@@ -67,11 +67,11 @@ Test locations:
 Setup skill rendering instructions for multi-provider support:
 
 When team.yml contains ticket_providers or git_providers lists, the setup skill should:
-1. Replace GIT_PLATFORM with a comma-separated list of types from git_providers
-   (e.g., "GitHub, Azure DevOps"). Fall back to the scalar git_platform if no list.
-2. Replace TICKET_FORMAT with a comma-separated list of types from ticket_providers
-   (e.g., "Jira, GitHub Issues"). Fall back to the scalar ticket_format if no list.
-3. Uncomment and populate the rows below:
+1. Keep GIT_PLATFORM as the scalar value (primary system only, e.g., "GitHub").
+   Do NOT overwrite with a comma-separated list.
+2. Keep TICKET_FORMAT as the scalar value (primary system's format only, e.g., "PROJ-123").
+   Do NOT overwrite with a comma-separated list.
+3. Uncomment and populate the dedicated list rows below for multi-instance data:
    - Ticket providers: format as "type:name (prefixes: X, Y), ..."
    - Git providers: format as "type:name, ..."
 If no list fields are present, leave the rows commented out — single-value rendering is correct.

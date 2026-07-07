@@ -223,7 +223,11 @@ The `comment` field in the issue fetch includes comments inline. Only fetch comm
 was truncated or you need the full comment history:
 
 ```bash
+# For Jira tickets or ADO work items:
 bun run "<plugin-root>/scripts/remote-api.ts" comments "<TICKET_KEY_OR_URL>"
+
+# For GitHub Issues:
+bun run "<plugin-root>/scripts/remote-api.ts" issue-comments "<ISSUE_URL>"
 ```
 
 If auto-detection fails, fall back to the explicit provider syntax (e.g., `jira issue`, `github issue`, `ado issue`).

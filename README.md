@@ -311,8 +311,8 @@ matching the target against each instance's identifying attributes:
   (`github.com` for public, custom hostname for Enterprise).
 
 If the target matches **zero** instances, an error lists all configured instances. If the target
-matches **multiple** instances, a hard error lists the candidates with explicit provider-and-instance
-commands for each match.
+matches **multiple** instances, a hard error lists the candidates and prompts you to disambiguate
+via `team.yml` configuration (key prefixes, hostnames, or org/project).
 
 Single-instance setups require no `team.yml` changes — the default env var names work as before.
 

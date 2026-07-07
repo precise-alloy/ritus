@@ -15,125 +15,94 @@ const HELP_FLAGS = new Set(['-h', '--help', 'help']);
 // team.yml parsing — extracts ticket_providers / git_providers lists
 // ---------------------------------------------------------------------------
 
-function parseYamlValue(value: string): string | string[] {
-  if (value.startsWith('[')) {
-    if (!value.endsWith(']')) {
-      throw new Error(`Unbalanced brackets in YAML array value: ${value}`);
-    }
-    return value.slice(1, -1).split(',').map(s => s.trim().replace(/^["']|["']$/g, '')).filter(Boolean);
-  }
-  return value.replace(/^["']|["']$/g, '');
-}
+type RawProviderEntry = {
+  type?: string;
+  name?: string;
+  key_prefixes?: string[];
+  env?: Record<string, string>;
+};
 
-function parseProviderSection(lines: string[], startIdx: number): ProviderInstanceConfig[] {
+function validateAndConvertEntries(entries: unknown, sectionName: string): ProviderInstanceConfig[] {
+  if (!Array.isArray(entries)) return [];
+
   const configs: ProviderInstanceConfig[] = [];
-  let current: Partial<ProviderInstanceConfig> | null = null;
-  let envObj: EnvMapping | null = null;
-  let envIndent = 0;
+  for (const entry of entries) {
+    if (!entry || typeof entry !== 'object') continue;
+    const raw = entry as RawProviderEntry;
 
-  for (let i = startIdx; i < lines.length; i++) {
-    const raw = lines[i];
-    const trimmed = raw.trim();
-    if (!trimmed || trimmed.startsWith('#')) continue;
+    const type = typeof raw.type === 'string' ? raw.type.trim() : '';
+    const name = typeof raw.name === 'string' ? raw.name.trim() : '';
 
-    const indent = raw.search(/\S/);
-    if (indent === 0) break;
+    if (!type) {
+      throw new Error(`Empty "type" in team.yml ${sectionName} entry`);
+    }
+    if (!name) {
+      throw new Error(`Empty "name" in team.yml ${sectionName} entry`);
+    }
 
-    if (trimmed.startsWith('- ')) {
-      // Finalize previous entry
-      if (current) {
-        if (envObj) current.env = envObj;
-        if (current.type && current.name) configs.push(current as ProviderInstanceConfig);
-      }
-      current = {};
-      envObj = null;
+    const config: ProviderInstanceConfig = { type, name };
 
-      const inline = trimmed.slice(2).trim();
-      if (inline) {
-        const ci = inline.indexOf(':');
-        if (ci > 0) {
-          const key = inline.slice(0, ci).trim();
-          const val = inline.slice(ci + 1).trim();
-          if (key === 'type') current.type = val.replace(/^["']|["']$/g, '');
-          else if (key === 'name') current.name = val.replace(/^["']|["']$/g, '');
-          else if (key === 'key_prefixes') {
-            const parsed = parseYamlValue(val);
-            if (Array.isArray(parsed)) current.keyPrefixes = parsed;
-          }
+    const knownKeys = new Set(['type', 'name', 'key_prefixes', 'env']);
+    const unknownKeys = Object.keys(raw).filter(k => !knownKeys.has(k));
+    if (unknownKeys.length > 0) {
+      console.warn(`Warning: unknown keys in team.yml ${sectionName} entry "${name}": ${unknownKeys.join(', ')}`);
+    }
+
+    if (raw.key_prefixes) {
+      const prefixes = Array.isArray(raw.key_prefixes)
+        ? raw.key_prefixes.map(p => String(p))
+        : [];
+      // Non-alphanumeric prefixes (e.g. "#") are intentionally allowed:
+      // GitHub uses hostname matching (not prefix matching) for routing,
+      // so the prefix field is only used by Jira-style providers.
+      for (const prefix of prefixes) {
+        if (!prefix.trim()) {
+          throw new Error(`Empty key_prefix for ${type}:${name}`);
         }
       }
-    } else if (current) {
-      const ci = trimmed.indexOf(':');
-      if (ci > 0) {
-        const key = trimmed.slice(0, ci).trim();
-        const val = trimmed.slice(ci + 1).trim();
+      if (prefixes.length > 0) config.keyPrefixes = prefixes;
+    }
 
-        if (envObj !== null && indent > envIndent) {
-          const envVarName = val.replace(/^["']|["']$/g, '');
-          if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(envVarName)) {
-            throw new Error(`Invalid env var name "${envVarName}" in team.yml: must match [A-Za-z_][A-Za-z0-9_]*`);
-          }
-          envObj[key] = envVarName;
-        } else {
-          if (envObj !== null) {
-            current.env = envObj;
-            envObj = null;
-          }
-          if (key === 'env' && !val) {
-            envObj = {};
-            envIndent = indent;
-          } else if (key === 'type') {
-            current.type = val.replace(/^["']|["']$/g, '');
-          } else if (key === 'name') {
-            current.name = val.replace(/^["']|["']$/g, '');
-          } else if (key === 'key_prefixes') {
-            const parsed = parseYamlValue(val);
-            if (Array.isArray(parsed)) current.keyPrefixes = parsed;
-          }
+    if (raw.env && typeof raw.env === 'object') {
+      const envObj: EnvMapping = {};
+      for (const [key, val] of Object.entries(raw.env)) {
+        const envVarName = String(val).trim();
+        if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(envVarName)) {
+          throw new Error(`Invalid env var name "${envVarName}" in team.yml: must match [A-Za-z_][A-Za-z0-9_]*`);
         }
+        envObj[key] = envVarName;
       }
+      config.env = envObj;
     }
-  }
 
-  if (current) {
-    if (envObj) current.env = envObj;
-    if (current.type && current.name) configs.push(current as ProviderInstanceConfig);
-  }
-
-  for (const config of configs) {
-    if (!config.type?.trim()) {
-      throw new Error('Empty "type" in team.yml ticket_providers/git_providers entry');
-    }
-    if (!config.name?.trim()) {
-      throw new Error('Empty "name" in team.yml ticket_providers/git_providers entry');
-    }
-    if (config.keyPrefixes) {
-      for (const prefix of config.keyPrefixes) {
-        if (!/^[A-Z][A-Z0-9]*$/i.test(prefix)) {
-          throw new Error(`Invalid key_prefix "${prefix}" for ${config.type}:${config.name}: must be alphanumeric starting with a letter`);
-        }
-      }
-    }
+    configs.push(config);
   }
 
   return configs;
 }
 
 function parseTeamYaml(content: string): { ticketProviders?: ProviderInstanceConfig[]; gitProviders?: ProviderInstanceConfig[] } {
-  const lines = content.split(/\r?\n/);
+  let parsed: Record<string, unknown> | null;
+  try {
+    parsed = Bun.YAML.parse(content) as Record<string, unknown> | null;
+  } catch (err) {
+    throw new Error(`Failed to parse team.yml: ${err instanceof Error ? err.message : String(err)}`);
+  }
+  if (!parsed || typeof parsed !== 'object') {
+    return {};
+  }
+
   let ticketProviders: ProviderInstanceConfig[] | undefined;
   let gitProviders: ProviderInstanceConfig[] | undefined;
 
-  for (let i = 0; i < lines.length; i++) {
-    const trimmed = lines[i].trim();
-    if (trimmed.startsWith('#')) continue;
-    if (trimmed === 'ticket_providers:') {
-      const items = parseProviderSection(lines, i + 1);
-      if (items.length > 0) ticketProviders = items;
-    } else if (trimmed === 'git_providers:') {
-      const items = parseProviderSection(lines, i + 1);
-      if (items.length > 0) gitProviders = items;
-    }
+  if (parsed.ticket_providers) {
+    const items = validateAndConvertEntries(parsed.ticket_providers, 'ticket_providers');
+    if (items.length > 0) ticketProviders = items;
+  }
+
+  if (parsed.git_providers) {
+    const items = validateAndConvertEntries(parsed.git_providers, 'git_providers');
+    if (items.length > 0) gitProviders = items;
   }
 
   return { ticketProviders, gitProviders };
@@ -171,18 +140,39 @@ async function loadInstances(): Promise<LoadedInstances> {
   }
 
   const instances: ProviderInstance[] = [];
+  const seen = new Set<string>();
 
   if (ticketProviders) {
     for (const config of ticketProviders) {
       const provider = PROVIDERS.find(p => p.name === config.type);
-      if (provider) instances.push(buildInstance(provider, config));
+      if (!provider) {
+        console.warn(`Warning: unknown provider type "${config.type}" in team.yml ticket_providers (available: ${PROVIDERS.map(p => p.name).join(', ')})`);
+        continue;
+      }
+      if (provider) {
+        const key = `${provider.name}:${config.name}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          instances.push(buildInstance(provider, config));
+        }
+      }
     }
   }
 
   if (gitProviders) {
     for (const config of gitProviders) {
       const provider = PROVIDERS.find(p => p.name === config.type);
-      if (provider) instances.push(buildInstance(provider, config));
+      if (!provider) {
+        console.warn(`Warning: unknown provider type "${config.type}" in team.yml git_providers (available: ${PROVIDERS.map(p => p.name).join(', ')})`);
+        continue;
+      }
+      if (provider) {
+        const key = `${provider.name}:${config.name}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          instances.push(buildInstance(provider, config));
+        }
+      }
     }
   }
 
@@ -208,7 +198,7 @@ function buildDefaultInstances(): ProviderInstance[] {
 // ---------------------------------------------------------------------------
 
 function canInstanceHandleTarget(instance: ProviderInstance, action: string, target: string): boolean {
-  const { provider, config, envMapping } = instance;
+  const { provider, config } = instance;
 
   if (!(action in provider.actions)) return false;
 
@@ -244,24 +234,16 @@ function extractTicketPrefix(target: string): string | undefined {
 }
 
 function canGitHubInstanceHandle(instance: ProviderInstance, action: string, target: string): boolean {
+  // Delegate path-pattern matching to the provider
+  if (!instance.provider.canHandleTarget(action, target)) return false;
+
+  // Add hostname disambiguation for multi-instance (github.com vs GHE)
   let url: URL;
   try {
     url = new URL(target);
   } catch {
     return false;
   }
-
-  const prActions = new Set(['pr', 'comments']);
-  const issueActions = new Set(['issue', 'issue-comments']);
-
-  let pathMatch = false;
-  if (prActions.has(action)) {
-    pathMatch = /\/[^/]+\/[^/]+\/pull\/\d+\/?$/.test(url.pathname);
-  } else if (issueActions.has(action)) {
-    pathMatch = /\/[^/]+\/[^/]+\/issues\/\d+\/?$/.test(url.pathname);
-  }
-
-  if (!pathMatch) return false;
 
   const expectedHostname = getExpectedGitHubHostname(instance.envMapping);
   return url.hostname.toLowerCase() === expectedHostname.toLowerCase();
@@ -331,9 +313,19 @@ function canAdoInstanceHandle(instance: ProviderInstance, action: string, target
 // ---------------------------------------------------------------------------
 
 function checkInstanceEnv(instance: ProviderInstance): ProviderEnvStatus {
+  // Only check credential/auth keys from provider.requiredEnvKeys, not all mapped env vars.
+  // Non-auth keys like ADO_ORG/ADO_PROJECT should not affect the ok status.
+  const requiredEnvVarNames = new Set(instance.provider.requiredEnvKeys);
   const envMapping = instance.envMapping;
+
+  // Map required env keys through the instance's env mapping to get actual env var names
   const keys: EnvKeyStatus[] = Object.entries(envMapping)
-    .filter(([logicalKey]) => logicalKey !== 'api_base_url')
+    .filter(([logicalKey]) => {
+      if (logicalKey === 'api_base_url') return false;
+      const defaultEnvVar = instance.provider.defaultEnvMapping[logicalKey];
+      if (defaultEnvVar && requiredEnvVarNames.has(defaultEnvVar)) return true;
+      return requiredEnvVarNames.has(envMapping[logicalKey]);
+    })
     .map(([, envVarName]) => ({
       name: envVarName,
       present: !!process.env[envVarName]?.trim(),
@@ -535,8 +527,18 @@ async function main(): Promise<void> {
     if (matchingInstances.length === 1) {
       provider = matchingInstances[0].provider;
       resolvedEnvMapping = matchingInstances[0].envMapping;
+    } else if (matchingInstances.length > 1) {
+      // Multiple instances can handle this target — ambiguous, error out
+      const candidateNames = matchingInstances.map((inst) =>
+        inst.config.name !== 'default'
+          ? `${inst.provider.name} (${inst.config.name})`
+          : inst.provider.name,
+      ).join(', ');
+      console.error(`Ambiguous target: multiple instances can handle "${action} ${target}": ${candidateNames}`);
+      console.error('Disambiguate by configuring distinct key_prefixes, hostnames, or org/project in team.yml.');
+      process.exit(2);
     } else {
-      // Fall back to default instance for this provider
+      // No match — fall back to default instance for this provider
       const defaultInstance = instances.find(
         (inst) => inst.provider.name === explicitProvider.name && inst.config.name === 'default',
       );
@@ -607,9 +609,15 @@ async function main(): Promise<void> {
       throw new Error(`Missing ${tokenEnvVar}. Populate it in .env.local before using this helper.`);
     }
   } else {
+    // Only require credential/auth env vars (those in provider.requiredEnvKeys).
+    // Non-auth keys like ADO_ORG/ADO_PROJECT are action-specific and resolved by handlers.
+    const requiredDefaults = new Set(provider.requiredEnvKeys);
     for (const [logicalKey, envVarName] of Object.entries(envMapping)) {
       if (logicalKey === 'api_base_url') continue;
-      requireEnv(envVarName);
+      const defaultEnvVar = provider.defaultEnvMapping[logicalKey];
+      if (defaultEnvVar && requiredDefaults.has(defaultEnvVar)) {
+        requireEnv(envVarName);
+      }
     }
   }
 

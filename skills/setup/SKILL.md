@@ -184,7 +184,7 @@ Ask:
 > 'Jira with prefixes PROJ and CORE, and GitHub Issues for this repo'"
 
 Accept one or more ticket systems. For each, capture:
-- **type**: `jira` / `github-issues` / `ado`
+- **type**: `jira` / `github` / `ado`
 - **key prefixes**: the prefix patterns used (e.g. `PROJ`, `CORE`, `#`)
 - **instance name** (optional): a human-friendly label (e.g. `primary`, `external`)
 
@@ -193,7 +193,7 @@ Record primary format as: `{{TICKET_FORMAT}}` (scalar, backward compat — use t
 Record full list as: `{{TICKET_PROVIDERS}}` (list of all configured systems with type/name/key_prefixes).
 
 - **Single system** (e.g. "Jira: PROJ"): set `{{TICKET_FORMAT}}` = `PROJ-123`, `{{TICKET_PROVIDERS}}` = `[{type: jira, name: default, key_prefixes: ["PROJ"]}]`.
-- **Multiple systems** (e.g. "Jira: PROJ, CORE and GitHub Issues: #"): set `{{TICKET_FORMAT}}` = `PROJ-123` (first system's format), `{{TICKET_PROVIDERS}}` = `[{type: jira, name: primary, key_prefixes: ["PROJ", "CORE"]}, {type: github-issues, name: default, key_prefixes: ["#"]}]`.
+- **Multiple systems** (e.g. "Jira: PROJ, CORE and GitHub Issues: #"): set `{{TICKET_FORMAT}}` = `PROJ-123` (first system's format), `{{TICKET_PROVIDERS}}` = `[{type: jira, name: primary, key_prefixes: ["PROJ", "CORE"]}, {type: github, name: default, key_prefixes: ["#"]}]`.
 - **None**: set `{{TICKET_FORMAT}}` = `none`, `{{TICKET_PROVIDERS}}` = `[]`.
 
 For Jira systems with multiple instances (same type, different servers), ask:
