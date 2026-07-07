@@ -467,7 +467,8 @@ export function sanitizeGitHubIssue(raw: unknown): unknown {
     issue.milestone = { title: (issue.milestone as AnyObject).title };
   }
 
-  // Remove the pull_request sub-object if present (indicates this is a PR, not a pure issue)
+  // Preserve the signal that this "issue" is actually a PR, then remove the verbose sub-object
+  issue.is_pull_request = !!issue.pull_request;
   delete issue.pull_request;
 
   return stripNullish(issue);

@@ -52,7 +52,8 @@ function validateAndConvertEntries(entries: unknown, sectionName: string): Provi
 
     if (raw.key_prefixes) {
       if (!Array.isArray(raw.key_prefixes)) {
-        throw new Error(`"key_prefixes" for ${type}:${name} must be a list, got ${typeof raw.key_prefixes}`);
+        console.warn(`Warning: skipping team.yml ${sectionName} entry "${name}": "key_prefixes" must be a list, got ${typeof raw.key_prefixes}`);
+        continue;
       }
       // Non-alphanumeric prefixes (e.g. "#") are intentionally allowed:
       // GitHub uses hostname matching (not prefix matching) for routing,
@@ -161,7 +162,16 @@ async function loadInstances(): Promise<LoadedInstances> {
         const key = `${provider.name}:${config.name}`;
         if (!seen.has(key)) {
           seen.add(key);
-          instances.push(buildInstance(provider, config));
+          const inst = buildInstance(provider, config);
+          if (config.env) {
+            const knownLogicalKeys = new Set(Object.keys(provider.defaultEnvMapping));
+            for (const logicalKey of Object.keys(config.env)) {
+              if (!knownLogicalKeys.has(logicalKey)) {
+                console.warn(`Warning: unknown env key "${logicalKey}" in team.yml ticket_providers entry "${config.name}" (known keys: ${[...knownLogicalKeys].join(', ')})`);
+              }
+            }
+          }
+          instances.push(inst);
         }
       }
     }
@@ -178,7 +188,16 @@ async function loadInstances(): Promise<LoadedInstances> {
         const key = `${provider.name}:${config.name}`;
         if (!seen.has(key)) {
           seen.add(key);
-          instances.push(buildInstance(provider, config));
+          const inst = buildInstance(provider, config);
+          if (config.env) {
+            const knownLogicalKeys = new Set(Object.keys(provider.defaultEnvMapping));
+            for (const logicalKey of Object.keys(config.env)) {
+              if (!knownLogicalKeys.has(logicalKey)) {
+                console.warn(`Warning: unknown env key "${logicalKey}" in team.yml git_providers entry "${config.name}" (known keys: ${[...knownLogicalKeys].join(', ')})`);
+              }
+            }
+          }
+          instances.push(inst);
         }
       }
     }
@@ -284,11 +303,11 @@ function canAdoInstanceHandle(instance: ProviderInstance, action: string, target
     return !!(instanceOrg && instanceProject);
   }
 
-  if (!orgEnvVar || !projectEnvVar) return true;
+  if (!orgEnvVar || !projectEnvVar) return instance.config.name === 'default';
 
   const instanceOrg = process.env[orgEnvVar]?.trim();
   const instanceProject = process.env[projectEnvVar]?.trim();
-  if (!instanceOrg || !instanceProject) return true;
+  if (!instanceOrg || !instanceProject) return instance.config.name === 'default';
 
   try {
     const url = new URL(target);
