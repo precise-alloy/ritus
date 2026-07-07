@@ -45,7 +45,7 @@ The provider is auto-detected from the PR URL — no manual provider selection n
 
 Read `remote-api-access.md` in the `shared` skill directory for the remote API helper instructions.
 
-Fetch PR metadata and review comments (provider is auto-detected from the URL):
+Fetch PR metadata (provider is auto-detected from the URL):
 
 ```bash
 bun run "<plugin-root>/scripts/remote-api.ts" pr "<PR_URL>"
