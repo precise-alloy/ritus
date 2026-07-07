@@ -658,13 +658,23 @@ async function main(): Promise<void> {
         return label;
       });
       console.error(`No configured provider can handle: ${action} ${target}`);
+
+      // Helpful hint: bare numeric targets are Azure DevOps work item IDs and require org/project context.
+      if (/^\d+$/.test(target) && ['issue', 'comments', 'changelog'].includes(action)) {
+        const ado = instances.find((i) => i.provider.name === 'ado');
+        if (ado && checkInstanceEnv(ado).ok) {
+          const orgVar = ado.envMapping.org ?? 'AZURE_DEVOPS_ORG';
+          const projectVar = ado.envMapping.project ?? 'AZURE_DEVOPS_PROJECT';
+          console.error(`Note: Azure DevOps bare work item IDs require ${orgVar} and ${projectVar} (or pass the full work item URL).`);
+        }
+      }
+
       if (configuredNames.length > 0) {
         console.error(`Configured providers: ${configuredNames.join(', ')}`);
       } else {
         console.error('No providers are configured. Run check-env for details.');
       }
       console.error(`\nTo use a specific provider: ${getScriptCmd()} <provider> ${action} ${target}`);
-      process.exit(2);
     }
 
     if (candidates.length > 1) {
