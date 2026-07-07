@@ -310,7 +310,7 @@ export const adoProvider: Provider = {
       if (/^\d+$/.test(target)) return true;
       try {
         const url = new URL(target);
-        return isAdoHost(url.hostname) && /_workitems/i.test(url.pathname);
+        return isAdoHost(url.hostname) && /\/_workitems\/edit\/\d+\/?$/i.test(url.pathname);
       } catch {
         return false;
       }
