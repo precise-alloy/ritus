@@ -186,14 +186,16 @@ Ask:
 Accept one or more ticket systems. For each, capture:
 - **type**: `jira` / `github` / `ado`
 - **key prefixes**: the prefix patterns used (e.g. `PROJ`, `CORE`, `#`)
-- **instance name** (optional): a human-friendly label (e.g. `primary`, `external`)
+- **instance name**: a human-friendly label (e.g. `default`, `primary`, `external`) — always set (use `default` for single-instance setups)
 
 Record primary format as: `{{TICKET_FORMAT}}` (scalar, backward compat — use the first ticket system's format, e.g. `PROJ-123` or `#123`; set to `none` if no systems).
+
+Note: For GitHub Issues, fetching requires a full issue URL (e.g. `https://github.com/owner/repo/issues/123`) since `#123` alone lacks repo context.
 
 Record full list as: `{{TICKET_PROVIDERS}}` (list of all configured systems with type/name/key_prefixes).
 
 - **Single system** (e.g. "Jira: PROJ"): set `{{TICKET_FORMAT}}` = `PROJ-123`, `{{TICKET_PROVIDERS}}` = `[{type: jira, name: default, key_prefixes: ["PROJ"]}]`.
-- **Multiple systems** (e.g. "Jira: PROJ, CORE and GitHub Issues: #"): set `{{TICKET_FORMAT}}` = `PROJ-123` (first system's format), `{{TICKET_PROVIDERS}}` = `[{type: jira, name: primary, key_prefixes: ["PROJ", "CORE"]}, {type: github, name: default, key_prefixes: ["#"]}]`.
+- **Multiple systems** (e.g. "Jira: PROJ, CORE and GitHub Issues: #"): set `{{TICKET_FORMAT}}` = `PROJ-123` (first system's format), `{{TICKET_PROVIDERS}}` = `[{type: jira, name: primary, key_prefixes: ["PROJ", "CORE"]}, {type: github, name: default}]`.
 - **None**: set `{{TICKET_FORMAT}}` = `none`, `{{TICKET_PROVIDERS}}` = `[]`.
 
 For Jira systems with multiple instances (same type, different servers), ask:

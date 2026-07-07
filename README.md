@@ -266,26 +266,26 @@ modes: auto-detected and explicit.
 The dispatcher infers the provider from the target format:
 
 ```bash
-bun run remote-api.ts <action> <target> [extra]
+bun run scripts/remote-api.ts <action> <target> [extra]
 ```
 
 Examples:
 
 ```bash
 # Jira — detected from bare key format (PROJ-123)
-bun run remote-api.ts issue PROJ-123
+bun run scripts/remote-api.ts issue PROJ-123
 
 # GitHub PR — detected from github.com URL
-bun run remote-api.ts pr https://github.com/owner/repo/pull/42
+bun run scripts/remote-api.ts pr https://github.com/owner/repo/pull/42
 
 # GitHub Issue — detected from github.com/issues URL
-bun run remote-api.ts issue https://github.com/owner/repo/issues/7
+bun run scripts/remote-api.ts issue https://github.com/owner/repo/issues/7
 
 # ADO PR — detected from dev.azure.com URL
-bun run remote-api.ts pr https://dev.azure.com/org/project/_git/repo/pullrequest/1
+bun run scripts/remote-api.ts pr https://dev.azure.com/org/project/_git/repo/pullrequest/1
 
 # ADO work item — detected from _workitems URL or bare numeric ID
-bun run remote-api.ts issue 12345
+bun run scripts/remote-api.ts issue 12345
 ```
 
 Detection precedence:
@@ -321,15 +321,15 @@ Single-instance setups require no `team.yml` changes — the default env var nam
 Use when auto-detection is ambiguous or you want to bypass detection:
 
 ```bash
-bun run remote-api.ts <provider> <action> <target> [extra]
+bun run scripts/remote-api.ts <provider> <action> <target> [extra]
 ```
 
 Examples:
 
 ```bash
-bun run remote-api.ts jira issue PROJ-123
-bun run remote-api.ts github pr https://github.com/owner/repo/pull/42
-bun run remote-api.ts ado pr https://dev.azure.com/org/project/_git/repo/pullrequest/1
+bun run scripts/remote-api.ts jira issue PROJ-123
+bun run scripts/remote-api.ts github pr https://github.com/owner/repo/pull/42
+bun run scripts/remote-api.ts ado pr https://dev.azure.com/org/project/_git/repo/pullrequest/1
 ```
 
 ### Multi-instance configuration
@@ -378,7 +378,7 @@ The `check-env` command reports per-instance credential status when `team.yml` l
 ### Environment check
 
 ```bash
-bun run remote-api.ts check-env
+bun run scripts/remote-api.ts check-env
 ```
 
 Reports which providers (or instances) are configured and which env vars are missing.

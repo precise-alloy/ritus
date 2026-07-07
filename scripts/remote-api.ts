@@ -34,10 +34,12 @@ function validateAndConvertEntries(entries: unknown, sectionName: string): Provi
     const name = typeof raw.name === 'string' ? raw.name.trim() : '';
 
     if (!type) {
-      throw new Error(`Empty "type" in team.yml ${sectionName} entry`);
+      console.warn(`Warning: skipping team.yml ${sectionName} entry with empty "type"`);
+      continue;
     }
     if (!name) {
-      throw new Error(`Empty "name" in team.yml ${sectionName} entry`);
+      console.warn(`Warning: skipping team.yml ${sectionName} entry with empty "name"`);
+      continue;
     }
 
     const config: ProviderInstanceConfig = { type, name };
@@ -49,29 +51,35 @@ function validateAndConvertEntries(entries: unknown, sectionName: string): Provi
     }
 
     if (raw.key_prefixes) {
-      const prefixes = Array.isArray(raw.key_prefixes)
-        ? raw.key_prefixes.map(p => String(p))
-        : [];
+      if (!Array.isArray(raw.key_prefixes)) {
+        throw new Error(`"key_prefixes" for ${type}:${name} must be a list, got ${typeof raw.key_prefixes}`);
+      }
       // Non-alphanumeric prefixes (e.g. "#") are intentionally allowed:
       // GitHub uses hostname matching (not prefix matching) for routing,
       // so the prefix field is only used by Jira-style providers.
-      for (const prefix of prefixes) {
-        if (!prefix.trim()) {
-          throw new Error(`Empty key_prefix for ${type}:${name}`);
+      const rawPrefixes = raw.key_prefixes.map(p => String(p).trim());
+      for (const p of rawPrefixes) {
+        if (!p) {
+          console.warn(`Warning: skipping empty key_prefix for ${type}:${name}`);
         }
       }
+      const prefixes = rawPrefixes.filter(Boolean);
       if (prefixes.length > 0) config.keyPrefixes = prefixes;
     }
 
     if (raw.env && typeof raw.env === 'object') {
       const envObj: EnvMapping = {};
+      let hasInvalidEnv = false;
       for (const [key, val] of Object.entries(raw.env)) {
         const envVarName = String(val).trim();
         if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(envVarName)) {
-          throw new Error(`Invalid env var name "${envVarName}" in team.yml: must match [A-Za-z_][A-Za-z0-9_]*`);
+          console.warn(`Warning: skipping team.yml ${sectionName} entry "${name}": invalid env var name "${envVarName}" for key "${key}" (must match [A-Za-z_][A-Za-z0-9_]*)`);
+          hasInvalidEnv = true;
+          break;
         }
         envObj[key] = envVarName;
       }
+      if (hasInvalidEnv) continue;
       config.env = envObj;
     }
 
@@ -321,7 +329,7 @@ function checkInstanceEnv(instance: ProviderInstance): ProviderEnvStatus {
   // Map required env keys through the instance's env mapping to get actual env var names
   const keys: EnvKeyStatus[] = Object.entries(envMapping)
     .filter(([logicalKey]) => {
-      if (logicalKey === 'api_base_url') return false;
+      if (logicalKey === 'api_base_url') return instance.provider.name === 'github';
       const defaultEnvVar = instance.provider.defaultEnvMapping[logicalKey];
       if (defaultEnvVar && requiredEnvVarNames.has(defaultEnvVar)) return true;
       return requiredEnvVarNames.has(envMapping[logicalKey]);
