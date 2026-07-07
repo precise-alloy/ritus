@@ -77,7 +77,12 @@ function validateAndConvertEntries(entries: unknown, sectionName: string): Provi
       const envObj: EnvMapping = {};
       let hasInvalidEnv = false;
       for (const [key, val] of Object.entries(raw.env)) {
-        const envVarName = String(val).trim();
+        if (typeof val !== 'string' || !val.trim()) {
+          console.warn(`Warning: skipping team.yml ${sectionName} entry "${name}": env var name for key "${key}" must be a non-empty string`);
+          hasInvalidEnv = true;
+          break;
+        }
+        const envVarName = val.trim();
         if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(envVarName)) {
           console.warn(`Warning: skipping team.yml ${sectionName} entry "${name}": invalid env var name "${envVarName}" for key "${key}" (must match [A-Za-z_][A-Za-z0-9_]*)`);
           hasInvalidEnv = true;
