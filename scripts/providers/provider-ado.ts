@@ -202,7 +202,7 @@ async function getAdoPrThreads(target: string, extra?: string, envMapping?: EnvM
 
 async function getAdoWorkItem(target: string, extra?: string, envMapping?: EnvMapping): Promise<unknown> {
   const env = envMapping ?? ADO_DEFAULT_ENV;
-  const parsed = parseAdoWorkItemUrl(target, envMapping);
+  const parsed = parseAdoWorkItemUrl(target, env);
   const expand = extra ? '' : '&$expand=all';
   const fields = extra ? `&fields=${encodeURIComponent(extra)}` : '';
   const url = `${adoBaseUrl(parsed.organization, parsed.project)}/_apis/wit/workitems/${encodeURIComponent(parsed.workItemId)}?api-version=${ADO_API_VERSION}${expand}${fields}`;
