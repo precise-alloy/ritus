@@ -347,8 +347,9 @@ After presenting the review:
 
 **If verdict is Approve:** invoke the `wrap-up` skill to promote exploration entries, verify doc updates, and report final status.
 
-**If verdict is Request Changes:** the orchestrating session creates a **fix-cycle TODO** and a SIMPLE fix task file
-from the review findings using the SIMPLE template in `task-files.md`:
+**If verdict is Request Changes:** report the findings back to the orchestrating session and stop — this skill runs
+as a subagent and does not dispatch subagents or apply fixes. The orchestrating session then creates a
+**fix-cycle TODO** and a SIMPLE fix task file from the review findings using the SIMPLE template in `task-files.md`:
 
 TODO:
 
@@ -363,11 +364,12 @@ Fix task format:
 
 - TASK: "Fix pr-review findings: \<list the specific issues\>"
 - DONE WHEN: one checkbox per finding + compile check + scope check
-- VERIFY: dispatch fresh subagent to run `verify-task` skill
+- VERIFY: the orchestrating session dispatches a fresh subagent to run `verify-task` (see `verify-task`)
 
-Then dispatches a fresh subagent to run `execute-task` with that fix task file, followed by another
-to run `verify-task` (model: haiku, effort: medium), then another to run `pr-review` (model: sonnet, effort: high).
-If the new review also returns Request Changes, create a new fix-cycle TODO and repeat.
+The orchestrating session dispatches a fresh subagent to run `execute-task` with that fix task file; when it returns,
+the orchestrating session dispatches another to run `verify-task` (model: haiku, effort: medium), then another to run
+`pr-review` (model: sonnet, effort: high). If the new review also returns Request Changes, the orchestrating session
+creates a new fix-cycle TODO and repeats.
 
 **Circuit breaker:** if the same finding appears in 2 consecutive review cycles, or if 3 review cycles complete
 without reaching Approve, stop and escalate to the user — the issue likely requires a design discussion, not

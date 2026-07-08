@@ -51,9 +51,9 @@ TODO:
 - [ ] Run build + tests — smoke test + unit tests per DONE WHEN.
 - [ ] Update docs — per DOC UPDATE. Append new findings to `docs/tasks/{branch-slug}/exploration.md` using
   flagged format from `skills/ticket-review/templates/exploration.md`. Create the file if it doesn't exist.
-- [ ] Report — use output format below. One final report, no intermediate dumps.
-- [ ] Dispatch verify-task subagent — fresh subagent (model: haiku, effort: medium). Provide task file path + diff.
-  Do not self-verify. Do not report the task as complete until the verify-task subagent passes.
+- [ ] Report — use output format below. One final report, no intermediate dumps. Return the report to the
+  orchestrating session; do not self-verify and do not dispatch subagents. The orchestrating session dispatches
+  verify-task (see `verify-task`).
 ```
 
 ## Output format
@@ -102,5 +102,6 @@ Keep your working context clean to preserve performance and reduce cost:
 
 ## Next
 
-The last step in the Process checklist dispatches a verify-task subagent. Follow the Process — do not skip the
-dispatch step.
+Return your report to the orchestrating session and stop. The orchestrating session — not this subagent —
+dispatches a fresh verify-task subagent (model: haiku, effort: medium) to check the work. Do not self-verify and do
+not dispatch subagents from here. `verify-task` defines the canonical execute → verify → re-verify control flow.

@@ -25,6 +25,10 @@ TODO:
 
 ## Subagent dispatch instructions
 
+**This section is the single source of truth for the execute → verify → re-verify dispatch loop.** Other skills
+reference it rather than redefining who dispatches. The **orchestrating session** (the agent that loaded
+`start-ritus` — never an implementer/reviewer subagent) owns every dispatch in the loop.
+
 When the orchestrating session needs to run verify-task, dispatch a fresh subagent with:
 - **Model:** haiku
 - **Effort:** medium

@@ -22,8 +22,9 @@ TODO:
 - [ ] Fetch and filter PR comments
 - [ ] Present filtered list to user for approval
 - [ ] Generate fix task file (round N)
-- [ ] Dispatch execute-task subagent — do NOT implement fixes in this session
-- [ ] Dispatch verify-task subagent — do NOT self-verify
+- [ ] Dispatch execute-task subagent — do NOT implement fixes in this session; execute-task returns a report and
+  does not self-verify or dispatch verify-task
+- [ ] Dispatch verify-task subagent — this orchestrating session dispatches it (see `verify-task`)
 - [ ] Ask user about pr-review re-check
 - [ ] Create local commit — do NOT push
 - [ ] Present questions to user (if any)
@@ -157,7 +158,8 @@ Address PR review feedback (round N): <count> comments from <PR_URL>
 
 ## VERIFY
 
-After implementation, dispatch a fresh `verify-task` subagent (model: haiku, effort: medium).
+After implementation, the orchestrating session dispatches a fresh `verify-task` subagent (model: haiku, effort:
+medium). The implementer does not self-verify or dispatch it.
 ```
 
 ### STANDARD format (more than 5 comments)
