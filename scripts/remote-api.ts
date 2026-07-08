@@ -753,14 +753,6 @@ async function main(): Promise<void> {
     }
 
     if (candidates.length > 1) {
-      const isShortRef = /^\d+$/.test(target) || /^#\d+$/.test(target);
-      if (isShortRef) {
-        // Do not collapse candidates for short refs. Multiple matching instances must remain
-        // ambiguous so the disambiguation error below can trigger.
-      }
-    }
-
-    if (candidates.length > 1) {
       const hasDuplicateTypes = new Set(candidates.map(c => c.provider.name)).size < candidates.length;
       const candidateNames = candidates.map((inst) => {
         return (hasDuplicateTypes || inst.config.name !== 'default')
