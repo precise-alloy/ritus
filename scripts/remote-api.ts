@@ -541,7 +541,7 @@ async function runCheckEnv(): Promise<void> {
       }
     }
 
-    console.error('Tip: run `bun scripts/remote-api.ts generate-env` to generate a complete .env.local template.');
+    console.error(`Tip: run \`${getScriptCmd()} generate-env\` to generate a complete .env.local template.`);
     process.exit(1);
   }
 
@@ -655,7 +655,7 @@ async function main(): Promise<void> {
       process.exit(2);
     }
 
-    if (!(action in explicitProvider.actions)) {
+    if (!Object.hasOwn(explicitProvider.actions, action)) {
       console.error(`Unknown action "${action}" for ${explicitProvider.label}. Available: ${Object.keys(explicitProvider.actions).join(', ')}`);
       printUsage();
       process.exit(2);
@@ -712,7 +712,7 @@ async function main(): Promise<void> {
       printUsage();
       process.exit(2);
     }
-    if (!PROVIDERS.some((p) => action in p.actions)) {
+    if (!PROVIDERS.some((p) => Object.hasOwn(p.actions, action))) {
       const actions = [...new Set(PROVIDERS.flatMap((p) => Object.keys(p.actions)))].sort();
       console.error(`Unknown action "${action}". Available: ${actions.join(', ')}`);
       printUsage();
@@ -750,17 +750,6 @@ async function main(): Promise<void> {
       }
       console.error(`\nTo use a specific provider: ${getScriptCmd()} <provider> ${action} ${target}`);
       process.exit(2);
-    }
-
-    if (candidates.length > 1) {
-      const isShortRef = /^\d+$/.test(target) || /^#\d+$/.test(target);
-      if (isShortRef) {
-        const firstByType = new Map<string, ProviderInstance>();
-        for (const c of candidates) {
-          if (!firstByType.has(c.provider.name)) firstByType.set(c.provider.name, c);
-        }
-        candidates.splice(0, candidates.length, ...firstByType.values());
-      }
     }
 
     if (candidates.length > 1) {

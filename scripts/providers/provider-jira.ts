@@ -261,7 +261,7 @@ export const jiraProvider: Provider = {
     'attachment-download': downloadJiraAttachments,
   },
   canHandleTarget(action: string, target: string): boolean {
-    if (!(action in this.actions)) return false;
+    if (!Object.hasOwn(this.actions, action)) return false;
     return /^[A-Z][A-Z0-9]+-\d+$/i.test(target) || /\/browse\/[A-Z][A-Z0-9]+-\d+/i.test(target);
   },
   usageLines: (cmd) => [

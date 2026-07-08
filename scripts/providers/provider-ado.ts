@@ -332,8 +332,7 @@ export const adoProvider: Provider = {
     'changelog': getAdoWorkItemUpdates,
   },
   canHandleTarget(action: string, target: string): boolean {
-    if (!(action in this.actions)) return false;
-
+    if (!Object.hasOwn(this.actions, action)) return false;
     const prActions = new Set(['pr', 'pr-threads']);
     const workItemActions = new Set(['issue', 'comments', 'changelog']);
 

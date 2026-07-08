@@ -73,8 +73,6 @@ Drives: tasks/ naming, PR reviewer count, memory expiry, setup question scope.
 | Auto-derived for solo      | Value                  |
 |----------------------------|------------------------|
 | Q5 — Git platform          | `GitHub`               |
-| Q5 — Git platforms (list)  | `["GitHub"]`           |
-| Q9 — Ticket format         | `none`                 |
 | Q9 — Ticket providers      | `[]` (empty list)      |
 | Q10 — Workflow owner       | `developer`            |
 
