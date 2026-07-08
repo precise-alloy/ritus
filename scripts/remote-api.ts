@@ -215,7 +215,7 @@ function buildDefaultInstances(): ProviderInstance[] {
 function canInstanceHandleTarget(instance: ProviderInstance, action: string, target: string): boolean {
   const { provider, config } = instance;
 
-  if (!(action in provider.actions)) return false;
+  if (!Object.hasOwn(provider.actions, action)) return false;
 
   // GitHub: custom hostname matching for GHE support
   if (provider.name === 'github') {
