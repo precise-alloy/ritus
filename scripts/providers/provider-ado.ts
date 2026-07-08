@@ -336,7 +336,7 @@ export const adoProvider: Provider = {
     return false;
   },
   usageLines: (cmd) => [
-    `${cmd} ado pr <pull-request-url>`,
+    `${cmd} ado pr <pull-request-url-or-id>`,
     `${cmd} ado issue <work-item-url-or-id> [fields]`,
     `${cmd} ado comments <work-item-url-or-id> [count]`,
     `${cmd} ado changelog <work-item-url-or-id>`,
