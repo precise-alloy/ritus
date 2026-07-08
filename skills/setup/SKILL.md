@@ -383,7 +383,7 @@ Leave empty for repo-scan or first work session:
 Fill these fields:
 
 - `team_size`, `git_platform`, `git_flow`, `workflow_owner`, `ticket_format`, `qa_mode`
-- `ticket_providers` (list) — populate from `{{TICKET_PROVIDERS}}`; omit (or leave commented) when empty
+- `ticket_providers` (list) — populate from `{{TICKET_PROVIDERS}}`; set to `[]` when empty
 - Git provider instances are created automatically from the git platform's standard env vars.
 - Derived fields: `memory_expiry_days`, `branch_format`, `tasks_path_convention`, `pr_reviewers`,
   `default_base_branch`, `traceability_policy` (use derivation rules from § Derived values above)
