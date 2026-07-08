@@ -66,18 +66,16 @@ Test locations:
 <!--
 Setup skill rendering instructions for multi-provider support:
 
-When team.yml contains ticket_providers or git_providers lists, the setup skill should:
+When team.yml contains ticket_providers lists, the setup skill should:
 1. Keep GIT_PLATFORM as the scalar value (primary system only, e.g., "GitHub").
    Do NOT overwrite with a comma-separated list.
 2. Keep TICKET_FORMAT as the scalar value (primary system's format only, e.g., "PROJ-123").
    Do NOT overwrite with a comma-separated list.
-3. Uncomment and populate the dedicated list rows below for multi-instance data:
+3. Uncomment and populate the dedicated list row below for multi-instance data:
    - Ticket providers: format as "type:name (prefixes: X, Y), ..."
-   - Git providers: format as "type:name, ..."
-If no list fields are present, leave the rows commented out — single-value rendering is correct.
+If no list fields are present, leave the row commented out — single-value rendering is correct.
 -->
 <!-- | Ticket providers   | `{{TICKET_PROVIDERS}}`        | -->
-<!-- | Git providers      | `{{GIT_PROVIDERS}}`           | -->
 
 Branch format:
 

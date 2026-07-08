@@ -313,7 +313,7 @@ Detection precedence:
 2. **Auto-detect from target** — filter credentialed providers by `canHandleTarget(action, target)`.
    Exactly one match uses that provider. Zero matches produces an error listing configured providers.
    Multiple matches produces an ambiguous error with explicit disambiguation commands.
-3. **`team.yml` instance routing** — when `ticket_providers` or `git_providers` lists are defined in
+3. **`team.yml` instance routing** — when `ticket_providers` lists are defined in
    `docs/profiles/team.yml`, instance-level filtering narrows candidates by key prefix (Jira),
    org/project (ADO), or hostname (GitHub).
 
@@ -368,16 +368,6 @@ ticket_providers:
       base_url: JIRA_EXT_BASE_URL
       pat: JIRA_EXT_PAT
       email: JIRA_EXT_EMAIL
-
-git_providers:
-  - type: github
-    name: public
-    # omit env: → uses default env var names (GITHUB_TOKEN)
-  - type: github
-    name: enterprise
-    env:
-      token: GHE_TOKEN
-      api_base_url: GHE_API_URL
 ```
 
 Then set credentials in `.env.local` using the env var names declared in `team.yml`:
@@ -386,8 +376,6 @@ Then set credentials in `.env.local` using the env var names declared in `team.y
 JIRA_EXT_BASE_URL=https://other.atlassian.net
 JIRA_EXT_PAT=yyy
 JIRA_EXT_EMAIL=user@other.com
-GHE_TOKEN=ghp_...
-GHE_API_URL=https://github.corp.com/api/v3
 ```
 
 Default instances (those without an `env:` block) use the standard env var names from `.env.example`.

@@ -211,16 +211,6 @@ ticket_providers:
       base_url: JIRA_EXT_BASE_URL
       pat: JIRA_EXT_PAT
       email: JIRA_EXT_EMAIL
-
-git_providers:
-  - type: github
-    name: public
-    # omit env: → uses default keys (GITHUB_TOKEN)
-  - type: github
-    name: enterprise
-    env:
-      token: GHE_TOKEN
-      api_base_url: GHE_API_URL
 ```
 
 ```dotenv
@@ -231,8 +221,6 @@ JIRA_EMAIL=user@company.com
 JIRA_EXT_BASE_URL=https://other.atlassian.net
 JIRA_EXT_PAT=yyy
 JIRA_EXT_EMAIL=user@other.com
-GHE_TOKEN=ghp_...
-GHE_API_URL=https://github.corp.com/api/v3
 ```
 
 When a target matches multiple instances (e.g., a Jira key prefix defined in two instances), the script returns a

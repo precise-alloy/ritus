@@ -12,7 +12,7 @@ const PROVIDER_MAP = new Map(PROVIDERS.map((p) => [p.name, p]));
 const HELP_FLAGS = new Set(['-h', '--help', 'help']);
 
 // ---------------------------------------------------------------------------
-// team.yml parsing — extracts ticket_providers / git_providers lists
+// team.yml parsing — extracts ticket_providers list
 // ---------------------------------------------------------------------------
 
 type RawProviderEntry = {
@@ -106,7 +106,7 @@ function validateAndConvertEntries(entries: unknown, sectionName: string): Provi
   return configs;
 }
 
-function parseTeamYaml(content: string): { ticketProviders?: ProviderInstanceConfig[]; gitProviders?: ProviderInstanceConfig[] } {
+function parseTeamYaml(content: string): { ticketProviders?: ProviderInstanceConfig[] } {
   let parsed: Record<string, unknown> | null;
   try {
     parsed = Bun.YAML.parse(content) as Record<string, unknown> | null;
@@ -118,19 +118,13 @@ function parseTeamYaml(content: string): { ticketProviders?: ProviderInstanceCon
   }
 
   let ticketProviders: ProviderInstanceConfig[] | undefined;
-  let gitProviders: ProviderInstanceConfig[] | undefined;
 
   if (parsed.ticket_providers) {
     const items = validateAndConvertEntries(parsed.ticket_providers, 'ticket_providers');
     if (items.length > 0) ticketProviders = items;
   }
 
-  if (parsed.git_providers) {
-    const items = validateAndConvertEntries(parsed.git_providers, 'git_providers');
-    if (items.length > 0) gitProviders = items;
-  }
-
-  return { ticketProviders, gitProviders };
+  return { ticketProviders };
 }
 
 // ---------------------------------------------------------------------------
@@ -158,9 +152,9 @@ async function loadInstances(): Promise<LoadedInstances> {
   }
 
   const content = await file.text();
-  const { ticketProviders, gitProviders } = parseTeamYaml(content);
+  const { ticketProviders } = parseTeamYaml(content);
 
-  if (!ticketProviders && !gitProviders) {
+  if (!ticketProviders) {
     return { instances: buildDefaultInstances(), hasTeamConfig: false };
   }
 
@@ -197,58 +191,7 @@ async function loadInstances(): Promise<LoadedInstances> {
     }
   }
 
-  if (gitProviders) {
-    for (const config of gitProviders) {
-      const provider = PROVIDERS.find(p => p.name === config.type);
-      if (!provider) {
-        console.warn(`Warning: unknown provider type "${config.type}" in team.yml git_providers (available: ${PROVIDERS.map(p => p.name).join(', ')})`);
-        continue;
-      }
-      if (provider) {
-        const key = `${provider.name}:${config.name}`;
-        if (seen.has(key)) {
-          const existing = instances.find((inst) => `${inst.provider.name}:${inst.config.name}` === key);
-          if (existing) {
-            if (config.env) {
-              existing.config.env ??= {};
-              for (const [logicalKey, envVar] of Object.entries(config.env)) {
-                const prev = existing.config.env[logicalKey];
-                if (prev && prev !== envVar) {
-                  console.warn(`Warning: conflicting env mapping for "${key}" key "${logicalKey}": keeping "${prev}", ignoring "${envVar}"`);
-                } else {
-                  existing.config.env[logicalKey] = envVar;
-                }
-              }
-              existing.envMapping = { ...existing.provider.defaultEnvMapping, ...existing.config.env };
-            }
-            if (config.keyPrefixes?.length) {
-              const prev = existing.config.keyPrefixes ?? [];
-              existing.config.keyPrefixes = [...new Set([...prev, ...config.keyPrefixes])];
-            }
-          }
-          continue;
-        }
-
-        seen.add(key);
-        const inst = buildInstance(provider, config);
-        if (config.env) {
-          const knownLogicalKeys = new Set(Object.keys(provider.defaultEnvMapping));
-          if (provider.name === 'github') {
-            knownLogicalKeys.add('api_base_url');
-            knownLogicalKeys.add('repo_url');
-          }
-          for (const logicalKey of Object.keys(config.env)) {
-            if (!knownLogicalKeys.has(logicalKey)) {
-              console.warn(`Warning: unknown env key "${logicalKey}" in team.yml git_providers entry "${config.name}" (known keys: ${[...knownLogicalKeys].join(', ')})`);
-            }
-          }
-        }
-        instances.push(inst);
-      }
-    }
-  }
-
-  // Add default instances for providers not covered by team.yml lists
+  // Add default instances for providers not covered by team.yml ticket_providers
   const coveredTypes = new Set(instances.map(i => i.provider.name));
   for (const provider of PROVIDERS) {
     if (!coveredTypes.has(provider.name)) {
@@ -563,17 +506,42 @@ async function runCheckEnv(): Promise<void> {
   if (!result.envLocalExists) {
     console.error(`\n.env.local is missing at ${result.envLocalPath}.`);
     console.error('Create it with the keys you need:\n');
-    for (const provider of PROVIDERS) {
-      console.error(`  # ${provider.label}`);
-      for (const key of provider.requiredEnvKeys) {
-        console.error(`  ${key}=`);
+
+    if (loaded.hasTeamConfig) {
+      const seen = new Set<string>();
+      for (const inst of loaded.instances) {
+        const { provider, config, envMapping } = inst;
+        const isCustom = config.name !== 'default';
+        const header = isCustom ? `${provider.label} (${config.name})` : provider.label;
+        console.error(`  # ${header}`);
+        for (const [, envVarName] of Object.entries(envMapping)) {
+          if (typeof envVarName !== 'string' || !envVarName) continue;
+          if (seen.has(envVarName)) continue;
+          seen.add(envVarName);
+          console.error(`  ${envVarName}=`);
+        }
+        if (provider.name === 'github' && !seen.has('GH_TOKEN')) {
+          seen.add('GH_TOKEN');
+          console.error('  # Optional: alternative token name used by GitHub CLI');
+          console.error('  GH_TOKEN=');
+        }
+        console.error('');
       }
-      if (provider.name === 'github') {
-        console.error('  # Optional: alternative token name used by GitHub CLI');
-        console.error('  GH_TOKEN=');
+    } else {
+      for (const provider of PROVIDERS) {
+        console.error(`  # ${provider.label}`);
+        for (const key of provider.requiredEnvKeys) {
+          console.error(`  ${key}=`);
+        }
+        if (provider.name === 'github') {
+          console.error('  # Optional: alternative token name used by GitHub CLI');
+          console.error('  GH_TOKEN=');
+        }
+        console.error('');
       }
-      console.error('');
     }
+
+    console.error('Tip: run `bun scripts/remote-api.ts generate-env` to generate a complete .env.local template.');
     process.exit(1);
   }
 

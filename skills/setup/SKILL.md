@@ -105,10 +105,10 @@ Options: `GitHub` / `GitLab` / `Azure DevOps` / `Bitbucket` / `other`
 
 Record as: `{{GIT_PLATFORM}}`
 
-No `git_providers` section is generated in team.yml — the dispatcher creates a default instance automatically
-using standard env var names (`GITHUB_TOKEN`, `AZURE_DEVOPS_READONLY_PAT`, etc.).
+The dispatcher creates a default git provider instance automatically using standard env var names
+(`GITHUB_TOKEN`, `AZURE_DEVOPS_READONLY_PAT`, etc.).
 
-Drives: PR template format, branch convention details, `git_providers` list in team.yml.
+Drives: PR template format, branch convention details.
 
 ---
 
@@ -386,7 +386,7 @@ Fill these fields:
 
 - `team_size`, `git_platform`, `git_flow`, `workflow_owner`, `ticket_format`, `qa_mode`
 - `ticket_providers` (list) — populate from `{{TICKET_PROVIDERS}}`; omit (or leave commented) when empty
-- Do NOT generate `git_providers` — the dispatcher creates a default instance automatically from the git platform's standard env vars. Git platforms are always single-instance.
+- Git provider instances are created automatically from the git platform's standard env vars.
 - Derived fields: `memory_expiry_days`, `branch_format`, `tasks_path_convention`, `pr_reviewers`,
   `default_base_branch`, `traceability_policy` (use derivation rules from § Derived values above)
 
