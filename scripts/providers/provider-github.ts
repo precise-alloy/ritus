@@ -1,5 +1,5 @@
 import type { EnvMapping, Provider } from './types.ts';
-import { requestJson, requestJsonWithHeaders } from './http.ts';
+import { requestJson, requestJsonWithHeaders, safeDecode } from './http.ts';
 import { sanitizeGitHubPr, sanitizeGitHubPrComment, sanitizeGitHubIssueComment, sanitizeGitHubIssue } from './sanitize.ts';
 
 const GITHUB_PAGE_SIZE = 100;
@@ -95,7 +95,7 @@ function resolveGitHubRef(target: string, env: EnvMapping, pathSegment: 'pull' |
     );
   }
 
-  const pathSegments = parsedUrl.pathname.split('/').filter(Boolean).map(decodeURIComponent);
+  const pathSegments = parsedUrl.pathname.split('/').filter(Boolean).map(safeDecode);
   if (pathSegments.length !== 2) {
     throw new Error(
       `Invalid ${repoUrlEnvVar} value "${repoUrl}". Must be a repository URL with owner and repo (e.g., https://github.com/owner/repo), not a root URL or subpath.`,

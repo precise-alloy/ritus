@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 
-import { loadLocalEnv, requireEnv } from './providers/http.ts';
+import { loadLocalEnv, requireEnv, safeDecode } from './providers/http.ts';
 import type { EnvCheckResult, EnvKeyStatus, EnvMapping, Provider, ProviderEnvStatus, ProviderInstance, ProviderInstanceConfig } from './providers/types.ts';
 import { jiraProvider } from './providers/provider-jira.ts';
 import { adoProvider, normalizeAdoOrg } from './providers/provider-ado.ts';
@@ -317,11 +317,11 @@ function canAdoInstanceHandle(instance: ProviderInstance, action: string, target
   if (!rawOrg || !rawProject) return instance.config.name === 'default';
 
   const instanceOrg = normalizeAdoOrg(rawOrg);
-  const instanceProject = decodeURIComponent(rawProject);
+  const instanceProject = safeDecode(rawProject);
 
   try {
     const url = new URL(target);
-    const segments = url.pathname.split('/').filter(Boolean).map(s => decodeURIComponent(s));
+    const segments = url.pathname.split('/').filter(Boolean).map(safeDecode);
     let urlOrg: string | undefined;
     let urlProject: string | undefined;
     const host = url.hostname.toLowerCase();

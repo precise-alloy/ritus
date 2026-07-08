@@ -166,6 +166,15 @@ export async function requestJsonWithHeaders(url: string, headers: RequestHeader
   return { body: parseJson(await response.text()), headers: response.headers };
 }
 
+/** Wraps decodeURIComponent so invalid percent-encoding (e.g. a literal '%') returns the raw value instead of throwing. */
+export function safeDecode(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
+}
+
 export async function requestBinary(url: string, headers: RequestHeaders, outputPath: string): Promise<number> {
   const response = await requestWithRetry(url, headers);
   const buffer = await response.arrayBuffer();

@@ -1,5 +1,5 @@
 import type { EnvMapping, Provider, RequestHeaders } from './types.ts';
-import { basicAuth, requestJson, resolveEnv } from './http.ts';
+import { basicAuth, requestJson, resolveEnv, safeDecode } from './http.ts';
 import { sanitizeAdoWorkItem, sanitizeAdoComment, sanitizeAdoUpdate, sanitizeAdoPr, sanitizeAdoPrThread } from './sanitize.ts';
 
 const ADO_API_VERSION = '7.0';
@@ -39,7 +39,7 @@ function normalizeAdoOrg(raw: string): string {
     const host = url.hostname.toLowerCase();
     if (host === 'dev.azure.com') {
       const firstSegment = url.pathname.split('/').filter(Boolean)[0];
-      return firstSegment ? decodeURIComponent(firstSegment) : raw;
+      return firstSegment ? safeDecode(firstSegment) : raw;
     }
     if (host.endsWith('.visualstudio.com')) {
       return host.replace('.visualstudio.com', '');
@@ -51,7 +51,7 @@ function normalizeAdoOrg(raw: string): string {
 export { normalizeAdoOrg };
 
 function adoBaseUrl(org: string, project: string): string {
-  return `https://dev.azure.com/${encodeURIComponent(normalizeAdoOrg(org))}/${encodeURIComponent(decodeURIComponent(project))}`;
+  return `https://dev.azure.com/${encodeURIComponent(normalizeAdoOrg(org))}/${encodeURIComponent(safeDecode(project))}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -71,7 +71,7 @@ function parseAzureDevOpsPrUrl(prUrl: string, envMapping?: EnvMapping): AzureDev
           'Alternatively, pass the full PR URL.',
       );
     }
-    return { organization: normalizeAdoOrg(org), project: decodeURIComponent(project), pullRequestId: prUrl };
+    return { organization: normalizeAdoOrg(org), project: safeDecode(project), pullRequestId: prUrl };
   }
 
   let parsedUrl: URL;
@@ -85,7 +85,7 @@ function parseAzureDevOpsPrUrl(prUrl: string, envMapping?: EnvMapping): AzureDev
   const segments = parsedUrl.pathname
     .split('/')
     .filter(Boolean)
-    .map((segment) => decodeURIComponent(segment));
+    .map(safeDecode);
 
   if (host === 'dev.azure.com') {
     if (segments.length < 6 || segments[2] !== '_git' || segments[4] !== 'pullrequest') {
@@ -155,7 +155,7 @@ function parseAdoWorkItemUrl(urlOrId: string, envMapping?: EnvMapping): AdoWorkI
   const segments = parsedUrl.pathname
     .split('/')
     .filter(Boolean)
-    .map((segment) => decodeURIComponent(segment));
+    .map(safeDecode);
 
   if (host === 'dev.azure.com') {
     return {
