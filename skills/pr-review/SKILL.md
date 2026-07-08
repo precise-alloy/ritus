@@ -100,19 +100,14 @@ Choose the review path based on the input mode.
 Fetch remote PR details only via the configured helper in the `## Remote API access` section above.
 Grounding the review in live PR metadata is required before reviewing code.
 
-Parse the PR URL using the `## Remote API access` section. Use the provider that matches the PR host:
-
-Fetch the PR details (the `ado` subcommand targets Azure DevOps):
+Parse the PR URL using the `## Remote API access` section. The provider is auto-detected from the URL:
 
 ```bash
-bun run "<plugin-root>/scripts/remote-api.ts" ado pr "<AZURE_DEVOPS_PR_URL>"
+bun run "<plugin-root>/scripts/remote-api.ts" pr "<PR_URL>"
 ```
 
-Fetch GitHub PR details with the `github` subcommand:
-
-```bash
-bun run "<plugin-root>/scripts/remote-api.ts" github pr "<GITHUB_PR_URL>"
-```
+This works with any configured provider (GitHub, Azure DevOps, or future providers). If auto-detection fails,
+fall back to the explicit provider syntax: `bun run "<plugin-root>/scripts/remote-api.ts" <provider> pr "<PR_URL>"`.
 
 If this helper returns `401` or `403`, or returns `404` with a permission-style message, stop and ask the user to verify
 remote provider access before continuing. Do not continue the PR review until the remote PR fetch succeeds.
@@ -212,29 +207,36 @@ When reviewing local changes, read the working tree version of changed files dir
 **If ticket URL/key was provided:** fetch ticket details and comments via the configured helper in the
 `## Remote API access` section above. Live ticket data is required before validating requirements.
 
-**If plain description was provided:** use the description as the requirement source. Skip the Jira fetch below
+**If plain description was provided:** use the description as the requirement source. Skip the ticket fetch below
 and proceed directly to the adversarial review.
 
 Parse ticket keys according to `docs/PROJECT_CONTEXT.md` section `## Team conventions` ticket format.
 
-Fetch each ticket:
+Fetch each ticket (the provider is auto-detected from the key/URL shape — works with Jira keys, GitHub Issue URLs,
+and Azure DevOps work item URLs):
 
 ```bash
-bun run "<plugin-root>/scripts/remote-api.ts" jira issue "<TICKET_KEY_OR_URL>" "summary,description,status,issuetype,comment"
+bun run "<plugin-root>/scripts/remote-api.ts" issue "<TICKET_KEY_OR_URL>" [fields]
 ```
 
-The `comment` field in the issue fetch includes comments inline. Only fetch comments separately if the response
-was truncated or you need the full comment history:
+For Jira, the `comment` field in the issue fetch may include comments inline. For ADO and GitHub, always fetch
+comments separately using the commands below:
 
 ```bash
-bun run "<plugin-root>/scripts/remote-api.ts" jira comments "<TICKET_KEY_OR_URL>"
+# For Jira tickets or ADO work items:
+bun run "<plugin-root>/scripts/remote-api.ts" comments "<TICKET_KEY_OR_URL>"
+
+# For GitHub Issues:
+bun run "<plugin-root>/scripts/remote-api.ts" issue-comments "<ISSUE_URL>"
 ```
+
+If auto-detection fails, fall back to the explicit provider syntax (e.g., `jira issue`, `github issue`, `ado issue`).
 
 Apply `docs/PROJECT_CONTEXT.md` section `## Requirement source precedence`.
 
-If either Jira request returns `401` or `403`, or returns `404` with
-`Issue does not exist or you do not have permission to see it`, stop and ask the user to verify Jira access before
-continuing. Do not continue the review with stale or partial ticket data.
+If a ticket request returns `401` or `403`, or returns `404` with a permission-style message, stop and ask the user
+to verify access for the relevant provider before continuing. Do not continue the review with stale or partial
+ticket data.
 
 ### 2.5 Adversarial Review
 

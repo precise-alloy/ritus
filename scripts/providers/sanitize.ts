@@ -435,6 +435,45 @@ export function sanitizeGitHubPrComment(raw: unknown): unknown {
   });
 }
 
+const GITHUB_ISSUE_URL_FIELDS = new Set([
+  'url', 'repository_url', 'labels_url', 'comments_url', 'events_url',
+  'html_url', 'timeline_url',
+]);
+
+const GITHUB_ISSUE_DELETE_FIELDS = new Set([
+  'node_id', 'id', 'author_association', 'active_lock_reason',
+  'performed_via_github_app',
+]);
+
+export function sanitizeGitHubIssue(raw: unknown): unknown {
+  if (!isObject(raw)) return raw;
+  const issue = { ...(raw as AnyObject) };
+
+  for (const key of GITHUB_ISSUE_URL_FIELDS) delete issue[key];
+  for (const key of GITHUB_ISSUE_DELETE_FIELDS) delete issue[key];
+
+  if (isGitHubUser(issue.user)) issue.user = flattenGitHubUser(issue.user);
+  if (isGitHubUser(issue.closed_by)) issue.closed_by = flattenGitHubUser(issue.closed_by);
+
+  if (Array.isArray(issue.assignees)) {
+    issue.assignees = (issue.assignees as unknown[]).map(flattenGitHubUser);
+  }
+
+  if (Array.isArray(issue.labels)) {
+    issue.labels = (issue.labels as AnyObject[]).map(l => ({ name: l.name }));
+  }
+
+  if (isObject(issue.milestone)) {
+    issue.milestone = { title: (issue.milestone as AnyObject).title };
+  }
+
+  // Preserve the signal that this "issue" is actually a PR, then remove the verbose sub-object
+  issue.is_pull_request = !!issue.pull_request;
+  delete issue.pull_request;
+
+  return stripNullish(issue);
+}
+
 export function sanitizeGitHubIssueComment(raw: unknown): unknown {
   if (!isObject(raw)) return raw;
   const c = raw as AnyObject;
@@ -602,47 +641,4 @@ export function sanitizeAdoPr(raw: unknown): unknown {
   }
 
   return stripNullish(pr);
-}
-
-function cleanAdoPrThreadComment(raw: unknown): unknown {
-  if (!isObject(raw)) return raw;
-  const c = raw as AnyObject;
-  return stripNullish({
-    author: flattenAdoIdentity(c.author),
-    content: c.content,
-    commentType: c.commentType,
-    publishedDate: c.publishedDate,
-  });
-}
-
-export function sanitizeAdoPrThread(raw: unknown): unknown {
-  if (!isObject(raw)) return raw;
-  const thread = raw as AnyObject;
-
-  const cleaned: AnyObject = {
-    id: thread.id,
-    status: thread.status,
-  };
-
-  if (isObject(thread.threadContext)) {
-    const ctx = thread.threadContext as AnyObject;
-    cleaned.threadContext = stripNullish({
-      filePath: ctx.filePath,
-      rightFileStart: ctx.rightFileStart,
-      rightFileEnd: ctx.rightFileEnd,
-    });
-  }
-
-  if (Array.isArray(thread.comments)) {
-    cleaned.comments = (thread.comments as unknown[]).map(cleanAdoPrThreadComment);
-    const dates = (thread.comments as unknown[])
-      .filter(c => isObject(c))
-      .map(c => (c as AnyObject).publishedDate as string | undefined)
-      .filter((date): date is string => typeof date === 'string' && date.length > 0);
-    if (dates.length > 0) {
-      cleaned.publishedDate = dates.sort().pop();
-    }
-  }
-
-  return stripNullish(cleaned);
 }

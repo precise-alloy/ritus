@@ -1,7 +1,7 @@
 ---
 name: ticket-review
-description: Use after triage to produce task files — analyzes requirements, fetches Jira or Azure DevOps tickets, and generates execution plans. Reached via triage's Next section, not invoked directly for code review. Do NOT use for reviewing code diffs or PRs — that is pr-review
-argument-hint: Provide a requirement description or Jira/Azure DevOps ticket URL(s) with any additional context
+description: Use after triage to produce task files — analyzes requirements, fetches Jira, Azure DevOps, or GitHub Issues tickets, and generates execution plans. Reached via triage's Next section, not invoked directly for code review. Do NOT use for reviewing code diffs or PRs — that is pr-review
+argument-hint: Provide a requirement description or ticket URL(s)/key(s) (Jira, Azure DevOps, or GitHub Issues) with any additional context
 ---
 
 # Ticket Review
@@ -33,8 +33,8 @@ Ask the user for:
 
 1. **The requirement source** — either:
    - A plain requirement description (summary of what needs to be done), OR
-   - Jira ticket URL(s)/key(s) or Azure DevOps work item URL(s)/ID(s) matching docs/PROJECT_CONTEXT.md
-     `## Team conventions` ticket format
+   - URL(s)/key(s) for any configured provider (Jira, Azure DevOps, or GitHub Issues) matching
+     docs/PROJECT_CONTEXT.md `## Team conventions` ticket format
 2. **Additional context** — verbal decisions, Slack discussions, architectural constraints, priority notes, or anything
    not captured in the requirement/ticket.
 
@@ -81,20 +81,23 @@ Fetch ticket details and comments via the helper. Live ticket data is required b
 
 Parse ticket keys/work item IDs according to docs/PROJECT_CONTEXT.md `## Team conventions` ticket format.
 
-For Jira tickets:
+The provider is auto-detected from the key/URL shape:
 
 ```bash
-bun run "<plugin-root>/scripts/remote-api.ts" jira issue "<TICKET_KEY_OR_URL>" "summary,description,status,issuetype,comment,acceptance_criteria"
+bun run "<plugin-root>/scripts/remote-api.ts" issue "<TICKET_KEY_OR_URL>" [fields]
 ```
 
-For Azure DevOps work items:
+If auto-detection fails, fall back to the explicit provider syntax (e.g., `jira issue`, `ado issue`, `github issue`).
 
-```bash
-bun run "<plugin-root>/scripts/remote-api.ts" ado issue "<WORK_ITEM_URL_OR_ID>" "System.Title,System.Description,System.State,System.WorkItemType,System.Tags"
-bun run "<plugin-root>/scripts/remote-api.ts" ado comments "<WORK_ITEM_URL_OR_ID>"
-```
+Provider-specific fields to request (the `[fields]` parameter format varies by provider — pass field names
+matching that provider's API):
 
-If either provider returns `401`, `403`, or a permission-style `404`, stop and ask the user to verify remote access.
+- **Jira:** `"summary,description,status,issuetype,comment,acceptance_criteria"`
+- **Azure DevOps:** `"System.Title,System.Description,System.State,System.WorkItemType,System.Tags"` (also fetch
+  comments separately: `bun run "<plugin-root>/scripts/remote-api.ts" comments "<WORK_ITEM_URL_OR_ID>"`)
+- **GitHub Issues:** no field filter needed (returns full issue by default)
+
+If the provider returns `401`, `403`, or a permission-style `404`, stop and ask the user to verify remote access.
 Do not continue with stale or partial ticket data.
 
 Apply docs/PROJECT_CONTEXT.md `## Requirement source precedence`.

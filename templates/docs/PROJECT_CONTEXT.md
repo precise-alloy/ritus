@@ -63,6 +63,20 @@ Test locations:
 | QA mode            | `{{QA_MODE}}`                 |
 | EPIC memory expiry | `{{MEMORY_EXPIRY_DAYS}}` days |
 
+<!--
+Setup skill rendering instructions for multi-provider support:
+
+When team.yml contains ticket_providers lists, the setup skill should:
+1. Keep GIT_PLATFORM as the scalar value (primary system only, e.g., "GitHub").
+   Do NOT overwrite with a comma-separated list.
+2. Keep TICKET_FORMAT as the scalar value (primary system's format only, e.g., "PROJ-123").
+   Do NOT overwrite with a comma-separated list.
+3. Uncomment and populate the dedicated list row below for multi-instance data:
+   - Ticket providers: format as "type:name (prefixes: X, Y), ..."
+If no list fields are present, leave the row commented out — single-value rendering is correct.
+-->
+<!-- | Ticket providers   | `{{TICKET_PROVIDERS}}`        | -->
+
 Branch format:
 
 {{BRANCH_FORMAT}}

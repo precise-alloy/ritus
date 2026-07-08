@@ -68,13 +68,13 @@ Record as: `{{TEAM_SIZE}}`
 
 Drives: tasks/ naming, PR reviewer count, memory expiry, setup question scope.
 
-**If `solo`: skip Q5, Q9, Q10 — auto-derive defaults and continue to Q4.**
+**If `solo`: skip Q5, Q9, Q10 — auto-derive defaults and continue to Q4**
 
-| Auto-derived for solo | Value       |
-|-----------------------|-------------|
-| Q5 — Git platform     | `GitHub`    |
-| Q9 — Ticket format    | `none`      |
-| Q10 — Workflow owner  | `developer` |
+| Auto-derived for solo      | Value                  |
+|----------------------------|------------------------|
+| Q5 — Git platform          | `GitHub`               |
+| Q9 — Ticket providers      | `[]` (empty list)      |
+| Q10 — Workflow owner       | `developer`            |
 
 ---
 
@@ -97,11 +97,14 @@ Pre-fills: `docs/profiles/project.yml` fields `primary_language` and `framework`
 
 Ask:
 
-> "Which **git platform** does the team use?"
+> "Which **git platform** does this repo use?"
 
 Options: `GitHub` / `GitLab` / `Azure DevOps` / `Bitbucket` / `other`
 
 Record as: `{{GIT_PLATFORM}}`
+
+The dispatcher creates a default git provider instance automatically using standard env var names
+(`GITHUB_TOKEN`, `AZURE_DEVOPS_READONLY_PAT`, etc.).
 
 Drives: PR template format, branch convention details.
 
@@ -159,16 +162,60 @@ Drives: model routing table in `docs/profiles/runtime.yml`.
 
 ---
 
-### Q9 — Ticket system
+### Q9 — Ticket system(s)
 
 Ask:
 
-> "Does the team use a **ticket/issue tracker**? If yes, what prefix format?
-> (e.g. `PROJ-123` for Jira · `#123` for GitHub Issues · `none`)"
+> "Does the team use a **ticket/issue tracker**? Select all that apply.
+> (Jira · Azure DevOps · GitHub Issues · none)"
 
-Record as: `{{TICKET_FORMAT}}` (or `none`)
+Accept one or more ticket systems. For each, capture:
+- **type**: `jira` / `github` / `ado`
 
-Drives: branch naming format.
+Record primary format as: `{{TICKET_FORMAT}}` (scalar, backward compat — use the first ticket system's format, e.g. `PROJ-123` or `#123`; set to `none` if no systems).
+
+Note: GitHub Issues uses `#`-prefixed numbers (e.g. `#18`) for short refs, which requires `GITHUB_REPO_URL` in `.env.local`. Full URLs (e.g. `https://github.com/owner/repo/issues/123`) also work without `GITHUB_REPO_URL`.
+
+After collecting the list, for each selected ticket system ask:
+
+> "Do you have **multiple instances** of **{type}**? (e.g., two Jira servers, or multiple ADO orgs)
+> (yes/no — default: no)"
+
+#### Single instance (default)
+
+No further questions needed. Record as: `{{TICKET_PROVIDERS}}` entry with `name: default`, no `key_prefixes`, no `env`.
+Routing works by target format: `PROJ-123` → Jira, `340796` → ADO, `#18` → GitHub.
+
+- **Single system** (e.g. "Jira"): set `{{TICKET_FORMAT}}` = `PROJ-123`, `{{TICKET_PROVIDERS}}` = `[{type: jira, name: default}]`.
+- **Multiple systems** (e.g. "Jira and GitHub Issues"): set `{{TICKET_FORMAT}}` = `PROJ-123`, `{{TICKET_PROVIDERS}}` = `[{type: jira, name: default}, {type: github, name: default}]`.
+- **None**: set `{{TICKET_FORMAT}}` = `none`, `{{TICKET_PROVIDERS}}` = `[]`.
+
+#### Multiple instances
+
+Key prefixes and custom env vars are per-instance — they enable routing between instances of the same type.
+
+For each instance ask:
+
+> "What **name** should this instance have? (e.g., 'primary', 'external', 'backend')"
+>
+> "What **key prefixes** does this instance use? (comma-separated)" (Jira only — e.g., 'AMPS' for the first, 'AMP' for the second)
+
+The first instance uses default env var names. For additional instances, ask:
+
+> "What **custom env var names** should this instance use for settings that differ from the first instance?"
+> (Shared credentials like tokens/PATs can reuse the same env var — only instance-specific settings like base URLs need unique names.)
+
+Example with two Jira instances (same Atlassian account, different projects):
+```
+{{TICKET_PROVIDERS}} = [
+  {type: jira, name: primary, key_prefixes: ["AMPS"]},
+  {type: jira, name: maintenance, key_prefixes: ["AMP"], env: {base_url: JIRA_AMP_BASE_URL}}
+]
+```
+The primary instance uses default env vars (`JIRA_BASE_URL`, `JIRA_PAT`, `JIRA_EMAIL`). The maintenance instance
+overrides only `base_url` — `pat` and `email` fall through to the defaults (same Atlassian account).
+
+Drives: branch naming format, `ticket_providers` list in team.yml.
 
 ---
 
@@ -231,6 +278,11 @@ test/{slug}                tests only
 If `{{TICKET_FORMAT}}` is `none`: omit ticket segment → `feat/{slug}`.
 
 If `{{TICKET_FORMAT}}` is set: `feat/PROJ-123-{slug}` or `feat/#123-{slug}`.
+
+**When multiple ticket systems are configured** (`{{TICKET_PROVIDERS}}` has >1 entry): use the **first** provider's
+format as the primary for branch naming. The branch format template uses only one ticket prefix style — developers
+choose the relevant ticket key when creating the branch. Example: if `ticket_providers` lists Jira (PROJ, CORE)
+first and GitHub Issues (#) second, the branch format uses `PROJ-123` style as the example.
 
 ### PR reviewer count → `{{PR_REVIEWERS}}`
 
@@ -331,8 +383,10 @@ Leave empty for repo-scan or first work session:
 Fill these fields:
 
 - `team_size`, `git_platform`, `git_flow`, `workflow_owner`, `ticket_format`, `qa_mode`
+- `ticket_providers` (list) — populate from `{{TICKET_PROVIDERS}}`; set to `[]` when empty
+- Git provider instances are created automatically from the git platform's standard env vars.
 - Derived fields: `memory_expiry_days`, `branch_format`, `tasks_path_convention`, `pr_reviewers`,
-  `default_base_branch`, `traceability_policy` (use derivation rules from §Derived values above)
+  `default_base_branch`, `traceability_policy` (use derivation rules from § Derived values above)
 
 ### Step 3: Fill `docs/profiles/runtime.yml`
 
@@ -340,7 +394,7 @@ Fill these fields:
 
 - `ai_tools` — auto-detect from platform: `Claude Code` if `CLAUDE_PLUGIN_ROOT` is set, `GitHub Copilot` if
   `PLUGIN_ROOT` is set, otherwise ask the user
-- `model_routing` — paste the correct table from §Model routing table above
+- `model_routing` — paste the correct table from § Model routing table above
 
 ### Step 4: Render `docs/PROJECT_CONTEXT.md` from all `.yml` files
 

@@ -39,31 +39,27 @@ Ask the user for:
 1. **PR URL** — GitHub (`https://github.com/owner/repo/pull/123`) or Azure DevOps PR URL
 2. **Comment count** (optional) — limit to the latest N comments. Default: all.
 
-Determine the provider from the URL format:
-- `github.com` → GitHub provider
-- `dev.azure.com` or `*.visualstudio.com` → ADO provider
+The provider is auto-detected from the PR URL — no manual provider selection needed.
 
 ## Step 2: Fetch PR Comments
 
 Read `remote-api-access.md` in the `shared` skill directory for the remote API helper instructions.
 
-Fetch PR metadata to get branch info:
-
-For GitHub:
+Fetch PR metadata (provider is auto-detected from the URL):
 
 ```bash
-bun run "<plugin-root>/scripts/remote-api.ts" github pr "<PR_URL>"
-bun run "<plugin-root>/scripts/remote-api.ts" github comments "<PR_URL>" [count]
+bun run "<plugin-root>/scripts/remote-api.ts" pr "<PR_URL>"
 ```
 
-For Azure DevOps:
+For review comments (GitHub only):
 
 ```bash
-bun run "<plugin-root>/scripts/remote-api.ts" ado pr "<PR_URL>"
-bun run "<plugin-root>/scripts/remote-api.ts" ado pr-threads "<PR_URL>" [count]
+bun run "<plugin-root>/scripts/remote-api.ts" comments "<PR_URL>" [count]
 ```
 
-If either provider returns `401`, `403`, or a permission-style `404`, stop and ask the user to verify remote access.
+If auto-detection fails, fall back to explicit provider syntax (e.g., `github pr`, `ado pr`).
+
+If the provider returns `401`, `403`, or a permission-style `404`, stop and ask the user to verify remote access.
 Do not continue with stale or partial data.
 
 ### Response structure
@@ -89,6 +85,7 @@ Not all PR comments need code changes. Classify each comment:
 
 ### Skip (not actionable)
 
+- Comments that are not valid change requests. Analyze the comment to determine whether it requests code changes. If it does not, skip it and report to the user.
 - Resolved/closed threads (ADO: `status !== 'active'`)
 - Reply threads where the last message is from the PR author (likely already addressed)
 - Approvals, praise, acknowledgments ("LGTM", "looks good", "nice work", "+1")

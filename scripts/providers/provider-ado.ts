@@ -1,15 +1,21 @@
-import type { Provider, RequestHeaders } from './types.ts';
-import { basicAuth, requestJson, requireEnv } from './http.ts';
-import { sanitizeAdoWorkItem, sanitizeAdoComment, sanitizeAdoUpdate, sanitizeAdoPr, sanitizeAdoPrThread } from './sanitize.ts';
+import type { EnvMapping, Provider, RequestHeaders } from './types.ts';
+import { basicAuth, requestJson, resolveEnv, safeDecode } from './http.ts';
+import { sanitizeAdoWorkItem, sanitizeAdoComment, sanitizeAdoUpdate, sanitizeAdoPr } from './sanitize.ts';
 
 const ADO_API_VERSION = '7.0';
 const ADO_COMMENTS_API_VERSION = '7.0-preview.4';
 const ADO_PAGE_SIZE = 200;
 
+const ADO_DEFAULT_ENV: EnvMapping = {
+  pat: 'AZURE_DEVOPS_READONLY_PAT',
+  org: 'AZURE_DEVOPS_ORG',
+  project: 'AZURE_DEVOPS_PROJECT',
+};
+
 type AzureDevOpsPullRequestRef = {
   organization: string;
   project: string;
-  repository: string;
+  repository?: string;
   pullRequestId: string;
 };
 
@@ -19,23 +25,55 @@ type AdoWorkItemRef = {
   workItemId: string;
 };
 
-function adoHeaders(): RequestHeaders {
-  const pat = requireEnv('AZURE_DEVOPS_READONLY_PAT');
+function adoHeaders(env: EnvMapping): RequestHeaders {
+  const pat = resolveEnv(env, 'pat');
   return {
     Authorization: basicAuth(`:${pat}`),
     Accept: 'application/json',
   };
 }
 
+function normalizeAdoOrg(raw: string): string {
+  try {
+    const url = new URL(raw);
+    const host = url.hostname.toLowerCase();
+    if (host === 'dev.azure.com') {
+      const firstSegment = url.pathname.split('/').filter(Boolean)[0];
+      return firstSegment ? safeDecode(firstSegment) : raw;
+    }
+    if (host.endsWith('.visualstudio.com')) {
+      return host.replace('.visualstudio.com', '');
+    }
+  } catch { /* not a URL, use as-is */ }
+  return raw;
+}
+
+export { normalizeAdoOrg };
+
 function adoBaseUrl(org: string, project: string): string {
-  return `https://dev.azure.com/${encodeURIComponent(org)}/${encodeURIComponent(project)}`;
+  return `https://dev.azure.com/${encodeURIComponent(normalizeAdoOrg(org))}/${encodeURIComponent(safeDecode(project))}`;
 }
 
 // ---------------------------------------------------------------------------
 // PR URL parsing (existing)
 // ---------------------------------------------------------------------------
 
-function parseAzureDevOpsPrUrl(prUrl: string): AzureDevOpsPullRequestRef {
+function parseAzureDevOpsPrUrl(prUrl: string, envMapping?: EnvMapping): AzureDevOpsPullRequestRef {
+  if (/^\d+$/.test(prUrl)) {
+    const env = envMapping ?? ADO_DEFAULT_ENV;
+    const orgEnvVar = env.org;
+    const projectEnvVar = env.project;
+    const org = process.env[orgEnvVar]?.trim();
+    const project = process.env[projectEnvVar]?.trim();
+    if (!org || !project) {
+      throw new Error(
+        `Bare PR ID "${prUrl}" requires ${orgEnvVar} and ${projectEnvVar} in .env.local. ` +
+          'Alternatively, pass the full PR URL.',
+      );
+    }
+    return { organization: normalizeAdoOrg(org), project: safeDecode(project), pullRequestId: prUrl };
+  }
+
   let parsedUrl: URL;
   try {
     parsedUrl = new URL(prUrl);
@@ -47,7 +85,7 @@ function parseAzureDevOpsPrUrl(prUrl: string): AzureDevOpsPullRequestRef {
   const segments = parsedUrl.pathname
     .split('/')
     .filter(Boolean)
-    .map((segment) => decodeURIComponent(segment));
+    .map(safeDecode);
 
   if (host === 'dev.azure.com') {
     if (segments.length < 6 || segments[2] !== '_git' || segments[4] !== 'pullrequest') {
@@ -90,13 +128,16 @@ function extractWorkItemId(segments: string[], minEditIdx: number, rawUrl: strin
   return segments[editIdx + 2];
 }
 
-function parseAdoWorkItemUrl(urlOrId: string): AdoWorkItemRef {
+function parseAdoWorkItemUrl(urlOrId: string, envMapping?: EnvMapping): AdoWorkItemRef {
   if (/^\d+$/.test(urlOrId)) {
-    const org = process.env.AZURE_DEVOPS_ORG?.trim();
-    const project = process.env.AZURE_DEVOPS_PROJECT?.trim();
+    const env = envMapping ?? ADO_DEFAULT_ENV;
+    const orgEnvVar = env.org;
+    const projectEnvVar = env.project;
+    const org = process.env[orgEnvVar]?.trim();
+    const project = process.env[projectEnvVar]?.trim();
     if (!org || !project) {
       throw new Error(
-        `Bare work item ID "${urlOrId}" requires AZURE_DEVOPS_ORG and AZURE_DEVOPS_PROJECT in .env.local. ` +
+        `Bare work item ID "${urlOrId}" requires ${orgEnvVar} and ${projectEnvVar} in .env.local. ` +
           'Alternatively, pass the full work item URL.',
       );
     }
@@ -114,7 +155,7 @@ function parseAdoWorkItemUrl(urlOrId: string): AdoWorkItemRef {
   const segments = parsedUrl.pathname
     .split('/')
     .filter(Boolean)
-    .map((segment) => decodeURIComponent(segment));
+    .map(safeDecode);
 
   if (host === 'dev.azure.com') {
     return {
@@ -139,13 +180,22 @@ function parseAdoWorkItemUrl(urlOrId: string): AdoWorkItemRef {
 // PR actions
 // ---------------------------------------------------------------------------
 
-async function getAdoPr(target: string): Promise<unknown> {
-  const parsed = parseAzureDevOpsPrUrl(target);
-  const url = `${adoBaseUrl(parsed.organization, parsed.project)}/_apis/git/repositories/${encodeURIComponent(parsed.repository)}/pullrequests/${encodeURIComponent(parsed.pullRequestId)}?api-version=${ADO_API_VERSION}`;
+function adoPrUrl(parsed: AzureDevOpsPullRequestRef): string {
+  const base = adoBaseUrl(parsed.organization, parsed.project);
+  if (parsed.repository) {
+    return `${base}/_apis/git/repositories/${encodeURIComponent(parsed.repository)}/pullrequests/${encodeURIComponent(parsed.pullRequestId)}`;
+  }
+  return `${base}/_apis/git/pullrequests/${encodeURIComponent(parsed.pullRequestId)}`;
+}
+
+async function getAdoPr(target: string, extra?: string, envMapping?: EnvMapping): Promise<unknown> {
+  const env = envMapping ?? ADO_DEFAULT_ENV;
+  const parsed = parseAzureDevOpsPrUrl(target, env);
+  const url = `${adoPrUrl(parsed)}?api-version=${ADO_API_VERSION}`;
 
   return {
     request: parsed,
-    pullRequest: sanitizeAdoPr(await requestJson(url, adoHeaders())),
+    pullRequest: sanitizeAdoPr(await requestJson(url, adoHeaders(env))),
   };
 }
 
@@ -165,32 +215,13 @@ function takeLatest<T>(items: T[], limit: number | undefined, dateKey: string): 
   return sortedDesc.slice(0, limit).reverse();
 }
 
-async function getAdoPrThreads(target: string, extra?: string): Promise<unknown> {
-  const parsed = parseAzureDevOpsPrUrl(target);
-  const limit = parseLimit(extra);
-  const url = `${adoBaseUrl(parsed.organization, parsed.project)}/_apis/git/repositories/${encodeURIComponent(parsed.repository)}/pullrequests/${encodeURIComponent(parsed.pullRequestId)}/threads?api-version=${ADO_API_VERSION}`;
-
-  const result = (await requestJson(url, adoHeaders())) as { count?: number; value?: unknown[] };
-  const allThreads = (result?.value ?? []).map(sanitizeAdoPrThread);
-  const threads = takeLatest(allThreads, limit, 'publishedDate');
-
-  return {
-    request: parsed,
-    ...(limit ? { limit } : {}),
-    threads: {
-      total: allThreads.length,
-      returned: threads.length,
-      threads,
-    },
-  };
-}
-
 // ---------------------------------------------------------------------------
 // Work item actions
 // ---------------------------------------------------------------------------
 
-async function getAdoWorkItem(target: string, extra?: string): Promise<unknown> {
-  const parsed = parseAdoWorkItemUrl(target);
+async function getAdoWorkItem(target: string, extra?: string, envMapping?: EnvMapping): Promise<unknown> {
+  const env = envMapping ?? ADO_DEFAULT_ENV;
+  const parsed = parseAdoWorkItemUrl(target, env);
   const expand = extra ? '' : '&$expand=all';
   const fields = extra ? `&fields=${encodeURIComponent(extra)}` : '';
   const url = `${adoBaseUrl(parsed.organization, parsed.project)}/_apis/wit/workitems/${encodeURIComponent(parsed.workItemId)}?api-version=${ADO_API_VERSION}${expand}${fields}`;
@@ -198,16 +229,17 @@ async function getAdoWorkItem(target: string, extra?: string): Promise<unknown> 
   return {
     workItemId: parsed.workItemId,
     ...(extra ? { fields: extra.split(',').map(f => f.trim()).filter(Boolean) } : {}),
-    workItem: sanitizeAdoWorkItem(await requestJson(url, adoHeaders())),
+    workItem: sanitizeAdoWorkItem(await requestJson(url, adoHeaders(env))),
   };
 }
 
-async function getAdoWorkItemComments(target: string, extra?: string): Promise<unknown> {
-  const parsed = parseAdoWorkItemUrl(target);
+async function getAdoWorkItemComments(target: string, extra?: string, envMapping?: EnvMapping): Promise<unknown> {
+  const env = envMapping ?? ADO_DEFAULT_ENV;
+  const parsed = parseAdoWorkItemUrl(target, env);
   const limit = parseLimit(extra);
   const url = `${adoBaseUrl(parsed.organization, parsed.project)}/_apis/wit/workitems/${encodeURIComponent(parsed.workItemId)}/comments?api-version=${ADO_COMMENTS_API_VERSION}`;
 
-  const result = (await requestJson(url, adoHeaders())) as { totalCount?: number; comments?: unknown[] };
+  const result = (await requestJson(url, adoHeaders(env))) as { totalCount?: number; comments?: unknown[] };
   const allComments = (result?.comments ?? []).map(sanitizeAdoComment);
   const comments = takeLatest(allComments, limit, 'createdDate');
 
@@ -227,10 +259,11 @@ type AdoUpdatesPage = {
   value?: unknown[];
 };
 
-async function getAdoWorkItemUpdates(target: string): Promise<unknown> {
-  const parsed = parseAdoWorkItemUrl(target);
+async function getAdoWorkItemUpdates(target: string, extra?: string, envMapping?: EnvMapping): Promise<unknown> {
+  const env = envMapping ?? ADO_DEFAULT_ENV;
+  const parsed = parseAdoWorkItemUrl(target, env);
   const base = `${adoBaseUrl(parsed.organization, parsed.project)}/_apis/wit/workitems/${encodeURIComponent(parsed.workItemId)}/updates`;
-  const headers = adoHeaders();
+  const headers = adoHeaders(env);
 
   const allUpdates: unknown[] = [];
   let skip = 0;
@@ -260,20 +293,50 @@ async function getAdoWorkItemUpdates(target: string): Promise<unknown> {
 // Provider export
 // ---------------------------------------------------------------------------
 
+function isAdoHost(hostname: string): boolean {
+  const h = hostname.toLowerCase();
+  return h === 'dev.azure.com' || h.endsWith('.visualstudio.com');
+}
+
 export const adoProvider: Provider = {
   name: 'ado',
   label: 'Azure DevOps',
   requiredEnvKeys: ['AZURE_DEVOPS_READONLY_PAT'],
+  defaultEnvMapping: ADO_DEFAULT_ENV,
   actions: {
     'pr': getAdoPr,
-    'pr-threads': getAdoPrThreads,
     'issue': getAdoWorkItem,
     'comments': getAdoWorkItemComments,
     'changelog': getAdoWorkItemUpdates,
   },
+  canHandleTarget(action: string, target: string): boolean {
+    if (!Object.hasOwn(this.actions, action)) return false;
+
+    if (action === 'pr') {
+      if (/^\d+$/.test(target)) return true;
+      try {
+        const url = new URL(target);
+        return isAdoHost(url.hostname) && /\/_git\/[^/]+\/pullrequest\/\d+\/?$/i.test(url.pathname);
+      } catch {
+        return false;
+      }
+    }
+
+    const workItemActions = new Set(['issue', 'comments', 'changelog']);
+    if (workItemActions.has(action)) {
+      if (/^\d+$/.test(target)) return true;
+      try {
+        const url = new URL(target);
+        return isAdoHost(url.hostname) && /\/_workitems\/edit\/\d+\/?$/i.test(url.pathname);
+      } catch {
+        return false;
+      }
+    }
+
+    return false;
+  },
   usageLines: (cmd) => [
-    `${cmd} ado pr <pull-request-url>`,
-    `${cmd} ado pr-threads <pull-request-url> [count]`,
+    `${cmd} ado pr <pull-request-url-or-id>`,
     `${cmd} ado issue <work-item-url-or-id> [fields]`,
     `${cmd} ado comments <work-item-url-or-id> [count]`,
     `${cmd} ado changelog <work-item-url-or-id>`,
@@ -283,8 +346,6 @@ export const adoProvider: Provider = {
     const wiUrl = process.env.EXAMPLE_ADO_WORK_ITEM_URL || 'https://dev.azure.com/your-org/your-project/_workitems/edit/12345';
     return [
       `${cmd} ado pr ${prUrl}`,
-      `${cmd} ado pr-threads ${prUrl}`,
-      `${cmd} ado pr-threads ${prUrl} 20`,
       `${cmd} ado issue ${wiUrl}`,
       `${cmd} ado issue ${wiUrl} System.Title,System.State,System.Description`,
       `${cmd} ado comments ${wiUrl}`,
