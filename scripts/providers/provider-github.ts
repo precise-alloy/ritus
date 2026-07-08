@@ -6,6 +6,7 @@ const GITHUB_PAGE_SIZE = 100;
 
 const GITHUB_DEFAULT_ENV: EnvMapping = {
   token: 'GITHUB_TOKEN',
+  repo_url: 'GITHUB_REPO_URL',
 };
 
 type GitHubPullRequestRef = {
@@ -46,6 +47,62 @@ function getGitHubToken(env: EnvMapping): string {
     throw new Error(`Missing ${tokenEnvVar}. Populate it in .env.local before using this helper.`);
   }
   return token;
+}
+
+function resolveGitHubBareNumber(target: string, env: EnvMapping, pathSegment: 'pull' | 'issues'): string {
+  const trimmed = target.trim();
+  if (!/^\d+$/.test(trimmed)) return target;
+
+  if (/^0\d/.test(trimmed)) {
+    throw new Error(
+      `Invalid ${pathSegment === 'pull' ? 'PR' : 'issue'} number "${trimmed}". Leading zeros are not allowed. Did you mean "${parseInt(trimmed, 10)}"?`,
+    );
+  }
+
+  const num = parseInt(trimmed, 10);
+  if (!Number.isFinite(num) || num <= 0) {
+    throw new Error(
+      `Invalid ${pathSegment === 'pull' ? 'PR' : 'issue'} number "${trimmed}". Must be a positive integer.`,
+    );
+  }
+
+  const repoUrlEnvVar = env.repo_url;
+  if (!repoUrlEnvVar) {
+    throw new Error(`Bare number "${trimmed}" requires a repo_url mapping in the provider's env configuration.`);
+  }
+
+  const repoUrl = process.env[repoUrlEnvVar]?.trim();
+  if (!repoUrl) {
+    throw new Error(
+      `Bare ${pathSegment === 'pull' ? 'PR' : 'issue'} number "${trimmed}" requires ${repoUrlEnvVar} in .env.local. ` +
+        'Alternatively, pass the full URL.',
+    );
+  }
+
+  let parsedUrl: URL;
+  try {
+    parsedUrl = new URL(repoUrl);
+  } catch {
+    throw new Error(
+      `Invalid ${repoUrlEnvVar} value "${repoUrl}". Must be a valid repository URL (e.g., https://github.com/owner/repo).`,
+    );
+  }
+
+  if (parsedUrl.protocol !== 'https:') {
+    throw new Error(
+      `Invalid ${repoUrlEnvVar} value "${repoUrl}". Must use https:// protocol for security.`,
+    );
+  }
+
+  const pathSegments = parsedUrl.pathname.split('/').filter(Boolean).map(decodeURIComponent);
+  if (pathSegments.length !== 2) {
+    throw new Error(
+      `Invalid ${repoUrlEnvVar} value "${repoUrl}". Must be a repository URL with owner and repo (e.g., https://github.com/owner/repo), not a root URL or subpath.`,
+    );
+  }
+
+  const [owner, repo] = pathSegments;
+  return `${parsedUrl.protocol}//${parsedUrl.hostname}/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/${pathSegment}/${trimmed}`;
 }
 
 function parseGitHubPrUrl(prUrl: string, expectedHostname = 'github.com'): GitHubPullRequestRef {
@@ -92,9 +149,10 @@ function parseGitHubIssueUrl(issueUrl: string, expectedHostname = 'github.com'):
 
 async function getGitHubPr(target: string, extra?: string, envMapping?: EnvMapping): Promise<unknown> {
   const env = envMapping ?? GITHUB_DEFAULT_ENV;
+  const resolvedTarget = resolveGitHubBareNumber(target, env, 'pull');
   const hostname = getExpectedHostname(env);
   const apiBase = getApiBaseUrl(env);
-  const parsed = parseGitHubPrUrl(target, hostname);
+  const parsed = parseGitHubPrUrl(resolvedTarget, hostname);
   const url = `${apiBase}/repos/${encodeURIComponent(parsed.owner)}/${encodeURIComponent(parsed.repo)}/pulls/${encodeURIComponent(parsed.pullNumber)}`;
 
   return {
@@ -183,9 +241,10 @@ async function fetchGitHubLatestIssueComments(baseUrl: string, headers: Record<s
 
 async function getGitHubPrComments(target: string, extra?: string, envMapping?: EnvMapping): Promise<unknown> {
   const env = envMapping ?? GITHUB_DEFAULT_ENV;
+  const resolvedTarget = resolveGitHubBareNumber(target, env, 'pull');
   const hostname = getExpectedHostname(env);
   const apiBase = getApiBaseUrl(env);
-  const parsed = parseGitHubPrUrl(target, hostname);
+  const parsed = parseGitHubPrUrl(resolvedTarget, hostname);
   const headers = gitHubHeaders(env);
   const repoBase = `${apiBase}/repos/${encodeURIComponent(parsed.owner)}/${encodeURIComponent(parsed.repo)}`;
   const limit = parseLimit(extra);
@@ -215,9 +274,10 @@ async function getGitHubPrComments(target: string, extra?: string, envMapping?: 
 
 async function getGitHubIssue(target: string, extra?: string, envMapping?: EnvMapping): Promise<unknown> {
   const env = envMapping ?? GITHUB_DEFAULT_ENV;
+  const resolvedTarget = resolveGitHubBareNumber(target, env, 'issues');
   const hostname = getExpectedHostname(env);
   const apiBase = getApiBaseUrl(env);
-  const parsed = parseGitHubIssueUrl(target, hostname);
+  const parsed = parseGitHubIssueUrl(resolvedTarget, hostname);
   const url = `${apiBase}/repos/${encodeURIComponent(parsed.owner)}/${encodeURIComponent(parsed.repo)}/issues/${encodeURIComponent(parsed.issueNumber)}`;
 
   return {
@@ -228,9 +288,10 @@ async function getGitHubIssue(target: string, extra?: string, envMapping?: EnvMa
 
 async function getGitHubIssueComments(target: string, extra?: string, envMapping?: EnvMapping): Promise<unknown> {
   const env = envMapping ?? GITHUB_DEFAULT_ENV;
+  const resolvedTarget = resolveGitHubBareNumber(target, env, 'issues');
   const hostname = getExpectedHostname(env);
   const apiBase = getApiBaseUrl(env);
-  const parsed = parseGitHubIssueUrl(target, hostname);
+  const parsed = parseGitHubIssueUrl(resolvedTarget, hostname);
   const headers = gitHubHeaders(env);
   const limit = parseLimit(extra);
   const baseUrl = `${apiBase}/repos/${encodeURIComponent(parsed.owner)}/${encodeURIComponent(parsed.repo)}/issues/${encodeURIComponent(parsed.issueNumber)}/comments?sort=created&direction=asc`;
@@ -262,6 +323,7 @@ export const githubProvider: Provider = {
   },
   canHandleTarget(action: string, target: string): boolean {
     if (!(action in this.actions)) return false;
+    if (/^\d+$/.test(target)) return true;
 
     let url: URL;
     try {
@@ -285,19 +347,22 @@ export const githubProvider: Provider = {
     return false;
   },
   usageLines: (cmd) => [
-    `${cmd} github pr <pull-request-url>`,
-    `${cmd} github comments <pull-request-url> [count]`,
-    `${cmd} github issue <issue-url>`,
-    `${cmd} github issue-comments <issue-url> [count]`,
+    `${cmd} github pr <pull-request-url|pr-number>`,
+    `${cmd} github comments <pull-request-url|pr-number> [count]`,
+    `${cmd} github issue <issue-url|issue-number>`,
+    `${cmd} github issue-comments <issue-url|issue-number> [count]`,
   ],
   exampleLines: (cmd) => {
     const prUrl = process.env.EXAMPLE_GITHUB_PR_URL || 'https://github.com/owner/repo/pull/123';
     const issueUrl = process.env.EXAMPLE_GITHUB_ISSUE_URL || 'https://github.com/owner/repo/issues/456';
     return [
       `${cmd} github pr ${prUrl}`,
+      `${cmd} github pr 18  # requires GITHUB_REPO_URL=https://github.com/owner/repo in .env.local`,
       `${cmd} github comments ${prUrl}`,
       `${cmd} github comments ${prUrl} 20`,
+      `${cmd} github comments 18  # bare number`,
       `${cmd} github issue ${issueUrl}`,
+      `${cmd} github issue 1  # bare number`,
       `${cmd} github issue-comments ${issueUrl}`,
       `${cmd} github issue-comments ${issueUrl} 20`,
     ];

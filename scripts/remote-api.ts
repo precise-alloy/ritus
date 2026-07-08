@@ -181,7 +181,10 @@ async function loadInstances(): Promise<LoadedInstances> {
           const inst = buildInstance(provider, config);
           if (config.env) {
             const knownLogicalKeys = new Set(Object.keys(provider.defaultEnvMapping));
-            if (provider.name === 'github') knownLogicalKeys.add('api_base_url');
+            if (provider.name === 'github') {
+              knownLogicalKeys.add('api_base_url');
+              knownLogicalKeys.add('repo_url');
+            }
             for (const logicalKey of Object.keys(config.env)) {
               if (!knownLogicalKeys.has(logicalKey)) {
                 console.warn(`Warning: unknown env key "${logicalKey}" in team.yml ticket_providers entry "${config.name}" (known keys: ${[...knownLogicalKeys].join(', ')})`);
@@ -230,7 +233,10 @@ async function loadInstances(): Promise<LoadedInstances> {
         const inst = buildInstance(provider, config);
         if (config.env) {
           const knownLogicalKeys = new Set(Object.keys(provider.defaultEnvMapping));
-          if (provider.name === 'github') knownLogicalKeys.add('api_base_url');
+          if (provider.name === 'github') {
+            knownLogicalKeys.add('api_base_url');
+            knownLogicalKeys.add('repo_url');
+          }
           for (const logicalKey of Object.keys(config.env)) {
             if (!knownLogicalKeys.has(logicalKey)) {
               console.warn(`Warning: unknown env key "${logicalKey}" in team.yml git_providers entry "${config.name}" (known keys: ${[...knownLogicalKeys].join(', ')})`);
@@ -303,6 +309,25 @@ function canGitHubInstanceHandle(instance: ProviderInstance, action: string, tar
   // Delegate path-pattern matching to the provider
   if (!instance.provider.canHandleTarget(action, target)) return false;
 
+  // Handle bare numbers: check if repo_url env var is set and hostname matches
+  if (/^\d+$/.test(target)) {
+    const repoUrlEnvVar = instance.envMapping.repo_url;
+    if (!repoUrlEnvVar) return false;
+    const repoUrl = process.env[repoUrlEnvVar]?.trim();
+    if (!repoUrl) return false;
+
+    let repoHostname: string;
+    try {
+      repoHostname = new URL(repoUrl).hostname;
+    } catch {
+      console.warn(`Warning: invalid ${repoUrlEnvVar} value — must be a valid URL (e.g., https://github.com/owner/repo).`);
+      return false;
+    }
+
+    const expectedHostname = getExpectedGitHubHostname(instance.envMapping);
+    return repoHostname.toLowerCase() === expectedHostname.toLowerCase();
+  }
+
   // Add hostname disambiguation for multi-instance (github.com vs GHE)
   let url: URL;
   try {
@@ -327,6 +352,21 @@ function getExpectedGitHubHostname(envMapping: EnvMapping): string {
   return 'github.com';
 }
 
+function normalizeAdoOrg(raw: string): string {
+  try {
+    const url = new URL(raw);
+    const host = url.hostname.toLowerCase();
+    if (host === 'dev.azure.com') {
+      const firstSegment = url.pathname.split('/').filter(Boolean)[0];
+      return firstSegment ? decodeURIComponent(firstSegment) : raw;
+    }
+    if (host.endsWith('.visualstudio.com')) {
+      return host.replace('.visualstudio.com', '');
+    }
+  } catch { /* not a URL, use as-is */ }
+  return raw;
+}
+
 function canAdoInstanceHandle(instance: ProviderInstance, action: string, target: string): boolean {
   if (!instance.provider.canHandleTarget(action, target)) return false;
 
@@ -344,9 +384,12 @@ function canAdoInstanceHandle(instance: ProviderInstance, action: string, target
 
   if (!orgEnvVar || !projectEnvVar) return instance.config.name === 'default';
 
-  const instanceOrg = process.env[orgEnvVar]?.trim();
-  const instanceProject = process.env[projectEnvVar]?.trim();
-  if (!instanceOrg || !instanceProject) return instance.config.name === 'default';
+  const rawOrg = process.env[orgEnvVar]?.trim();
+  const rawProject = process.env[projectEnvVar]?.trim();
+  if (!rawOrg || !rawProject) return instance.config.name === 'default';
+
+  const instanceOrg = normalizeAdoOrg(rawOrg);
+  const instanceProject = decodeURIComponent(rawProject);
 
   try {
     const url = new URL(target);
