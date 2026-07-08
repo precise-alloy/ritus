@@ -755,11 +755,8 @@ async function main(): Promise<void> {
     if (candidates.length > 1) {
       const isShortRef = /^\d+$/.test(target) || /^#\d+$/.test(target);
       if (isShortRef) {
-        const firstByType = new Map<string, ProviderInstance>();
-        for (const c of candidates) {
-          if (!firstByType.has(c.provider.name)) firstByType.set(c.provider.name, c);
-        }
-        candidates.splice(0, candidates.length, ...firstByType.values());
+        // Do not collapse candidates for short refs. Multiple matching instances must remain
+        // ambiguous so the disambiguation error below can trigger.
       }
     }
 
