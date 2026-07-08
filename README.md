@@ -275,17 +275,35 @@ Examples:
 # Jira — detected from bare key format (PROJ-123)
 bun run scripts/remote-api.ts issue PROJ-123
 
-# GitHub PR — detected from github.com URL
-bun run scripts/remote-api.ts pr https://github.com/owner/repo/pull/42
+# ADO work item — detected from bare numeric ID or full URL
+bun run scripts/remote-api.ts issue 12345
+bun run scripts/remote-api.ts issue https://dev.azure.com/org/project/_workitems/edit/12345
 
-# GitHub Issue — detected from github.com/issues URL
+# GitHub — detected from #-prefixed number (requires GITHUB_REPO_URL in .env.local)
+bun run scripts/remote-api.ts pr '#18'
+bun run scripts/remote-api.ts comments '#18'
+bun run scripts/remote-api.ts issue '#7'
+
+# GitHub — detected from full URL
+bun run scripts/remote-api.ts pr https://github.com/owner/repo/pull/42
 bun run scripts/remote-api.ts issue https://github.com/owner/repo/issues/7
 
 # ADO PR — detected from dev.azure.com URL
 bun run scripts/remote-api.ts pr https://dev.azure.com/org/project/_git/repo/pullrequest/1
+```
 
-# ADO work item — detected from _workitems URL or bare numeric ID
-bun run scripts/remote-api.ts issue 12345
+Target format conventions (each provider has a distinct short-ref format — no ambiguity):
+
+| Provider | Short ref | Example |
+|----------|-----------|---------|
+| Jira | Key prefix | `PROJ-123` |
+| ADO | Bare number | `12345` |
+| GitHub | `#` prefix | `'#18'` (requires `GITHUB_REPO_URL`) |
+
+**Note:** The `#` prefix must be quoted in bash to prevent shell comment interpretation:
+```bash
+bun run scripts/remote-api.ts pr '#18'   # correct
+bun run scripts/remote-api.ts pr #18     # fails — shell treats #18 as comment
 ```
 
 Detection precedence:

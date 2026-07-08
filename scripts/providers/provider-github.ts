@@ -49,32 +49,33 @@ function getGitHubToken(env: EnvMapping): string {
   return token;
 }
 
-function resolveGitHubBareNumber(target: string, env: EnvMapping, pathSegment: 'pull' | 'issues'): string {
-  const trimmed = target.trim();
-  if (!/^\d+$/.test(trimmed)) return target;
+function resolveGitHubRef(target: string, env: EnvMapping, pathSegment: 'pull' | 'issues'): string {
+  const match = target.trim().match(/^#(\d+)$/);
+  if (!match) return target;
 
-  if (/^0\d/.test(trimmed)) {
+  const number = match[1];
+  if (number.startsWith('0') && number.length > 1) {
     throw new Error(
-      `Invalid ${pathSegment === 'pull' ? 'PR' : 'issue'} number "${trimmed}". Leading zeros are not allowed. Did you mean "${parseInt(trimmed, 10)}"?`,
+      `Invalid ${pathSegment === 'pull' ? 'PR' : 'issue'} number "#${number}". Leading zeros are not allowed. Did you mean "#${parseInt(number, 10)}"?`,
     );
   }
 
-  const num = parseInt(trimmed, 10);
+  const num = parseInt(number, 10);
   if (!Number.isFinite(num) || num <= 0) {
     throw new Error(
-      `Invalid ${pathSegment === 'pull' ? 'PR' : 'issue'} number "${trimmed}". Must be a positive integer.`,
+      `Invalid ${pathSegment === 'pull' ? 'PR' : 'issue'} number "#${number}". Must be a positive integer.`,
     );
   }
 
   const repoUrlEnvVar = env.repo_url;
   if (!repoUrlEnvVar) {
-    throw new Error(`Bare number "${trimmed}" requires a repo_url mapping in the provider's env configuration.`);
+    throw new Error(`GitHub ref "#${number}" requires a repo_url mapping in the provider's env configuration.`);
   }
 
   const repoUrl = process.env[repoUrlEnvVar]?.trim();
   if (!repoUrl) {
     throw new Error(
-      `Bare ${pathSegment === 'pull' ? 'PR' : 'issue'} number "${trimmed}" requires ${repoUrlEnvVar} in .env.local. ` +
+      `GitHub ${pathSegment === 'pull' ? 'PR' : 'issue'} ref "#${number}" requires ${repoUrlEnvVar} in .env.local. ` +
         'Alternatively, pass the full URL.',
     );
   }
@@ -102,7 +103,7 @@ function resolveGitHubBareNumber(target: string, env: EnvMapping, pathSegment: '
   }
 
   const [owner, repo] = pathSegments;
-  return `${parsedUrl.protocol}//${parsedUrl.hostname}/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/${pathSegment}/${trimmed}`;
+  return `${parsedUrl.protocol}//${parsedUrl.hostname}/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/${pathSegment}/${number}`;
 }
 
 function parseGitHubPrUrl(prUrl: string, expectedHostname = 'github.com'): GitHubPullRequestRef {
@@ -149,7 +150,7 @@ function parseGitHubIssueUrl(issueUrl: string, expectedHostname = 'github.com'):
 
 async function getGitHubPr(target: string, extra?: string, envMapping?: EnvMapping): Promise<unknown> {
   const env = envMapping ?? GITHUB_DEFAULT_ENV;
-  const resolvedTarget = resolveGitHubBareNumber(target, env, 'pull');
+  const resolvedTarget = resolveGitHubRef(target, env, 'pull');
   const hostname = getExpectedHostname(env);
   const apiBase = getApiBaseUrl(env);
   const parsed = parseGitHubPrUrl(resolvedTarget, hostname);
@@ -241,7 +242,7 @@ async function fetchGitHubLatestIssueComments(baseUrl: string, headers: Record<s
 
 async function getGitHubPrComments(target: string, extra?: string, envMapping?: EnvMapping): Promise<unknown> {
   const env = envMapping ?? GITHUB_DEFAULT_ENV;
-  const resolvedTarget = resolveGitHubBareNumber(target, env, 'pull');
+  const resolvedTarget = resolveGitHubRef(target, env, 'pull');
   const hostname = getExpectedHostname(env);
   const apiBase = getApiBaseUrl(env);
   const parsed = parseGitHubPrUrl(resolvedTarget, hostname);
@@ -274,7 +275,7 @@ async function getGitHubPrComments(target: string, extra?: string, envMapping?: 
 
 async function getGitHubIssue(target: string, extra?: string, envMapping?: EnvMapping): Promise<unknown> {
   const env = envMapping ?? GITHUB_DEFAULT_ENV;
-  const resolvedTarget = resolveGitHubBareNumber(target, env, 'issues');
+  const resolvedTarget = resolveGitHubRef(target, env, 'issues');
   const hostname = getExpectedHostname(env);
   const apiBase = getApiBaseUrl(env);
   const parsed = parseGitHubIssueUrl(resolvedTarget, hostname);
@@ -288,7 +289,7 @@ async function getGitHubIssue(target: string, extra?: string, envMapping?: EnvMa
 
 async function getGitHubIssueComments(target: string, extra?: string, envMapping?: EnvMapping): Promise<unknown> {
   const env = envMapping ?? GITHUB_DEFAULT_ENV;
-  const resolvedTarget = resolveGitHubBareNumber(target, env, 'issues');
+  const resolvedTarget = resolveGitHubRef(target, env, 'issues');
   const hostname = getExpectedHostname(env);
   const apiBase = getApiBaseUrl(env);
   const parsed = parseGitHubIssueUrl(resolvedTarget, hostname);
@@ -323,7 +324,7 @@ export const githubProvider: Provider = {
   },
   canHandleTarget(action: string, target: string): boolean {
     if (!(action in this.actions)) return false;
-    if (/^\d+$/.test(target)) return true;
+    if (/^#\d+$/.test(target)) return true;
 
     let url: URL;
     try {
@@ -347,22 +348,22 @@ export const githubProvider: Provider = {
     return false;
   },
   usageLines: (cmd) => [
-    `${cmd} github pr <pull-request-url|pr-number>`,
-    `${cmd} github comments <pull-request-url|pr-number> [count]`,
-    `${cmd} github issue <issue-url|issue-number>`,
-    `${cmd} github issue-comments <issue-url|issue-number> [count]`,
+    `${cmd} github pr <pull-request-url|#number>`,
+    `${cmd} github comments <pull-request-url|#number> [count]`,
+    `${cmd} github issue <issue-url|#number>`,
+    `${cmd} github issue-comments <issue-url|#number> [count]`,
   ],
   exampleLines: (cmd) => {
     const prUrl = process.env.EXAMPLE_GITHUB_PR_URL || 'https://github.com/owner/repo/pull/123';
     const issueUrl = process.env.EXAMPLE_GITHUB_ISSUE_URL || 'https://github.com/owner/repo/issues/456';
     return [
       `${cmd} github pr ${prUrl}`,
-      `${cmd} github pr 18  # requires GITHUB_REPO_URL=https://github.com/owner/repo in .env.local`,
+      `${cmd} github pr '#18'  # requires GITHUB_REPO_URL=https://github.com/owner/repo in .env.local`,
       `${cmd} github comments ${prUrl}`,
       `${cmd} github comments ${prUrl} 20`,
-      `${cmd} github comments 18  # bare number`,
+      `${cmd} github comments '#18'  # short ref`,
       `${cmd} github issue ${issueUrl}`,
-      `${cmd} github issue 1  # bare number`,
+      `${cmd} github issue '#1'  # short ref`,
       `${cmd} github issue-comments ${issueUrl}`,
       `${cmd} github issue-comments ${issueUrl} 20`,
     ];

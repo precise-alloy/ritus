@@ -15,7 +15,7 @@ const ADO_DEFAULT_ENV: EnvMapping = {
 type AzureDevOpsPullRequestRef = {
   organization: string;
   project: string;
-  repository: string;
+  repository?: string;
   pullRequestId: string;
 };
 
@@ -33,15 +33,47 @@ function adoHeaders(env: EnvMapping): RequestHeaders {
   };
 }
 
+function normalizeAdoOrg(raw: string): string {
+  try {
+    const url = new URL(raw);
+    const host = url.hostname.toLowerCase();
+    if (host === 'dev.azure.com') {
+      const firstSegment = url.pathname.split('/').filter(Boolean)[0];
+      return firstSegment ? decodeURIComponent(firstSegment) : raw;
+    }
+    if (host.endsWith('.visualstudio.com')) {
+      return host.replace('.visualstudio.com', '');
+    }
+  } catch { /* not a URL, use as-is */ }
+  return raw;
+}
+
+export { normalizeAdoOrg };
+
 function adoBaseUrl(org: string, project: string): string {
-  return `https://dev.azure.com/${encodeURIComponent(org)}/${encodeURIComponent(project)}`;
+  return `https://dev.azure.com/${encodeURIComponent(normalizeAdoOrg(org))}/${encodeURIComponent(decodeURIComponent(project))}`;
 }
 
 // ---------------------------------------------------------------------------
 // PR URL parsing (existing)
 // ---------------------------------------------------------------------------
 
-function parseAzureDevOpsPrUrl(prUrl: string): AzureDevOpsPullRequestRef {
+function parseAzureDevOpsPrUrl(prUrl: string, envMapping?: EnvMapping): AzureDevOpsPullRequestRef {
+  if (/^\d+$/.test(prUrl)) {
+    const env = envMapping ?? ADO_DEFAULT_ENV;
+    const orgEnvVar = env.org;
+    const projectEnvVar = env.project;
+    const org = process.env[orgEnvVar]?.trim();
+    const project = process.env[projectEnvVar]?.trim();
+    if (!org || !project) {
+      throw new Error(
+        `Bare PR ID "${prUrl}" requires ${orgEnvVar} and ${projectEnvVar} in .env.local. ` +
+          'Alternatively, pass the full PR URL.',
+      );
+    }
+    return { organization: normalizeAdoOrg(org), project: decodeURIComponent(project), pullRequestId: prUrl };
+  }
+
   let parsedUrl: URL;
   try {
     parsedUrl = new URL(prUrl);
@@ -148,10 +180,18 @@ function parseAdoWorkItemUrl(urlOrId: string, envMapping?: EnvMapping): AdoWorkI
 // PR actions
 // ---------------------------------------------------------------------------
 
+function adoPrUrl(parsed: AzureDevOpsPullRequestRef): string {
+  const base = adoBaseUrl(parsed.organization, parsed.project);
+  if (parsed.repository) {
+    return `${base}/_apis/git/repositories/${encodeURIComponent(parsed.repository)}/pullrequests/${encodeURIComponent(parsed.pullRequestId)}`;
+  }
+  return `${base}/_apis/git/pullrequests/${encodeURIComponent(parsed.pullRequestId)}`;
+}
+
 async function getAdoPr(target: string, extra?: string, envMapping?: EnvMapping): Promise<unknown> {
   const env = envMapping ?? ADO_DEFAULT_ENV;
-  const parsed = parseAzureDevOpsPrUrl(target);
-  const url = `${adoBaseUrl(parsed.organization, parsed.project)}/_apis/git/repositories/${encodeURIComponent(parsed.repository)}/pullrequests/${encodeURIComponent(parsed.pullRequestId)}?api-version=${ADO_API_VERSION}`;
+  const parsed = parseAzureDevOpsPrUrl(target, env);
+  const url = `${adoPrUrl(parsed)}?api-version=${ADO_API_VERSION}`;
 
   return {
     request: parsed,
@@ -177,9 +217,9 @@ function takeLatest<T>(items: T[], limit: number | undefined, dateKey: string): 
 
 async function getAdoPrThreads(target: string, extra?: string, envMapping?: EnvMapping): Promise<unknown> {
   const env = envMapping ?? ADO_DEFAULT_ENV;
-  const parsed = parseAzureDevOpsPrUrl(target);
+  const parsed = parseAzureDevOpsPrUrl(target, env);
   const limit = parseLimit(extra);
-  const url = `${adoBaseUrl(parsed.organization, parsed.project)}/_apis/git/repositories/${encodeURIComponent(parsed.repository)}/pullrequests/${encodeURIComponent(parsed.pullRequestId)}/threads?api-version=${ADO_API_VERSION}`;
+  const url = `${adoPrUrl(parsed)}/threads?api-version=${ADO_API_VERSION}`;
 
   const result = (await requestJson(url, adoHeaders(env))) as { count?: number; value?: unknown[] };
   const allThreads = (result?.value ?? []).map(sanitizeAdoPrThread);
@@ -298,6 +338,7 @@ export const adoProvider: Provider = {
     const workItemActions = new Set(['issue', 'comments', 'changelog']);
 
     if (prActions.has(action)) {
+      if (/^\d+$/.test(target)) return true;
       try {
         const url = new URL(target);
         return isAdoHost(url.hostname) && /\/_git\/[^/]+\/pullrequest\/\d+\/?$/i.test(url.pathname);

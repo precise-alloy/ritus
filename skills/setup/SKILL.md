@@ -95,28 +95,18 @@ Pre-fills: `docs/profiles/project.yml` fields `primary_language` and `framework`
 
 ---
 
-### Q5 — Git platform(s)
+### Q5 — Git platform
 
 Ask:
 
-> "Which **git platform(s)** does the team use? (comma-separated if multiple, e.g. 'GitHub, Azure DevOps')"
+> "Which **git platform** does this repo use?"
 
 Options: `GitHub` / `GitLab` / `Azure DevOps` / `Bitbucket` / `other`
 
-Accept one or more values.
+Record as: `{{GIT_PLATFORM}}`
 
-Record as: `{{GIT_PLATFORM}}` (first selection — scalar, backward compat) and `{{GIT_PLATFORMS}}` (list of all selections).
-(See Step 2 § backward compatibility for why both scalar and list fields are maintained.)
-When generating `docs/profiles/team.yml` `git_providers`, map platform labels to provider types (`GitHub` → `github`, `Azure DevOps` → `ado`).
-
-- **Single selection** (e.g. "GitHub"): set `{{GIT_PLATFORM}}` = `GitHub`, `{{GIT_PLATFORMS}}` = `["GitHub"]`.
-- **Multiple selections** (e.g. "GitHub, Azure DevOps"): set `{{GIT_PLATFORM}}` = first value (`GitHub`), `{{GIT_PLATFORMS}}` = `["GitHub", "Azure DevOps"]`.
-
-For each platform beyond the first, ask a follow-up:
-
-> "For **{platform}**, do you want to configure a named instance with custom env vars? (yes/no — default: no)"
-
-If yes, capture instance name and env var overrides per the `git_providers` structure shown in `skills/shared/remote-api-access.md` § Multi-instance env configuration.
+No `git_providers` section is generated in team.yml — the dispatcher creates a default instance automatically
+using standard env var names (`GITHUB_TOKEN`, `AZURE_DEVOPS_READONLY_PAT`, etc.).
 
 Drives: PR template format, branch convention details, `git_providers` list in team.yml.
 
@@ -178,32 +168,54 @@ Drives: model routing table in `docs/profiles/runtime.yml`.
 
 Ask:
 
-> "Does the team use a **ticket/issue tracker**? If yes, list all ticket systems and their key prefix formats.
-> (e.g. 'Jira: PROJ, CORE' · 'GitHub Issues: #' · 'ADO: #' · 'none')"
->
-> "If you use **multiple ticket systems**, list each on a separate line or comma-separated. Example:
-> 'Jira with prefixes PROJ and CORE, and GitHub Issues for this repo'"
+> "Does the team use a **ticket/issue tracker**? Select all that apply.
+> (Jira · Azure DevOps · GitHub Issues · none)"
 
 Accept one or more ticket systems. For each, capture:
 - **type**: `jira` / `github` / `ado`
-- **key prefixes**: the prefix patterns used (e.g. `PROJ`, `CORE`, `#`)
-- **instance name**: a human-friendly label (e.g. `default`, `primary`, `external`) — always set (use `default` for single-instance setups)
 
 Record primary format as: `{{TICKET_FORMAT}}` (scalar, backward compat — use the first ticket system's format, e.g. `PROJ-123` or `#123`; set to `none` if no systems).
 
-Note: For GitHub Issues, fetching requires a full issue URL (e.g. `https://github.com/owner/repo/issues/123`) since `#123` alone lacks repo context.
+Note: GitHub Issues uses `#`-prefixed numbers (e.g. `#18`) for short refs, which requires `GITHUB_REPO_URL` in `.env.local`. Full URLs (e.g. `https://github.com/owner/repo/issues/123`) also work without `GITHUB_REPO_URL`.
 
-Record full list as: `{{TICKET_PROVIDERS}}` (list of all configured systems with type/name/key_prefixes).
+After collecting the list, for each selected ticket system ask:
 
-- **Single system** (e.g. "Jira: PROJ"): set `{{TICKET_FORMAT}}` = `PROJ-123`, `{{TICKET_PROVIDERS}}` = `[{type: jira, name: default, key_prefixes: ["PROJ"]}]`.
-- **Multiple systems** (e.g. "Jira: PROJ, CORE and GitHub Issues: #"): set `{{TICKET_FORMAT}}` = `PROJ-123` (first system's format), `{{TICKET_PROVIDERS}}` = `[{type: jira, name: primary, key_prefixes: ["PROJ", "CORE"]}, {type: github, name: default}]`.
+> "Do you have **multiple instances** of **{type}**? (e.g., two Jira servers, or multiple ADO orgs)
+> (yes/no — default: no)"
+
+#### Single instance (default)
+
+No further questions needed. Record as: `{{TICKET_PROVIDERS}}` entry with `name: default`, no `key_prefixes`, no `env`.
+Routing works by target format: `PROJ-123` → Jira, `340796` → ADO, `#18` → GitHub.
+
+- **Single system** (e.g. "Jira"): set `{{TICKET_FORMAT}}` = `PROJ-123`, `{{TICKET_PROVIDERS}}` = `[{type: jira, name: default}]`.
+- **Multiple systems** (e.g. "Jira and GitHub Issues"): set `{{TICKET_FORMAT}}` = `PROJ-123`, `{{TICKET_PROVIDERS}}` = `[{type: jira, name: default}, {type: github, name: default}]`.
 - **None**: set `{{TICKET_FORMAT}}` = `none`, `{{TICKET_PROVIDERS}}` = `[]`.
 
-For Jira systems with multiple instances (same type, different servers), ask:
+#### Multiple instances
 
-> "For the **{name}** Jira instance, do you want to configure custom env var names? (yes/no — default: no, uses JIRA_BASE_URL / JIRA_PAT / JIRA_EMAIL)"
+Key prefixes and custom env vars are per-instance — they enable routing between instances of the same type.
 
-If yes, capture the env var mapping per the `ticket_providers[].env` structure shown in `skills/shared/remote-api-access.md` § Multi-instance env configuration.
+For each instance ask:
+
+> "What **name** should this instance have? (e.g., 'primary', 'external', 'backend')"
+>
+> "What **key prefixes** does this instance use? (comma-separated)" (Jira only — e.g., 'AMPS' for the first, 'AMP' for the second)
+
+The first instance uses default env var names. For additional instances, ask:
+
+> "What **custom env var names** should this instance use for settings that differ from the first instance?"
+> (Shared credentials like tokens/PATs can reuse the same env var — only instance-specific settings like base URLs need unique names.)
+
+Example with two Jira instances (same Atlassian account, different projects):
+```
+{{TICKET_PROVIDERS}} = [
+  {type: jira, name: primary, key_prefixes: ["AMPS"]},
+  {type: jira, name: maintenance, key_prefixes: ["AMP"], env: {base_url: JIRA_AMP_BASE_URL}}
+]
+```
+The primary instance uses default env vars (`JIRA_BASE_URL`, `JIRA_PAT`, `JIRA_EMAIL`). The maintenance instance
+overrides only `base_url` — `pat` and `email` fall through to the defaults (same Atlassian account).
 
 Drives: branch naming format, `ticket_providers` list in team.yml.
 
@@ -373,15 +385,10 @@ Leave empty for repo-scan or first work session:
 Fill these fields:
 
 - `team_size`, `git_platform`, `git_flow`, `workflow_owner`, `ticket_format`, `qa_mode`
-- `git_platforms` (list) — always populate from `{{GIT_PLATFORMS}}`
-- `ticket_providers` (list) — always populate from `{{TICKET_PROVIDERS}}`; omit (or leave commented) when empty
-- `git_providers` (list) — populate when multiple git platforms are configured or when any platform has custom env vars; only GitHub and ADO are supported by `remote-api.ts` (other platforms such as GitLab or Bitbucket are not recognized and will produce warnings); omit (or leave commented) for single-platform setups with default env vars
+- `ticket_providers` (list) — populate from `{{TICKET_PROVIDERS}}`; omit (or leave commented) when empty
+- Do NOT generate `git_providers` — the dispatcher creates a default instance automatically from the git platform's standard env vars. Git platforms are always single-instance.
 - Derived fields: `memory_expiry_days`, `branch_format`, `tasks_path_convention`, `pr_reviewers`,
   `default_base_branch`, `traceability_policy` (use derivation rules from § Derived values above)
-
-**Backward compatibility:** Always fill the scalar fields (`git_platform`, `ticket_format`) with the primary
-(first) value, even when list fields are populated. This ensures older skill versions that read only the scalar
-fields continue to work.
 
 ### Step 3: Fill `docs/profiles/runtime.yml`
 

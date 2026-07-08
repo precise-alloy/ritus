@@ -3,7 +3,7 @@
 import { loadLocalEnv, requireEnv } from './providers/http.ts';
 import type { EnvCheckResult, EnvKeyStatus, EnvMapping, Provider, ProviderEnvStatus, ProviderInstance, ProviderInstanceConfig } from './providers/types.ts';
 import { jiraProvider } from './providers/provider-jira.ts';
-import { adoProvider } from './providers/provider-ado.ts';
+import { adoProvider, normalizeAdoOrg } from './providers/provider-ado.ts';
 import { githubProvider } from './providers/provider-github.ts';
 
 const PROVIDERS: Provider[] = [jiraProvider, adoProvider, githubProvider];
@@ -309,8 +309,8 @@ function canGitHubInstanceHandle(instance: ProviderInstance, action: string, tar
   // Delegate path-pattern matching to the provider
   if (!instance.provider.canHandleTarget(action, target)) return false;
 
-  // Handle bare numbers: check if repo_url env var is set and hostname matches
-  if (/^\d+$/.test(target)) {
+  // Handle #-prefixed numbers (e.g., #18): check if repo_url env var is set and hostname matches
+  if (/^#\d+$/.test(target)) {
     const repoUrlEnvVar = instance.envMapping.repo_url;
     if (!repoUrlEnvVar) return false;
     const repoUrl = process.env[repoUrlEnvVar]?.trim();
@@ -350,21 +350,6 @@ function getExpectedGitHubHostname(envMapping: EnvMapping): string {
     }
   }
   return 'github.com';
-}
-
-function normalizeAdoOrg(raw: string): string {
-  try {
-    const url = new URL(raw);
-    const host = url.hostname.toLowerCase();
-    if (host === 'dev.azure.com') {
-      const firstSegment = url.pathname.split('/').filter(Boolean)[0];
-      return firstSegment ? decodeURIComponent(firstSegment) : raw;
-    }
-    if (host.endsWith('.visualstudio.com')) {
-      return host.replace('.visualstudio.com', '');
-    }
-  } catch { /* not a URL, use as-is */ }
-  return raw;
 }
 
 function canAdoInstanceHandle(instance: ProviderInstance, action: string, target: string): boolean {
@@ -480,6 +465,7 @@ function printUsage(): void {
   const exampleLines = PROVIDERS.flatMap((p) => p.exampleLines(cmd));
   console.error(`Usage:
   ${cmd} check-env
+  ${cmd} generate-env
 
   Provider-agnostic (auto-detect):
     ${cmd} <action> <target> [extra]
@@ -487,8 +473,38 @@ function printUsage(): void {
   Explicit provider:
 ${usageLines.map((l) => '    ' + l).join('\n')}
 
+  Target formats:
+    Jira:       PROJ-123 (key prefix routes to correct instance)
+    ADO:        340796 (bare number) or full work item URL
+    GitHub:     #18 (requires GITHUB_REPO_URL) or full PR/issue URL
+
 Examples:
-${exampleLines.map((l) => '  ' + l).join('\n')}`);
+${exampleLines.map((l) => '  ' + l).join('\n')}
+
+  Auto-detect (provider inferred from target format):
+    ${cmd} issue AMPS-123                    # → Jira (key prefix match)
+    ${cmd} issue 340796                      # → ADO (bare number)
+    ${cmd} pr '#18'                          # → GitHub (#-prefixed number)
+    ${cmd} comments '#18'                    # → GitHub PR comments
+
+  Multi-instance (configured via docs/profiles/team.yml):
+    # Two Jira instances with different key prefixes:
+    #   ticket_providers:
+    #     - type: jira
+    #       name: primary
+    #       key_prefixes: ["AMPS", "AMP"]
+    #     - type: jira
+    #       name: external
+    #       key_prefixes: ["EXT"]
+    #       env:
+    #         base_url: JIRA_EXT_BASE_URL
+    #         pat: JIRA_EXT_PAT
+    #         email: JIRA_EXT_EMAIL
+    ${cmd} issue AMPS-123                    # → Jira (primary)
+    ${cmd} issue EXT-456                     # → Jira (external)
+
+  Generate .env.example from team.yml:
+    ${cmd} generate-env > .env.example`);
 }
 
 function checkProviderEnv(provider: Provider): ProviderEnvStatus {
@@ -585,6 +601,46 @@ async function runCheckEnv(): Promise<void> {
   process.exit(0);
 }
 
+async function runGenerateEnv(): Promise<void> {
+  const { instances, hasTeamConfig } = await loadInstances();
+  const lines: string[] = [
+    '# Generated from provider registry' + (hasTeamConfig ? ' + docs/profiles/team.yml' : ''),
+    '# Copy to .env.local and fill in values',
+    '',
+  ];
+
+  const seen = new Set<string>();
+  for (const inst of instances) {
+    const { provider, config, envMapping } = inst;
+    const isCustom = config.name !== 'default';
+    const header = isCustom ? `${provider.label} (${config.name})` : provider.label;
+
+    lines.push(`# ${header}`);
+
+    const requiredSet = new Set(provider.requiredEnvKeys);
+    for (const [logicalKey, envVarName] of Object.entries(envMapping)) {
+      if (seen.has(envVarName)) continue;
+      seen.add(envVarName);
+      const defaultVar = provider.defaultEnvMapping[logicalKey];
+      const isRequired = (defaultVar && requiredSet.has(defaultVar)) || requiredSet.has(envVarName);
+      if (!isRequired) lines.push(`# Optional: ${logicalKey}`);
+      lines.push(`${envVarName}=`);
+    }
+
+    if (provider.name === 'github') {
+      if (!seen.has('GH_TOKEN')) {
+        seen.add('GH_TOKEN');
+        lines.push('# Optional: alternative token name used by GitHub CLI');
+        lines.push('GH_TOKEN=');
+      }
+    }
+
+    lines.push('');
+  }
+
+  console.log(lines.join('\n'));
+}
+
 async function main(): Promise<void> {
   await loadLocalEnv();
 
@@ -603,6 +659,11 @@ async function main(): Promise<void> {
 
   if (firstArg === 'check-env') {
     await runCheckEnv();
+    return;
+  }
+
+  if (firstArg === 'generate-env') {
+    await runGenerateEnv();
     return;
   }
 
@@ -721,6 +782,17 @@ async function main(): Promise<void> {
       }
       console.error(`\nTo use a specific provider: ${getScriptCmd()} <provider> ${action} ${target}`);
       process.exit(2);
+    }
+
+    if (candidates.length > 1) {
+      const isShortRef = /^\d+$/.test(target) || /^#\d+$/.test(target);
+      if (isShortRef) {
+        const firstByType = new Map<string, ProviderInstance>();
+        for (const c of candidates) {
+          if (!firstByType.has(c.provider.name)) firstByType.set(c.provider.name, c);
+        }
+        candidates.splice(0, candidates.length, ...firstByType.values());
+      }
     }
 
     if (candidates.length > 1) {

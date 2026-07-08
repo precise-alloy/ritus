@@ -32,18 +32,27 @@ bun run "<plugin-root>/scripts/remote-api.ts" <action> <target> [extra]
 Examples:
 
 ```bash
-bun run "<plugin-root>/scripts/remote-api.ts" pr "https://github.com/owner/repo/pull/42"
-bun run "<plugin-root>/scripts/remote-api.ts" pr "https://dev.azure.com/org/proj/_git/repo/pullrequest/1"
-bun run "<plugin-root>/scripts/remote-api.ts" issue "PROJ-123"
-bun run "<plugin-root>/scripts/remote-api.ts" issue "https://github.com/owner/repo/issues/7"
-bun run "<plugin-root>/scripts/remote-api.ts" comments "PROJ-123"
-bun run "<plugin-root>/scripts/remote-api.ts" comments "https://github.com/owner/repo/pull/42" 10
+bun run "<plugin-root>/scripts/remote-api.ts" issue "PROJ-123"                                  # Jira (key prefix)
+bun run "<plugin-root>/scripts/remote-api.ts" issue 340796                                      # ADO (bare number)
+bun run "<plugin-root>/scripts/remote-api.ts" pr '#18'                                          # GitHub (#-prefixed)
+bun run "<plugin-root>/scripts/remote-api.ts" pr "https://github.com/owner/repo/pull/42"        # GitHub (full URL)
+bun run "<plugin-root>/scripts/remote-api.ts" pr "https://dev.azure.com/org/proj/_git/repo/pullrequest/1"  # ADO (full URL)
+bun run "<plugin-root>/scripts/remote-api.ts" comments "PROJ-123"                               # Jira comments
+bun run "<plugin-root>/scripts/remote-api.ts" comments '#18' 10                                 # GitHub PR comments
 ```
+
+Target format conventions (no ambiguity between providers):
+
+| Provider | Short ref format | Example |
+|----------|-----------------|---------|
+| Jira | Key prefix | `PROJ-123` |
+| ADO | Bare number | `340796` |
+| GitHub | `#` prefix (requires `GITHUB_REPO_URL` in `.env.local`) | `'#18'` (quotes required — `#` is a shell comment character) |
 
 Auto-detection logic:
 
 1. Filters to providers with valid credentials (`.env.local` keys present).
-2. Filters further to providers whose `canHandleTarget(action, target)` returns true (URL hostname / key pattern match).
+2. Filters further to providers whose `canHandleTarget(action, target)` returns true (URL hostname / key pattern / `#` prefix match).
 3. Exactly 1 match: uses that provider. 0 matches: actionable error listing configured providers. >1 match: ambiguous error with explicit disambiguation commands.
 
 ## Explicit provider (override)
@@ -83,10 +92,10 @@ bun run "<plugin-root>/scripts/remote-api.ts" ado comments <WORK_ITEM_URL_OR_ID>
 bun run "<plugin-root>/scripts/remote-api.ts" ado changelog <WORK_ITEM_URL_OR_ID>    # work item updates
 
 # GitHub
-bun run "<plugin-root>/scripts/remote-api.ts" github pr <PR_URL>                     # PR metadata
-bun run "<plugin-root>/scripts/remote-api.ts" github comments <PR_URL> [count]       # PR review comments
-bun run "<plugin-root>/scripts/remote-api.ts" github issue <ISSUE_URL>               # issue details
-bun run "<plugin-root>/scripts/remote-api.ts" github issue-comments <ISSUE_URL> [count]  # issue comments
+bun run "<plugin-root>/scripts/remote-api.ts" github pr <PR_URL_OR_#NUMBER>              # PR metadata
+bun run "<plugin-root>/scripts/remote-api.ts" github comments <PR_URL_OR_#NUMBER> [count]  # PR review comments
+bun run "<plugin-root>/scripts/remote-api.ts" github issue <ISSUE_URL_OR_#NUMBER>          # issue details
+bun run "<plugin-root>/scripts/remote-api.ts" github issue-comments <ISSUE_URL_OR_#NUMBER> [count]  # issue comments
 ```
 
 ## URL parsing
@@ -119,13 +128,17 @@ Bare numeric IDs (e.g. `12345`) are also accepted when `AZURE_DEVOPS_ORG` and `A
 
 ```text
 https://github.com/<owner>/<repo>/pull/<number>
+#<number>                                         # requires GITHUB_REPO_URL in .env.local
 ```
 
 ### GitHub Issue URLs
 
 ```text
 https://github.com/<owner>/<repo>/issues/<number>
+#<number>                                         # requires GITHUB_REPO_URL in .env.local
 ```
+
+The `#` prefix resolves via `GITHUB_REPO_URL` (e.g., `https://github.com/owner/repo`) to construct the full URL.
 
 If a needed call is missing from the helper, stop and ask the user before falling back to anything else. Extending the helper is preferred over working around it.
 
@@ -149,9 +162,17 @@ AZURE_DEVOPS_PROJECT=
 GITHUB_TOKEN=
 # Optional: alternative token name used by GitHub CLI
 GH_TOKEN=
+# Optional: for #-prefixed short refs (e.g., #18 → https://github.com/owner/repo/pull/18)
+GITHUB_REPO_URL=
 ```
 
 Not all providers need to be configured — only the ones the project uses. `check-env` reports which providers are configured; the helper validates the required keys for the invoked provider before dispatch.
+
+To generate a tailored `.env.example` from the project's `team.yml` provider config:
+
+```bash
+bun run "<plugin-root>/scripts/remote-api.ts" generate-env > .env.example
+```
 
 Before fetching remote data, always run the sanctioned env check via Bun. Do not use `Test-Path`, `Get-Content`, `cat .env.local`, or any other ad-hoc check.
 
