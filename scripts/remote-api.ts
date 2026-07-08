@@ -734,7 +734,7 @@ async function main(): Promise<void> {
       console.error(`No configured provider can handle: ${action} ${target}`);
 
       // Helpful hint: bare numeric targets are Azure DevOps work item IDs and require org/project context.
-      if (/^\d+$/.test(target) && ['issue', 'comments', 'changelog'].includes(action)) {
+      if (/^\d+$/.test(target) && ['issue', 'comments', 'changelog', 'pr'].includes(action)) {
         const ado = instances.find((i) => i.provider.name === 'ado');
         if (ado && checkInstanceEnv(ado).ok) {
           const orgVar = ado.envMapping.org ?? 'AZURE_DEVOPS_ORG';

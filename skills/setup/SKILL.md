@@ -68,7 +68,7 @@ Record as: `{{TEAM_SIZE}}`
 
 Drives: tasks/ naming, PR reviewer count, memory expiry, setup question scope.
 
-**If `solo`: skip Q5, Q9, Q10 — auto-derive defaults (both scalar and list fields are populated) and continue to Q4.**
+**If `solo`: skip Q5, Q9, Q10 — auto-derive defaults and continue to Q4**
 
 | Auto-derived for solo      | Value                  |
 |----------------------------|------------------------|

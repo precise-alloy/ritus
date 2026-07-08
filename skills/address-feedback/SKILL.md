@@ -51,17 +51,10 @@ Fetch PR metadata (provider is auto-detected from the URL):
 bun run "<plugin-root>/scripts/remote-api.ts" pr "<PR_URL>"
 ```
 
-For review comments, the action name varies by provider:
-
-- **GitHub:** `comments` — returns inline review comments and general PR conversation comments.
-- **Azure DevOps:** `pr-threads` — returns review threads with status and file context.
+For review comments (GitHub only):
 
 ```bash
-# GitHub PRs
 bun run "<plugin-root>/scripts/remote-api.ts" comments "<PR_URL>" [count]
-
-# Azure DevOps PRs
-bun run "<plugin-root>/scripts/remote-api.ts" pr-threads "<PR_URL>" [count]
 ```
 
 If auto-detection fails, fall back to explicit provider syntax (e.g., `github pr`, `ado pr`).

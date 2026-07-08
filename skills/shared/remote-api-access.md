@@ -86,7 +86,6 @@ bun run "<plugin-root>/scripts/remote-api.ts" jira attachment-download <KEY_OR_U
 
 # Azure DevOps (ADO)
 bun run "<plugin-root>/scripts/remote-api.ts" ado pr <PR_URL>                        # PR metadata
-bun run "<plugin-root>/scripts/remote-api.ts" ado pr-threads <PR_URL> [count]        # PR review threads
 bun run "<plugin-root>/scripts/remote-api.ts" ado issue <WORK_ITEM_URL_OR_ID> [fields]  # work item details
 bun run "<plugin-root>/scripts/remote-api.ts" ado comments <WORK_ITEM_URL_OR_ID>     # work item comments
 bun run "<plugin-root>/scripts/remote-api.ts" ado changelog <WORK_ITEM_URL_OR_ID>    # work item updates
