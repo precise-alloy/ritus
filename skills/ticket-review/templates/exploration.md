@@ -1,6 +1,7 @@
 # Exploration Log Template
 
-Create `docs/tasks/{branch-slug}/exploration.md` when the first task on a branch starts.
+Create `docs/tasks/{branch-slug}/exploration.md` during requirement analysis — `requirement-analysis` seeds it, and
+ticket-review creates it for the SIMPLE inline path. It must exist before the first task on a branch starts.
 
 This file is **append-only** — subagents add entries, never modify or remove existing ones. Safe for parallel agents.
 

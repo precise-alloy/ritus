@@ -2,6 +2,7 @@
 name: testing-policy
 description: Loaded automatically by execute-task and verify-task for new services, endpoints, workers, or bug fixes — test type rules and coverage requirements. Do not invoke standalone
 argument-hint: Provide the changed area and the type of behavior that needs validation
+user-invocable: false
 ---
 
 # Testing Policy
@@ -72,7 +73,6 @@ patterns), load it alongside this skill for concrete patterns, APIs, and code ex
 See `docs/PROJECT_CONTEXT.md` build commands section. If `docs/PROJECT_CONTEXT.md` or `docs/TEST_CONVENTIONS.md`
 don't exist yet, use reasonable defaults for the detected stack and flag missing docs in your report.
 
-## Next
+## Handoff
 
-This is a companion skill — it does not chain to another skill. Return to the parent skill (execute-task or
-verify-task) that loaded it.
+- **Report:** the standard applied to the parent skill's work.

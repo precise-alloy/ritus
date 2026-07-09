@@ -1,7 +1,7 @@
 ---
 name: debug
 description: Use when investigating bugs, test failures, or unexpected behavior — 4-phase investigation with evidence grading before any fix. TRIGGER — invoke when user mentions bug, broken, failing, error, crash, not working
-argument-hint: Provide the symptom, exact error/log output, reproduction steps, and recent changes
+argument-hint: Provide the symptom, exact error/log output, reproduction steps, recent changes, and any linked ticket URL/key
 ---
 
 # Debug
@@ -16,7 +16,7 @@ Any bug, test failure, unexpected behavior, or issue investigation. Load this sk
 **Especially** when under time pressure, when a "quick fix" is tempting, when prior fixes have failed, or when the
 issue isn't fully understood.
 
-When starting debug, create this TODO and mark items as you complete them:
+When starting debug, create this TODO — **every item below, verbatim** (never a single item named after the skill) — and mark items done as you complete them:
 
 TODO:
 
@@ -24,8 +24,11 @@ TODO:
 - [ ] Phase 1: Root cause investigation
 - [ ] Phase 2: Pattern analysis
 - [ ] Phase 3: Hypothesis and testing
-- [ ] Phase 4: Fix and verify
-- [ ] Run pr-review
+- [ ] Phase 4: Present the case file + proposed fix — get user approval
+- [ ] Load `dispatch.md`, then apply the fix — dispatch execute-task subagent
+- [ ] Verify the fix — dispatch verify-task subagent
+- [ ] Run pr-review — dispatch pr-review subagent
+- [ ] If pr-review approves: invoke wrap-up
 ```
 
 ## Iron law
@@ -35,6 +38,13 @@ TODO:
 Phase 1 must complete before any fix is proposed. Violating this wastes more time than following it.
 
 ## Phase 1: Root Cause Investigation (hard gate — must complete before Phase 2)
+
+**If the bug is linked to a ticket** (a URL/key was provided or is named in the symptom), fetch it first via
+`remote-api-access.md` in the `shared` skill directory — the single mechanism for fetching ticket data (it
+auto-detects the provider). Pull the reported symptom, reproduction steps, expected-vs-actual behavior, comments, and
+any attached screenshots or logs to ground the investigation. Treat it as *reported* context, not confirmed fact —
+reproduce and confirm the actual behavior yourself (1.2), and grade a ticket claim no higher than Hypothesized until
+you verify it. Skip this when no ticket is involved.
 
 ### 1.1 Read error messages carefully
 
@@ -174,49 +184,33 @@ Grade: Confirmed | Deduced | Hypothesized
 <test that would have caught this — becomes part of DONE WHEN>
 ```
 
-For SIMPLE+, this case file is referenced in the task file's CONTEXT section. For TRIVIAL, it's optional — commit
+This case file **is** the task artifact for the fix — the dispatched execute-task and verify-task read its
+`Proposed Fix` as the STEPS and its `Regression Test` as the DONE WHEN. For TRIVIAL bugs it's optional — the commit
 message captures the root cause.
 
 ---
 
-## Phase 4: Fix and Verify
+## Phase 4: Approve the fix, then dispatch it
 
-**Present the investigation case file and proposed fix to the user and wait for approval before applying any
-changes.** The user may approve, adjust the approach, or ask for alternatives. Do NOT proceed until the user
+**Present the investigation case file and proposed fix to the user and wait for approval before any change is
+applied.** The user may approve, adjust the approach, or ask for alternatives — proceed only after the user
 explicitly approves.
 
-### 4.1 Create failing test case
+Once approved, the fix is **implemented by a dispatched `execute-task` subagent**, not inline — you investigated, so a
+fresh context applies the fix and another fresh context (verify-task) checks it. The investigation case file is the
+task artifact it consumes: `Proposed Fix` is the STEPS, `Regression Test` is the DONE WHEN. execute-task writes the
+failing test and applies the single fix red-green (it loads `tdd` for bug fixes); verify-task then verifies it
+independently. Your job here ends at handing the case file to the dispatch, per the TODO.
 
-Write a test that reproduces the bug. Must fail before the fix, pass after. Reference the `testing-policy` skill for
-test conventions.
+### Escalation — when the fix loop can't converge
 
-### 4.2 Apply a single fix
+The verify → fix cycle runs through the dispatch (verify FAIL → `execute-task` → re-verify), bounded by the circuit
+breaker in `dispatch.md`. When that breaker trips — the same finding recurs, or several cycles pass without a clean
+state — treat it as an architectural problem, not another fix attempt. Signs: each fix reveals new issues elsewhere,
+the fix needs massive refactoring, or it creates new symptoms.
 
-Fix the root cause directly. One fix, one variable. Do not bundle improvements or "while I'm here" refactoring.
-
-After applying the fix:
-
-1. Run the failing test — it must now pass.
-2. Run the full test suite — no regressions.
-3. Run the build — it must succeed.
-
-If the fix fails, return to Phase 3 with new information. Form a new hypothesis. Do NOT layer additional fixes on top.
-
-### 4.3 Escalation gate — 3 failed fixes
-
-If 3 fix attempts have failed, **stop**.
-
-This is no longer a bug — it's likely an architectural problem. Signs:
-
-- Each fix reveals new issues elsewhere.
-- Fix requires massive refactoring.
-- Fix creates new symptoms.
-
-**Action**: stop fixing. Document findings. Discuss with the user before any further attempts. The architecture may
-need to change, not the code.
-
-Write a `DECISION-NNN` entry to `docs/DECISIONS.md` documenting the architectural finding — what was discovered,
-why the current approach fails, and what alternatives should be considered.
+**Action:** stop the loop and discuss with the user. Write a `DECISION-NNN` entry to `docs/DECISIONS.md` capturing the
+architectural finding — what was discovered, why the current approach fails, and what alternatives to consider.
 
 ---
 
@@ -242,14 +236,19 @@ Create `docs/tasks/{branch-slug}/exploration.md` if it doesn't exist, using the 
 
 ## Output
 
-After completing all four phases, the skill produces:
+After the investigation phases and the approval gate, the skill produces:
 
-1. **Investigation case file** — `docs/tasks/{branch-slug}/investigation-{slug}.md`
-2. **The fix itself** — applied, tested
+1. **Investigation case file** — `docs/tasks/{branch-slug}/investigation-{slug}.md` — the task artifact for the fix.
+2. **An approved fix, dispatched** — implemented by the `execute-task` subagent and checked by verify-task, per the TODO.
 
-## Next
+## Handoff
 
-Report the fix: root cause, what changed, and test results. Do NOT commit — the user decides when to commit.
+- **Report:** the root cause and the approved proposed fix — report only; the fix is applied by the dispatched
+  execute-task subagent, and the user decides on committing.
+- **TODO update:** the generated gates run next — `Apply the fix — dispatch execute-task subagent`, then
+  `Verify the fix — dispatch verify-task subagent`, then `Run pr-review — dispatch pr-review subagent`, then
+  `invoke wrap-up` once pr-review approves. The **investigation case file** is the task artifact those gates consume —
+  its `Proposed Fix` is the STEPS and its `Regression Test` is the DONE WHEN; the fix's execute-task and verify-task
+  both read it as the task file.
 
-After the fix is verified, dispatch a fresh subagent (model: haiku, effort: medium) to run the `verify-task` skill for
-adversarial review of the changes.
+Load `dispatch.md` in the `shared` skill directory for the dispatch rule.

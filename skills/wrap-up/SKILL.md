@@ -13,7 +13,7 @@ argument-hint: Provide the branch slug and pr-review verdict
 After pr-review returns an Approve verdict. If pr-review has not run or the verdict is not Approve, stop and instruct the user to run pr-review first.
 This is the terminal skill in the workflow chain — it ensures post-implementation cleanup happens instead of being forgotten.
 
-When starting wrap-up, create this TODO and mark items as you complete them:
+When starting wrap-up, create this TODO — **every item below, verbatim** (never a single item named after the skill) — and mark items done as you complete them:
 
 TODO:
 
@@ -83,6 +83,6 @@ Report to the user:
 - Never modify existing doc content when promoting — append only.
 - If doc updates are missing, report them — do not apply them yourself. The execute-task subagent owns implementation.
 
-## Next
+## Handoff
 
-This is the terminal skill. After reporting, the workflow is complete. The user decides when to commit and merge.
+- **Report:** final status (exploration promoted, doc updates verified, address-feedback rounds).

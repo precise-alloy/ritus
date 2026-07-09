@@ -19,7 +19,7 @@ Implement directly. Log in commit message only.
 
 ## VERIFY
 
-After implementation, dispatch a fresh `verify-task` subagent (model: haiku, effort: medium). Do not self-verify.
+Verified fresh by a verify-task subagent.
 ```
 
 ## STANDARD / EPIC — full task file
@@ -80,10 +80,8 @@ none | Add a new <resource> | Add a new endpoint | ...
 
 ## VERIFY
 
-After implementation, dispatch a fresh `verify-task` subagent (model: haiku, effort: medium) to independently verify
-DONE WHEN conditions. Do not self-verify — the reviewer must have a clean context.
-If verification fails, dispatch `execute-task` (fresh subagent) to fix the gaps,
-then dispatch a new `verify-task` subagent to re-verify. Repeat until PASS.
+Verified fresh by a verify-task subagent, in a clean context — never the
+implementer's. On FAIL, dispatch an execute-task subagent then a verify-task subagent until it passes.
 
 ## DOC UPDATE
 

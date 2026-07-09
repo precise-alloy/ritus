@@ -31,7 +31,7 @@ flowchart TD
     Report -->|"Done"| TrivialDone(["🧑 human commits"])
     Report -->|"Follow-up changes"| InputType
 
-    Class -->|SIMPLE| GT["ticket-review"]
+    Class -->|SIMPLE| GT["ticket-review\n(STANDARD/EPIC → requirement-analysis 🤖)"]
     Class -->|STANDARD| GT
     Class -->|EPIC| GT
 
@@ -51,23 +51,16 @@ flowchart TD
     Done -->|"PR has review comments"| AF
     HumanFinal -->|"Follow-up changes"| InputType
     Verdict -->|"Request changes"| FixTask["Create SIMPLE fix task\nfrom review findings"]
-    FixTask --> FixExec["execute-task subagent\n→ verify-task subagent"]
+    FixTask --> FixExec["main thread walks fix TODO:\ndispatch execute-task, then verify-task"]
     FixExec --> CR
 
-    AF --> AFFilter["Filter actionable comments\n🧑 user approves list"]
-    AFFilter --> AFTask["Generate fix task\n(round N)"]
-    AFTask --> AFExec["execute-task subagent\n→ verify-task subagent"]
-    AFExec --> AFRecheck{"pr-review\nre-check?"}
-    AFRecheck -->|"Yes"| AFReview["pr-review 🤖 sonnet subagent"]
-    AFReview --> AFWrapUp["wrap-up\n(promote exploration, verify docs)"]
-    AFRecheck -->|"No / Skip"| AFWrapUp
-    AFWrapUp --> AFCommit["Local commit\n(no push)"]
-    AFCommit --> AFDone(["🧑 Human reviews\n+ pushes"])
+    AF --> AFRound["Address-feedback round\n(see Diagram 4)"]
+    AFRound --> AFDone(["🧑 Human reviews\n+ pushes"])
     AFDone -->|"More review comments"| AF
 
     DB --> DBPhases["4-phase investigation\n(see Diagram 3)"]
     DBPhases --> DBInvestigationApproval{"🧑 User approves\ninvestigation + fix?"}
-    DBInvestigationApproval -->|"Approve"| DBFix["Fix applied + tested\nin same session"]
+    DBInvestigationApproval -->|"Approve"| DBFix["Apply the fix\n🤖 execute-task subagent\n(case file = task artifact)"]
     DBInvestigationApproval -->|"Adjust"| DBPhases
     DBFix --> DBVerify["verify-task 🤖 haiku\n(fresh subagent)"]
     DBVerify --> CR
@@ -84,11 +77,11 @@ flowchart TD
     Start(["Execution plan from\nticket-review"]) --> NextGroup["Pick next group"]
 
     NextGroup --> GroupType{"Group type?"}
-    GroupType -->|"Parallel"| ParExec["Dispatch multiple\nexecute-task subagents\nsimultaneously"]
-    GroupType -->|"Sequential"| SeqExec["Dispatch single\nexecute-task subagent"]
+    GroupType -->|"Parallel"| ParExec["Main thread dispatches\nmultiple execute-task subagents\nsimultaneously"]
+    GroupType -->|"Sequential"| SeqExec["Main thread dispatches\nsingle execute-task subagent"]
 
-    ParExec --> ParVerify["verify-task 🤖 haiku\n(fresh subagent per task)"]
-    SeqExec --> SeqVerify["verify-task 🤖 haiku\n(fresh subagent per task)"]
+    ParExec --> ParVerify["dispatch verify-task 🤖\nfresh subagent per task"]
+    SeqExec --> SeqVerify["dispatch verify-task 🤖\nfresh subagent per task"]
 
     ParVerify --> Check{"All tasks\nin group PASS?"}
     SeqVerify --> Check
@@ -169,20 +162,41 @@ flowchart TD
     DBInvestigationApproval -->|"Approve"| P4
     DBInvestigationApproval -->|"Adjust"| P3
 
-    subgraph "Phase 4 — Fix & Verify"
-        P4["Create failing test\nmust FAIL before fix"]
-        P4 --> P4b["Apply single fix\nat root cause"]
-        P4b --> P4c["Run test → must PASS\n+ full suite + build"]
+    subgraph "Phase 4 — Approve, then dispatch the fix"
+        P4["Hand case file to dispatch\nProposed Fix = STEPS · Regression Test = DONE WHEN"]
+        P4 --> P4b["Apply the fix\n🤖 execute-task subagent (tdd red-green)"]
+        P4b --> P4c["Verify\n🤖 verify-task subagent (fresh, independent)"]
+        P4c --> P4d{"PASS?"}
+        P4d -->|"FAIL"| Escalation{"Circuit breaker\ntripped?"}
+        Escalation -->|"No"| P4b
+        Escalation -->|"Yes"| Stop(["🧑 STOP — architectural problem\nwrite DECISION, discuss with user"])
     end
 
-    P4c --> Escalation{"3+ fix\nattempts failed?"}
-    Escalation -->|"Yes"| Stop(["🧑 STOP\nDocument architectural finding\ndiscuss with user"])
-    Escalation -->|"No"| Done(["Report fix\n🧑 user commits"])
-    Done --> VT(["→ verify-task 🤖 haiku"])
-    VT --> CR(["→ pr-review\n🤖 sonnet subagent"])
+    P4d -->|"PASS"| CR(["→ pr-review\n🤖 sonnet subagent"])
 ```
 
-## 4. Context and Model Architecture
+## 4. Address-Feedback Round
+
+The PR-feedback fix round: filter comments, fix, verify, optionally re-review, then commit locally (never push).
+
+```mermaid
+flowchart TD
+    Start(["PR review comments\n(from address-feedback)"]) --> AFFilter["Filter actionable comments\n🧑 user approves list"]
+    AFFilter --> AFTask["Generate fix task\n(round N)"]
+    AFTask --> AFExec["main thread walks fix TODO:\ndispatch execute-task, then verify-task"]
+    AFExec --> AFRecheck{"pr-review\nre-check?"}
+    AFRecheck -->|"Yes"| AFReview["pr-review 🤖 sonnet subagent"]
+    AFReview --> AFVerdict{"Verdict?"}
+    AFVerdict -->|"Approve"| AFWrapUp["wrap-up\n(promote exploration, verify docs)"]
+    AFVerdict -->|"Request changes"| AFExec
+    AFRecheck -->|"No / Skip"| AFCommit["Local commit\n(no push)"]
+    AFWrapUp --> AFCommit
+    AFCommit --> AFDone(["🧑 Human reviews + pushes\nmore comments → re-run address-feedback"])
+```
+
+**Legend:** 🧑 = human-in-the-loop gate. 🤖 = runs as a dedicated subagent with specified model.
+
+## 5. Context and Model Architecture
 
 What runs in which context, with which model.
 
@@ -207,6 +221,12 @@ flowchart LR
         R["pr-review skill 🤖\nStandards loaded conditionally by skill"]
     end
 
+    subgraph "Fresh Subagent — per triage"
+        RA["requirement-analysis skill 🤖\nread-heavy analysis, drafts review doc"]
+    end
+
+    B -- "STANDARD/EPIC: dispatch analysis" --> RA
+    RA -- "review doc + findings" --> B
     B -- "dispatch per task" --> C
     C -- "dispatch per task" --> V
     V -- "PASS / FAIL" --> B
@@ -215,7 +235,7 @@ flowchart LR
     E -- "dispatch fix task" --> C
 ```
 
-## 5. Standards Loading Matrix
+## 6. Standards Loading Matrix
 
 Which standard skills load for which types of work.
 
@@ -236,7 +256,7 @@ flowchart TD
     DOD --> Loaded
 ```
 
-## 6. File Ownership and Loading
+## 7. File Ownership and Loading
 
 What loads when, and who owns each file.
 
@@ -249,7 +269,7 @@ flowchart TD
     end
 
     subgraph "On-demand (skill activation)"
-        SK["18 skills\n📦 workflow plugin"]
+        SK["18 on-demand skills\n📦 workflow plugin"]
     end
 
     subgraph "Subagent dispatch (defined in skills)"

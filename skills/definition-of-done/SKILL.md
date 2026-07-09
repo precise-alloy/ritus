@@ -2,6 +2,7 @@
 name: definition-of-done
 description: Loaded automatically by execute-task and verify-task for STANDARD and EPIC tasks — hard gates and per-change-type completion checklists. Do not invoke standalone
 argument-hint: Provide the task or ticket identifier, changed files, and validation evidence
+user-invocable: false
 ---
 
 # Definition of Done
@@ -92,7 +93,7 @@ Report done only after:
 3. DOC UPDATE completed per doc trigger matrix in `ticket-review` skill
 4. Output block in execute-task format produced
 
-## Next
+## Handoff
 
-This is a companion skill — it does not chain to another skill. Return to the parent skill (execute-task or
-verify-task) that loaded it.
+- **Report:** the standard applied to the parent skill's work.
+

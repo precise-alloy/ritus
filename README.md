@@ -3,14 +3,16 @@
 </p>
 
 <div align="center">
-  
+
 # Ritus
 
 </div>
 
 Pronounced: *REE-tus* `/ˈriː.tus/` - from Latin, meaning a prescribed rite or procedure.
 
-A disciplined workflow for reliable AI-assisted development. Ritus uses skill-based architecture, on-demand loading, chain-based routing, and independent verification to work across Claude Code, GitHub Copilot, and any language or stack.
+A disciplined workflow for reliable AI-assisted development. Ritus uses skill-based architecture, on-demand loading,
+TODO-driven control flow, chain-based routing, and independent verification to work across Claude Code, GitHub Copilot,
+and any language or stack.
 
 
 ---
@@ -21,12 +23,12 @@ A disciplined workflow for reliable AI-assisted development. Ritus uses skill-ba
 AI Agent Workflow = Primary rules + Core workflow + Project profile + Runtime context
 ```
 
-| Layer           | File(s)                                           | What it does                                         |
-|-----------------|---------------------------------------------------|------------------------------------------------------|
-| Primary rules   | CLAUDE.md / copilot-instructions.md               | User's behavioral directives — highest authority     |
-| Core workflow   | Skills (via plugin)                               | On-demand skills with subagent dispatch instructions |
-| Project profile | `docs/profiles/*.yml` → `docs/PROJECT_CONTEXT.md` | Project facts rendered from YAML data                |
-| Runtime context | Current task file + active skill                  | What to work on now                                  |
+| Layer           | File(s)                                           | What it does                                                                                    |
+|-----------------|---------------------------------------------------|-------------------------------------------------------------------------------------------------|
+| Primary rules   | CLAUDE.md / copilot-instructions.md               | User's behavioral directives — highest authority                                                |
+| Core workflow   | Skills (via plugin)                               | On-demand pure-capability skills; the main thread dispatches subagents per `shared/dispatch.md` |
+| Project profile | `docs/profiles/*.yml` → `docs/PROJECT_CONTEXT.md` | Project facts rendered from YAML data                                                           |
+| Runtime context | Current task file + active skill                  | What to work on now                                                                             |
 
 ---
 
@@ -84,7 +86,9 @@ The `/sync` skill copies template files into your project. Files are never overw
 
 Run `/sync check missing` to see what's missing, or `/sync create missing` to create missing files.
 
-**Note for upgrading projects:** If you previously installed Ritus and have a `.ritus/scripts/` directory in your project, it can be safely deleted. These scripts now live in the plugin's `scripts/` directory and are no longer copied into consuming projects.
+**Note for upgrading projects:** If you previously installed Ritus and have a `.ritus/scripts/` directory in your
+project, it can be safely deleted. These scripts now live in the plugin's `scripts/` directory and are no longer copied
+into consuming projects.
 
 For existing codebases, follow up with:
 
@@ -103,9 +107,9 @@ missing project files. Run the setup again to create any new files. Existing use
 
 **By plugin (workflow-owned):**
 
-| Component | What it contains                                                                            |
-|-----------|---------------------------------------------------------------------------------------------|
-| 18 skills | On-demand workflow and standard skills (includes `start-ritus` meta-skill for auto-routing) |
+| Component | What it contains           |
+|-----------|----------------------------|
+| 19 skills | Workflow + standard skills |
 
 **By setup / repo-scan (user-owned in target project):**
 
@@ -122,47 +126,70 @@ missing project files. Run the setup again to create any new files. Existing use
 ## Skills
 
 Skills are self-contained SKILL.md files loaded on-demand. Each has YAML frontmatter (name + description) so the
-agent scans relevance without loading the full content. Subagent dispatch (model, effort, constraints) is defined
-in the `start-ritus` skill and in each skill's dispatch instructions section.
+agent scans relevance without loading the full content. Skills are pure capabilities — they describe *what* to do,
+not who runs next; the main thread drives them via a TODO and dispatches subagents (model, effort, constraints)
+using the single contract in `skills/shared/dispatch.md`.
 
 ### Workflow skills
 
-| Skill           | Purpose                                                                         |
-|-----------------|---------------------------------------------------------------------------------|
-| `start-ritus`   | Entry-point meta-skill — golden rules, dispatch instructions, workflow tracking |
-| `brainstorm`    | Explore unclear requirements — propose 2-3 approaches before triage             |
-| `triage`        | Classify changes by blast radius, contract impact, validation clarity           |
-| `ticket-review` | Analyze requirements (plain text or ticket) → produce task files                |
-| `execute-task`  | Implement a task file — load context, implement steps, report                   |
-| `verify-task`   | Independent per-task verification (dispatched as fresh haiku subagent)          |
-| `pr-review`     | Adversarial review at ticket/PR level (dispatched as fresh sonnet subagent)     |
-| `address-feedback` | Read PR review comments, generate fix tasks, commit locally (no push)        |
-| `wrap-up`       | Post-review cleanup — promote exploration entries, verify docs, report status   |
-| `debug`         | Systematic 4-phase root cause investigation with evidence grading               |
-| `setup`         | Setup interview — write YAML profiles, render docs/PROJECT_CONTEXT.md           |
-| `sync`          | Scaffold or check project files — create missing docs, profiles, scripts        |
-| `repo-scan`     | Detect stack, auth, build commands from existing codebase                       |
+| Skill                  | Purpose                                                                                |
+|------------------------|----------------------------------------------------------------------------------------|
+| `start-ritus`          | Entry-point meta-skill — golden rules, dispatch instructions, workflow tracking        |
+| `brainstorm`           | Explore unclear requirements — propose 2-3 approaches before triage                    |
+| `triage`               | Classify changes by blast radius, contract impact, validation clarity                  |
+| `ticket-review`        | Analyze requirements (plain text or ticket) → produce task files                       |
+| `requirement-analysis` | Read-heavy analysis + draft review doc (dispatched by ticket-review for STANDARD/EPIC) |
+| `execute-task`         | Implement a task file — load context, implement steps, report                          |
+| `verify-task`          | Independent per-task verification (dispatched as fresh haiku subagent)                 |
+| `pr-review`            | Adversarial review at ticket/PR level (dispatched as fresh sonnet subagent)            |
+| `address-feedback`     | Read PR review comments, generate fix tasks, commit locally (no push)                  |
+| `wrap-up`              | Post-review cleanup — promote exploration entries, verify docs, report status          |
+| `debug`                | Systematic 4-phase root cause investigation with evidence grading                      |
+| `setup`                | Setup interview — write YAML profiles, render docs/PROJECT_CONTEXT.md                  |
+| `sync`                 | Scaffold or check project files — create missing docs, profiles, scripts               |
+| `repo-scan`            | Detect stack, auth, build commands from existing codebase                              |
 
 ### Standard skills (loaded alongside workflow skills when applicable)
 
-| Skill                | Load when                                                            |
-|----------------------|----------------------------------------------------------------------|
-| `code-conventions`   | Any code change                                                      |
-| `testing-policy`     | New service, endpoint, worker, or bug fix                            |
-| `tdd`                | New business logic or bug fix — enforces red-green-refactor          |
-| `security`           | Auth, billing, migrations, tenant isolation, infra, shared contracts |
-| `definition-of-done` | STANDARD or EPIC tasks                                               |
+| Skill                | Load when                                                                      |
+|----------------------|--------------------------------------------------------------------------------|
+| `code-conventions`   | Any code change                                                                |
+| `testing-policy`     | New service, endpoint, worker, or bug fix                                      |
+| `tdd`                | New business logic, new API endpoint, or bug fix — enforces red-green-refactor |
+| `security`           | Auth, billing, migrations, tenant isolation, infra, shared contracts           |
+| `definition-of-done` | STANDARD or EPIC tasks                                                         |
 
 ### Skill chains
 
 ```text
 Explore/brainstorm:   brainstorm → triage → ticket-review
 Plan/implement:       triage → ticket-review → execute-task → verify-task → pr-review → wrap-up
-Debug/fix:            debug → pr-review → wrap-up
-Review:               pr-review (sonnet subagent) → wrap-up
+Debug/fix:            debug → execute-task → verify-task → pr-review → wrap-up
+Review:               pr-review (sonnet subagent) → verdict  (wrap-up only within a task-driven run)
 Address feedback:     address-feedback → execute-task → verify-task → [pr-review re-check → wrap-up]
 Iterate:              wrap-up → user feedback → triage or brainstorm (restarts chain)
 ```
+
+---
+
+## Control flow (TODO-driven)
+
+Every workflow skill starts by writing its own step list as a TODO — verbatim, one item per step — and marks each
+item done as it goes. This keeps a long-running agent on the rails: it never stops mid-chain, never skips a step,
+and always shows the human exactly where it is.
+
+The TODO is the single control surface. Each skill ends with a `## Handoff` that (1) reports its result and
+(2) updates that TODO:
+
+- **Orchestrators** (`ticket-review`, `address-feedback`, `debug`) generate the run's full TODO up front.
+- **Workers** (`execute-task`, `verify-task`, `pr-review`) append their own follow-up (e.g. a fix → re-verify
+  loop) idempotently, so nothing is double-queued.
+- The **main thread** owns and walks the TODO top to bottom — dispatching each `dispatch <skill> subagent` item as
+  a fresh, independent subagent and running each `invoke <skill>` item inline.
+
+Because the main thread is the only dispatcher, subagents never spawn other subagents — the workflow behaves
+identically on Claude Code, GitHub Copilot, or any host, with no nested-subagent support required. The full dispatch
+contract lives in one place: [`skills/shared/dispatch.md`](./skills/shared/dispatch.md).
 
 ---
 
@@ -209,12 +236,14 @@ skills/
   triage/SKILL.md
   ticket-review/SKILL.md
     templates/               ← review doc, task file, QA, EPIC memory templates
+  requirement-analysis/SKILL.md  ← read-heavy analysis worker (dispatched by ticket-review)
   execute-task/SKILL.md
   verify-task/SKILL.md
   pr-review/SKILL.md
   address-feedback/SKILL.md
   wrap-up/SKILL.md
   shared/
+    dispatch.md              ← TODO dispatch contract (spawn-then-invoke, run configs, Handoff convention)
     remote-api-access.md     ← remote API rules (shared by ticket-review + pr-review + address-feedback)
   debug/SKILL.md
   setup/SKILL.md
@@ -294,13 +323,14 @@ bun run scripts/remote-api.ts pr https://dev.azure.com/org/project/_git/repo/pul
 
 Target format conventions (each provider has a distinct short-ref format — no ambiguity):
 
-| Provider | Short ref | Example |
-|----------|-----------|---------|
-| Jira | Key prefix | `PROJ-123` |
-| ADO | Bare number | `12345` |
-| GitHub | `#` prefix | `'#18'` (requires `GITHUB_REPO_URL`) |
+| Provider | Short ref   | Example                              |
+|----------|-------------|--------------------------------------|
+| Jira     | Key prefix  | `PROJ-123`                           |
+| ADO      | Bare number | `12345`                              |
+| GitHub   | `#` prefix  | `'#18'` (requires `GITHUB_REPO_URL`) |
 
 **Note:** The `#` prefix must be quoted in bash to prevent shell comment interpretation:
+
 ```bash
 bun run scripts/remote-api.ts pr '#18'   # correct
 bun run scripts/remote-api.ts pr #18     # fails — shell treats #18 as comment
@@ -359,11 +389,11 @@ Enterprise), configure `docs/profiles/team.yml` with named instances:
 ticket_providers:
   - type: jira
     name: primary
-    key_prefixes: ["PROJ", "CORE"]
+    key_prefixes: [ "PROJ", "CORE" ]
     # omit env: → uses default env var names (JIRA_BASE_URL, JIRA_PAT, JIRA_EMAIL)
   - type: jira
     name: external
-    key_prefixes: ["EXT"]
+    key_prefixes: [ "EXT" ]
     env:
       base_url: JIRA_EXT_BASE_URL
       pat: JIRA_EXT_PAT

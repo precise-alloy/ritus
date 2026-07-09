@@ -13,18 +13,17 @@ approval — then generate tasks. Rushing to task generation produces tasks that
 
 After triage classifies the change. This skill produces task files and execution plans.
 
-When starting ticket-review, create this TODO and mark items as you complete them:
+When starting ticket-review, create this TODO — **every item below, verbatim** (never a single item named after the skill) — and mark items done as you complete them:
 
 TODO:
 
 ```markdown
 - [ ] Gather input (requirement source + context)
-- [ ] Check existing work (review files, task files, memory)
-- [ ] Fetch and analyze requirements
-- [ ] Create review document + user review gate
+- [ ] Analyze requirement — STANDARD/EPIC: dispatch requirement-analysis subagent; SIMPLE: inline
+- [ ] Review document ready (confirm/finalize) + user review gate
+- [ ] Completeness gate
 - [ ] Generate task files + self-review
-- [ ] Present to user for approval
-- [ ] Create execution TODO and dispatch
+- [ ] Using `dispatch.md`, create the execution TODO, and dispatch
 ```
 
 ## Step 1: Gather Input
@@ -33,244 +32,71 @@ Ask the user for:
 
 1. **The requirement source** — either:
    - A plain requirement description (summary of what needs to be done), OR
-   - URL(s)/key(s) for any configured provider (Jira, Azure DevOps, or GitHub Issues) matching
-     docs/PROJECT_CONTEXT.md `## Team conventions` ticket format
+   - A ticket URL or key for any configured provider — capture just the reference here;
+     `requirement-analysis` detects the provider and reads the ticket content in Step 2.
 2. **Additional context** — verbal decisions, Slack discussions, architectural constraints, priority notes, or anything
    not captured in the requirement/ticket.
 
-## Step 2: Check Existing Work
+Gather only the requirement *source* here (the key/URL or description). The ticket's *content* is fetched downstream
+by the `requirement-analysis` subagent. Hand the source to Step 2; the fetch happens there.
 
-After gathering input, **always** check for existing review and task files before proceeding:
+## Step 2: Analyze the requirement
 
-1. Determine the search key:
-   - If ticket URL provided → use ticket ID (e.g., `PROJ-123`)
-   - If plain requirement → use the current branch slug (e.g., `feat-add-login`)
-2. Check if a review document exists in the ticket reviews path (from docs/PROJECT_CONTEXT.md `## Documentation layout`)
-   matching the search key.
-3. Check if `docs/tasks/` contains any task files matching the search key.
-4. Check if `docs/memory/` contains any context files matching the search key.
+Produce the review document that shapes every downstream task.
 
-### If existing files are found → Incremental Update
+- **Any ticket source, or STANDARD / EPIC** — **dispatch a `requirement-analysis` subagent** (load `dispatch.md` in
+  the `shared` skill directory for the run config) with the Step 1 intake: requirement source + context + branch
+  slug / search key. It **fetches the ticket**, checks existing work, explores
+  the code inline, flags ambiguities, and drafts the review document, then returns a findings summary, the review-doc
+  path, any `[NEEDS CLARIFICATION]` / `[ASSUMPTION]` markers, raised concerns, and — for an incremental update — a
+  diff summary + `up-to-date` flag. Keeping this read-heavy work in a subagent keeps the main thread's context lean,
+  and keeps ticket-fetching inside `requirement-analysis`, the one skill that owns it — it loads the fetch helper in
+  its own context, so here you only spawn it and hand over the intake.
+- **Plain-text SIMPLE only** — a lightweight inline analysis (no subagent, no fetch): extract acceptance criteria and
+  the affected files / entry points with `file:line` citations. SIMPLE tasks skip the full review document. (A SIMPLE
+  *ticket* still dispatches — it needs a fetch, which only `requirement-analysis` does.)
 
-When a review file already exists, perform an incremental update:
+**Own the interactions the subagent can't** (it is non-interactive):
 
-1. Read the existing review file and note the `Last Reviewed` datetime (UTC).
-2. **If ticket URL provided:** fetch the ticket's change history (changelog) and comments since that datetime using
-   `remote-api-access.md` in the `shared` skill directory. Identify description updates, new comments, status changes,
-   acceptance criteria updates.
-3. **If plain requirement:** compare the user's current description against the existing review — identify what changed.
-4. If there are **no changes** — inform the user that the review is up-to-date and ask if they want a full re-review.
-5. If there **are changes**, reflect them into the review document and associated task files:
-   - Move answered questions from "Open Questions" to "Decisions".
-   - Update assumptions that have been confirmed or invalidated.
-   - Adjust task lists if scope changed.
-   - Update the `Last Reviewed` datetime to the current UTC time.
-6. Present a **diff summary** to the user showing what changed in the review.
+- If it returns an incremental review with `up-to-date: yes`, tell the user the review is current and ask whether they
+  want a full re-review.
+- If it returns a diff summary, present that summary to the user.
+- If it recommends a classification upgrade (e.g. STANDARD → EPIC), apply it before generating task files.
 
-### If no existing files are found → Full Analysis
+## Step 3: Review Document & User Review Gate
 
-Proceed to Step 3 and perform the full analysis workflow.
+**First, make sure the review document is ready.** For STANDARD/EPIC, `requirement-analysis` drafted it in Step 2 —
+open it at the returned path, confirm it's complete against `templates/review-document.md`, and fill any gaps. For a
+plain-text SIMPLE requirement there's no full document — use the inline analysis. The review document is the overview
+that shapes all subsequent tasks; it must exist and be approved before Step 5 generates any task files.
 
-## Step 3: Fetch Ticket (if ticket URL provided)
+**Hard gate — present the review document (or, for SIMPLE, the inline analysis) to the user and wait for approval before proceeding.**
 
-**Skip this step if the user provided a plain requirement.**
-
-Read `remote-api-access.md` in the `shared` skill directory for the remote API helper instructions.
-
-Fetch ticket details and comments via the helper. Live ticket data is required before producing the review document.
-
-Parse ticket keys/work item IDs according to docs/PROJECT_CONTEXT.md `## Team conventions` ticket format.
-
-The provider is auto-detected from the key/URL shape:
-
-```bash
-bun run "<plugin-root>/scripts/remote-api.ts" issue "<TICKET_KEY_OR_URL>" [fields]
-```
-
-If auto-detection fails, fall back to the explicit provider syntax (e.g., `jira issue`, `ado issue`, `github issue`).
-
-Provider-specific fields to request (the `[fields]` parameter format varies by provider — pass field names
-matching that provider's API):
-
-- **Jira:** `"summary,description,status,issuetype,comment,acceptance_criteria"`
-- **Azure DevOps:** `"System.Title,System.Description,System.State,System.WorkItemType,System.Tags"` (also fetch
-  comments separately: `bun run "<plugin-root>/scripts/remote-api.ts" comments "<WORK_ITEM_URL_OR_ID>"`)
-- **GitHub Issues:** no field filter needed (returns full issue by default)
-
-If the provider returns `401`, `403`, or a permission-style `404`, stop and ask the user to verify remote access.
-Do not continue with stale or partial ticket data.
-
-Apply docs/PROJECT_CONTEXT.md `## Requirement source precedence`.
-
-## Step 4: Analyze Requirements
-
-### 4.1 Identify Requirements
-
-From the requirement source (ticket description + comments, or plain requirement text), extract:
-
-1. **Acceptance criteria** — what must be true for the work to be considered done.
-2. **Expected behavior** — how the feature/fix should work.
-3. **Test data** — any specific values, scenarios, or edge cases mentioned.
-4. **Constraints** — performance, security, compatibility notes.
-
-### 4.2 Analyze Related Code
-
-Based on the requirements, search the codebase to identify:
-
-- **Existing code** that implements related functionality.
-- **Entry points** (controllers, API endpoints, blocks, pages) affected.
-- **Services and helpers** that will need changes.
-- **Models and DTOs** that may need updates.
-- **Configuration** files or constants involved.
-
-Use semantic search, grep, and file exploration across the source layout defined in docs/PROJECT_CONTEXT.md `## Source layout`.
-
-### 4.3 Check for UI Changes
-
-If the requirements involve UI updates (new components, layout changes, styling, frontend behavior):
-
-1. Inspect frontend/UI paths from docs/PROJECT_CONTEXT.md `## Source layout`.
-2. Skip generated artifact paths listed in docs/PROJECT_CONTEXT.md `## Source layout`.
-
-### 4.4 Analyze Attached Images
-
-If the Jira ticket or requirement includes image attachments (screenshots, mockups, annotated images):
-
-First, download the images locally so they can be viewed:
-
-```bash
-bun run "<plugin-root>/scripts/remote-api.ts" jira attachment-download "<TICKET_KEY>" ".jira-attachments/<TICKET_KEY>"
-```
-
-Then read each downloaded image using the `Read` tool (which supports images). The download command returns
-a JSON list of `{ filename, path }` entries — use the `path` values.
-
-If the download fails or returns no images, ask the user to share the screenshots directly.
-
-After downloading:
-
-1. Read the ticket description and acceptance criteria FIRST — understand what the customer expects.
-2. THEN examine each image against that context:
-   - **What I see** — describe specific elements, not just general layout. Count items, read text, note states.
-   - **What the ticket says should happen** — the expected behavior from 4.1.
-   - **The gap** — what differs between what the image shows and what the ticket expects.
-3. For annotated images (arrows, circles, highlights):
-   - Identify what the annotation is pointing at — the specific element, not "an area of the page."
-   - Infer intent from the ticket context — "red circle on dropdown + ticket says 'wrong options'" → the dropdown
-     content is the issue, not the dropdown's existence.
-4. Document image findings in the review document under `## Visual References`.
-
-**Do NOT** just describe images in isolation. Always cross-reference against the ticket requirements.
-
-### 4.5 Review Existing Documentation
-
-Check documentation paths listed in docs/PROJECT_CONTEXT.md `## Documentation layout` for existing documentation related
-to the feature area.
-
-### 4.5b Research Technical Options
-
-**Conditional** — run this step only for STANDARD/EPIC tasks that involve:
-
-- New external dependency or library choice
-- New integration with an unfamiliar system or API
-- Architectural pattern not yet used in this codebase
-- Technology choice where multiple viable options exist
-
-Skip for bug fixes, refactors, and features that extend existing patterns.
-
-When triggered:
-
-1. **Search the codebase first** — check if the project already uses a library or pattern for this. If it does,
-   use what exists. Do not propose alternatives unless the existing solution cannot meet the requirements.
-2. **Investigate options** — for genuinely new choices, research 2-3 options. For each, note:
-   - Compatibility with the project's stack (from `docs/PROJECT_CONTEXT.md`)
-   - Maintenance status and community support
-   - Performance characteristics relevant to the use case
-   - Security implications
-3. **Recommend one option** with rationale. Do not present a menu — make a decision and justify it.
-4. **Record the decision** — write a `DECISION-NNN` entry per Step 4.8 if the choice is non-obvious.
-
-Keep research lightweight — this is a 10-minute investigation, not a spike. If research would take longer, flag it
-as `[NEEDS CLARIFICATION: requires spike — <what to investigate>]` and let the user decide whether to invest the
-time.
-
-### 4.6 Flag Ambiguities
-
-For every requirement that could be interpreted two ways, mark it:
-
-- `[NEEDS CLARIFICATION: <specific question>]` — ambiguous requirement, blocks task generation.
-- `[ASSUMPTION: <what you assumed and why>]` — reasonable default chosen, does not block but must be visible.
-
-Rules:
-
-- Do NOT guess when two interpretations lead to different implementations. Flag it.
-- Every `[NEEDS CLARIFICATION]` marker must include a specific question, not just "this is unclear."
-- Read `docs/STAKEHOLDERS.md` to identify who should answer each question. Frame questions so they can be forwarded
-  to non-technical stakeholders if needed.
-- Clearly distinguish between questions that block implementation vs nice-to-have clarifications.
-
-### 4.7 Raise Concerns
-
-Proactively raise any concerns related to:
-
-- **Security** — authentication, authorization, input validation, data exposure, injection risks.
-- **Performance** — N+1 queries, large payloads, missing caching, scalability.
-- **Breaking changes** — API contract changes, backward compatibility.
-- **Data integrity** — race conditions, partial updates, migration risks.
-
-These must be documented in the output so they can be reviewed before implementation begins.
-
-### 4.8 Record Architectural Decisions
-
-If a non-obvious architectural decision was made during analysis (e.g., chose JWT over sessions, picked a specific
-library, decided on a data model shape), write a `DECISION-NNN` entry to `docs/DECISIONS.md`:
-
-```text
-### DECISION-NNN: <title>
-Date: YYYY-MM-DD
-Context: <what prompted this>
-Decision: <what was decided>
-Rationale: <why — tradeoffs>
-Consequences: <what this constrains or enables>
-```
-
-Skip this step if all decisions were obvious or already documented.
-
-## Step 5: Create Review Document
-
-For STANDARD and EPIC classifications, create a review document.
-
-Read `templates/review-document.md` in this skill's directory for the template format.
-
-## Step 5a: User Review Gate
-
-**Hard gate — present the review document to the user and wait for approval before proceeding.**
-
-The review document is the overview that shapes all subsequent tasks. The user must review and confirm:
+The user must review and confirm:
 
 - Open questions and assumptions
 - Proposed solutions and approach
 - Scope boundaries
-- Security or architectural concerns raised in Step 4.7
+- Security or architectural concerns raised during analysis
 
-Do NOT proceed to Step 6 until the user explicitly approves. If the user has feedback, update the review document
-and re-present for approval.
+Do NOT proceed to task generation until the user explicitly approves. If the user has feedback, send it back for a
+re-analysis (re-dispatch `requirement-analysis` with the feedback, or revise inline for SIMPLE) and re-present.
 
-## Step 5b: Completeness Gate
+## Step 4: Completeness Gate
 
-Hard gate — do not proceed to Step 6 until all checks pass.
+Hard gate — do not proceed to task generation until all checks pass.
 
-- [ ] User has approved the review document (Step 5a)
+- [ ] User has approved the review document (Step 3)
 - [ ] No `[NEEDS CLARIFICATION]` markers remain unresolved
 - [ ] All acceptance criteria are testable (can be verified by diff or command)
 - [ ] Success criteria have measurable outcomes (not "works correctly" — specify what "correct" means)
 - [ ] Edge cases identified for each requirement (at minimum: empty input, missing data, concurrent access)
 - [ ] Scope boundary is explicit — what this change does NOT affect is stated
-- [ ] If touching auth/billing/tenant: security implications documented in Step 4.7
+- [ ] If touching auth/billing/tenant: security implications documented during analysis
 
 If any check fails, resolve it before generating task files. Ask the user if needed — do not force-pass.
 
-## Step 6: Generate Task Files
+## Step 5: Generate Task Files
 
 Convert the analyzed requirements into task files + execution plan.
 
@@ -278,9 +104,9 @@ Read `templates/task-files.md` in this skill's directory for TRIVIAL, SIMPLE, an
 
 ### Classification
 
-Use the classification level assigned by triage. If triage defaulted to STANDARD because the input was a ticket key,
-upgrade to EPIC after fetching if the ticket involves multi-session work, multiple modules, or new architecture
-patterns. Map to task file format:
+Use the classification level assigned by triage — including any EPIC upgrade applied in Step 2 from the
+`requirement-analysis` classification signal (multi-session work, multiple modules, or new architecture patterns
+surfaced during analysis). Map to task file format:
 
 | Level        | Task file format                     |
 |--------------|--------------------------------------|
@@ -364,7 +190,7 @@ Breaking: none
 Migration: none
 ```
 
-## Hard constraints
+## Hard rules
 
 - Triage before generating task files — no exceptions
 - TRIVIAL: implement directly, no task file
@@ -377,7 +203,7 @@ Migration: none
 - GOAL = expected outcome only, no implementation details
 - `Last Reviewed` datetime (UTC) is mandatory in every review file
 - If anything is unclear, flag it with `[NEEDS CLARIFICATION]` — do not assume. All markers must be resolved
-  before Step 6
+  before task generation
 - Security and compliance concerns must always be raised explicitly
 
 ## Self-review
@@ -396,36 +222,45 @@ Before presenting task files to the user, run this checklist yourself:
 If you find issues, fix them inline. No need to re-review — just fix and move on. If you find a requirement with no
 task, add the task.
 
-## Next
+## Handoff
+
+- **Report:** the task files + execution plan.
+- **TODO update:** on user approval, generate the run's driving TODO — see **Dispatch execution** below.
+
+## Dispatch execution
+
+**Use the `dispatch.md` you loaded in Step 2** — it holds the dispatch rule and per-worker run config (model /
+effort), which you need to spawn the subagents below. If you took the plain-text SIMPLE path (inline analysis, no
+subagent), load it now.
 
 After self-review, **present the task files and execution plan to the user for review.** Do not dispatch subagents
 until the user approves. The user may adjust task scope, reorder priorities, or request changes.
 
 Once the user approves:
 
-1. **Create the exploration log** — write `docs/tasks/{branch-slug}/exploration.md` with the header from
-   `skills/ticket-review/templates/exploration.md`. This ensures it exists before any execute-task subagent starts.
-2. **Create the execution TODO list** from the execution plan before dispatching any subagents.
-   This is the concrete per-task tracker for the implementation phase:
+1. **Ensure the exploration log exists** — `requirement-analysis` seeds `docs/tasks/{branch-slug}/exploration.md`
+   during analysis; if it's missing (e.g. the SIMPLE inline path), create it with the header from
+   `skills/ticket-review/templates/exploration.md`. It must exist before any execute-task subagent starts.
+2. **Create the execution TODO list** from the execution plan — the concrete per-task tracker for implementation:
 
 TODO:
 ```markdown
-- [ ] Implement task 001: <name> (execute-task subagent)
-- [ ] Verify task 001 (verify-task subagent)
-- [ ] Implement task 002: <name> (execute-task subagent)
-- [ ] Verify task 002 (verify-task subagent)
+- [ ] Implement task 001: <name> — dispatch execute-task subagent
+- [ ] Verify task 001 — dispatch verify-task subagent
+- [ ] Implement task 002: <name> — dispatch execute-task subagent
+- [ ] Verify task 002 — dispatch verify-task subagent
   ...
-- [ ] Run pr-review for full ticket (pr-review subagent)
-- [ ] If pr-review approves: run wrap-up (promote exploration, verify docs)
+- [ ] Run pr-review for full ticket — dispatch pr-review subagent
+- [ ] If pr-review approves: invoke wrap-up
 ```
 
 For parallel groups, list all tasks in the group together. Mark each item as subagents complete. If verify-task
 returns FAIL, add fix items inline before marking the original task done.
 
-Then dispatch `execute-task` following the execution plan:
+Then walk this driving TODO per the dispatch rule:
 
-- **Parallel groups**: dispatch multiple `execute-task` subagents simultaneously. Each execute-task dispatches its own
-  `verify-task` subagent (model: haiku, effort: medium) per execute-task's Process checklist.
-- **Sequential groups**: wait for previous group's tasks to all pass `verify-task` subagent before starting.
+- **Parallel groups**: dispatch the group's execute-task subagents simultaneously, then their matching verify-task
+  subagents; a verify FAIL inserts fix items before the task is marked done.
+- **Sequential groups**: wait for the previous group's tasks to all pass verification before starting.
 
 Do not implement tasks in this session.

@@ -285,3 +285,8 @@ Next step: resolve ❓ rows, then begin work.
   and `docs/CUTOFF.md` — never touch `docs/tasks/`, `docs/memory/`, or other user-created docs
 - Never guess `❓` values — ask human once per unknown
 - Scan is read-only until Step 9
+
+## Handoff
+
+- **Report:** the detected stack, conventions, and build/test commands written to the profiles + convention docs.
+  Terminal utility — no onward chain.

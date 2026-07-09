@@ -13,7 +13,7 @@ needs — not how simple it looks.
 
 Run before any context load or task generation. Every incoming change must be classified first.
 
-When starting triage, create this TODO and mark items as you complete them:
+When starting triage, create this TODO — **every item below, verbatim** (never a single item named after the skill) — and mark items done as you complete them:
 
 TODO:
 
@@ -82,8 +82,10 @@ After classification, state:
 2. **Recommended model and effort** — read the model routing table from `docs/PROJECT_CONTEXT.md` `## Model routing` and
    include the recommended model and effort level for this classification. When dispatching subagents, use these values.
 
-## Next
+## Handoff
 
-- TRIVIAL → implement directly in the current session following the ritus golden rules. No task file, no
-  subagent dispatch. Self-verify with build + test, then report to the user.
-- SIMPLE/STANDARD/EPIC → load `ticket-review` skill
+- **Report:** the classification (TRIVIAL / SIMPLE / STANDARD / EPIC) + recommended model/effort.
+- **TODO update:**
+  - TRIVIAL → no TODO; implement directly in this session (ritus golden rules), self-verify with build + test, then
+    report to the user.
+  - SIMPLE / STANDARD / EPIC → `invoke ticket-review`.

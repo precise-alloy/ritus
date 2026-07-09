@@ -9,16 +9,18 @@ argument-hint: Provide either the Azure DevOps/GitHub PR URL or describe the loc
 **Core principle:** The burden of proof is on the code, not the reviewer. Default to "Request changes" unless you
 can prove correctness with evidence at `file:line`.
 
-## Subagent dispatch instructions
+## Operating constraints
 
-When the orchestrating session needs to run pr-review, dispatch a fresh subagent with:
-- **Model:** sonnet
-- **Effort:** high
-- **Tools:** Read, Grep, Glob, Bash, WebFetch
-- **Constraints:** adversarial reviewer in fresh context; never apply fixes or modify source files; never create or
-  modify environment files (.env, .env.local) — report missing setup to the user; use `git fetch origin` and
-  `origin/<branch>` refs — never mutate local branches; default to "Request changes" — the burden of proof is on the
-  code, not the reviewer; report BLOCKED if inputs missing.
+- **Independent reviewer** — you must not have authored the code under review. If you produced it in this same
+  context you are not independent; a fresh review context is required. (The orchestrator guarantees this by spawning
+  pr-review fresh; this is the safety net when pr-review is invoked directly.)
+- Adversarial mindset; **never apply fixes or modify source files**.
+- Never create or modify environment files (.env, .env.local) — report missing setup to the user.
+- Use `git fetch origin` and `origin/<branch>` refs — never mutate local branches.
+- Default to "Request changes" — the burden of proof is on the code, not the reviewer.
+- **When dispatched you cannot reach the user.** Your inputs (review mode, requirement source, base branch) come from
+  the dispatcher; for anything missing, an access failure, or an unclear requirement, **report BLOCKED** with the
+  specific question rather than asking — the dispatcher relays it. (Invoked directly, you may ask the user.)
 
 Inputs to provide:
 1. Review mode: local diff/worktree or remote PR URL
@@ -30,7 +32,7 @@ Inputs to provide:
 After all tasks for a ticket are complete, or before opening a PR. This skill runs a full adversarial review of
 cumulative changes.
 
-When starting pr-review, create this TODO and mark items as you complete them:
+When starting pr-review, create this TODO — **every item below, verbatim** (never a single item named after the skill) — and mark items done as you complete them:
 
 TODO:
 
@@ -38,7 +40,7 @@ TODO:
 - [ ] Load context and gather input
 - [ ] Adversarial review (Phases 1-5)
 - [ ] Report findings and state verdict
-- [ ] Follow verdict path (Approve → invoke wrap-up / Request Changes → report to orchestrating session)
+- [ ] Hand off per `## Handoff` (Approve → wrap-up / Request Changes → main thread runs the fix cycle), then stop
 ```
 
 ## Remote API access
@@ -51,8 +53,9 @@ environment setup, and error handling.
 1. Load relevant profile sections: `docs/PROJECT_CONTEXT.md` sections `## Requirement source precedence`,
    `## Testing`, and integration-specific entries from `## Source layout`; `docs/PROJECT_CONTEXT.md`
    section `## Team conventions`.
-2. **Always start from Step 1** (Gather Input) — ask the user whether this is a PR review or a local pre-PR review, then
-   gather the relevant URLs/context. Never silently load existing review/task files or resume previous sessions.
+2. **Always start from Step 1** (Gather Input) — establish whether this is a PR review or a local pre-PR review and
+   gather the relevant URLs/context (from the dispatcher if dispatched, else ask the user). Never silently load
+   existing review/task files or resume previous sessions.
 3. After gathering input, load `definition-of-done` skill — verify all hard gates pass.
 4. Grep `docs/LESSONS.md` for the affected module/file names — flag if known failure patterns are being repeated.
 5. Read `docs/STAKEHOLDERS.md` — know who authored/owns what and who to escalate questions to.
@@ -77,7 +80,7 @@ environment setup, and error handling.
 
 ## Step 1: Gather Input
 
-Ask the user for:
+Obtain these inputs — provided by the dispatcher when dispatched, otherwise ask the user (report BLOCKED if unavailable):
 
 1. **Review mode**:
     - PR review: the Azure DevOps or GitHub pull request URL matching the configured remote system.
@@ -109,8 +112,8 @@ bun run "<plugin-root>/scripts/remote-api.ts" pr "<PR_URL>"
 This works with any configured provider (GitHub, Azure DevOps, or future providers). If auto-detection fails,
 fall back to the explicit provider syntax: `bun run "<plugin-root>/scripts/remote-api.ts" <provider> pr "<PR_URL>"`.
 
-If this helper returns `401` or `403`, or returns `404` with a permission-style message, stop and ask the user to verify
-remote provider access before continuing. Do not continue the PR review until the remote PR fetch succeeds.
+If this helper returns `401` or `403`, or returns `404` with a permission-style message, stop and **report BLOCKED**
+(remote provider access needs verifying) before continuing. Do not continue the PR review until the remote PR fetch succeeds.
 
 **Verify** the target branch matches `docs/PROJECT_CONTEXT.md` section `## Team conventions`. If not, warn the user.
 
@@ -234,9 +237,9 @@ If auto-detection fails, fall back to the explicit provider syntax (e.g., `jira 
 
 Apply `docs/PROJECT_CONTEXT.md` section `## Requirement source precedence`.
 
-If a ticket request returns `401` or `403`, or returns `404` with a permission-style message, stop and ask the user
-to verify access for the relevant provider before continuing. Do not continue the review with stale or partial
-ticket data.
+If a ticket request returns `401` or `403`, or returns `404` with a permission-style message, stop and **report
+BLOCKED** (the relevant provider's access needs verifying) before continuing. Do not continue the review with stale
+or partial ticket data.
 
 ### 2.5 Adversarial Review
 
@@ -335,40 +338,17 @@ After presenting the review:
 
 ## Notes
 
-- If anything is unclear about the requirements or the code, **ask the user** — do not make assumptions. Refer to
-  `docs/STAKEHOLDERS.md` for escalation guidance.
+- If anything is unclear about the requirements or the code, **report BLOCKED with the specific question** (or ask the
+  user if invoked directly) — do not make assumptions. Refer to `docs/STAKEHOLDERS.md` for escalation guidance.
 - When the diff is large, focus on the most impactful changes first.
 - Always verify string literals, magic values, and status codes against the Jira ticket spec.
 - Pay special attention to integration-specific API field values listed in `docs/PROJECT_CONTEXT.md` sections
   `## Source layout` and `## Project-specific constraints` — typos in status strings or field names can cause silent
   failures.
 
-## Next
+## Handoff
 
-**If verdict is Approve:** invoke the `wrap-up` skill to promote exploration entries, verify doc updates, and report final status.
-
-**If verdict is Request Changes:** the orchestrating session creates a **fix-cycle TODO** and a SIMPLE fix task file
-from the review findings using the SIMPLE template in `task-files.md`:
-
-TODO:
-
-```markdown
-- [ ] Create fix task from review findings
-- [ ] Implement fix (execute-task subagent)
-- [ ] Verify fix (verify-task subagent)
-- [ ] Re-run pr-review (pr-review subagent)
-```
-
-Fix task format:
-
-- TASK: "Fix pr-review findings: \<list the specific issues\>"
-- DONE WHEN: one checkbox per finding + compile check + scope check
-- VERIFY: dispatch fresh subagent to run `verify-task` skill
-
-Then dispatches a fresh subagent to run `execute-task` with that fix task file, followed by another
-to run `verify-task` (model: haiku, effort: medium), then another to run `pr-review` (model: sonnet, effort: high).
-If the new review also returns Request Changes, create a new fix-cycle TODO and repeat.
-
-**Circuit breaker:** if the same finding appears in 2 consecutive review cycles, or if 3 review cycles complete
-without reaching Approve, stop and escalate to the user — the issue likely requires a design discussion, not
-another fix attempt.
+- **Report:** your verdict (Approve / Request Changes) with findings, each cited at `file:line`.
+- **TODO update:** Approve → none (the plan continues to `invoke wrap-up`). Request Changes →
+  `Fix — dispatch execute-task subagent`, then `Verify — dispatch verify-task subagent`, then
+  `Re-review — dispatch pr-review subagent`.

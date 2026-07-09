@@ -446,3 +446,8 @@ NEXT STEP:
 - Never skip the completion checklist output.
 - If human changes an answer after files are written: surgically update the specific token and re-output only the
   affected file.
+
+## Handoff
+
+- **Report:** the completion checklist (files created, profiles filled, `docs/PROJECT_CONTEXT.md` rendered). Terminal
+  setup utility — no onward chain; the user starts the normal workflow when ready.

@@ -26,7 +26,7 @@ UserService"). Go directly to triage.
 
 ## Process
 
-When starting brainstorm, create this TODO and mark items as you complete them:
+When starting brainstorm, create this TODO — **every item below, verbatim** (never a single item named after the skill) — and mark items done as you complete them:
 
 TODO:
 
@@ -103,8 +103,10 @@ This output feeds directly into triage as the requirement description.
 | "This is too simple to brainstorm" | The user asked an exploratory question. They want exploration, not a shortcut. |
 | "Here's option A (recommended) and option B (worse)" | Strawmen waste everyone's time. Present genuine alternatives or admit you need to research more. |
 
-## Next
+## Handoff
 
-After the user approves an approach, load `triage` to classify the work. Brainstorm is the one exception to
-ritus's "triage first" rule — exploratory requirements need brainstorm before they're clear enough to
-classify. Triage's `## Next` section handles the rest of the chain.
+- **Report:** a brief design note — the problem, the chosen approach and why, key constraints, open questions.
+- **TODO update:** `invoke triage` to classify the chosen approach.
+
+Brainstorm is the one exception to ritus's "triage first" rule — exploratory requirements need brainstorm before
+they're clear enough to classify. Triage's `## Handoff` continues the chain.

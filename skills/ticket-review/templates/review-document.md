@@ -151,7 +151,7 @@ Guidelines:
 
 ## 6. Visual References
 
-<!-- Only include this section if the ticket has image attachments analyzed in Step 4.4 -->
+<!-- Only include this section if the ticket has image attachments analyzed in Step 3.4 (requirement-analysis) -->
 
 | # | Image | What I see | What ticket expects | Gap |
 |---|---|---|---|---|

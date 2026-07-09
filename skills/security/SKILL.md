@@ -2,6 +2,7 @@
 name: security
 description: Loaded automatically by execute-task and verify-task when changes touch auth, billing, migration, tenant isolation, infra, or shared contracts — security checklist. Do not invoke standalone unless the user specifically asks for a security review
 argument-hint: Provide the changed auth, billing, migration, tenant, infra, or contract areas to review
+user-invocable: false
 ---
 
 # Security Standards
@@ -69,7 +70,6 @@ All checklist items are hard gates — must pass before reporting done.
 - [ ] No raw SQL string interpolation
 - [ ] Classified STANDARD or above — no TRIVIAL/SIMPLE for safety override changes
 
-## Next
+## Handoff
 
-This is a companion skill — it does not chain to another skill. Return to the parent skill (execute-task or
-verify-task) that loaded it.
+- **Report:** the standard applied to the parent skill's work.

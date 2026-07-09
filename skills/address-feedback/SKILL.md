@@ -14,7 +14,7 @@ locally. Never push — the human reviews the diff and pushes when ready.
 After a PR is created and reviewers (human or AI) have left comments that need code changes. This skill bridges
 PR review comments to actionable task files for execute-task.
 
-**Hard gate — before any other action, create this TODO list and follow it exactly.**
+**Hard gate — before any other action, create this TODO list — every item below, verbatim (never a single item named after the skill) — and follow it exactly.**
 
 TODO:
 
@@ -22,15 +22,17 @@ TODO:
 - [ ] Fetch and filter PR comments
 - [ ] Present filtered list to user for approval
 - [ ] Generate fix task file (round N)
-- [ ] Dispatch execute-task subagent — do NOT implement fixes in this session
-- [ ] Dispatch verify-task subagent — do NOT self-verify
+- [ ] Load `dispatch.md`, then implement fix — dispatch execute-task subagent
+- [ ] Verify fix — dispatch verify-task subagent
 - [ ] Ask user about pr-review re-check
+- [ ] If user wants re-check, dispatch pr-review subagent (apply its verdict per dispatch.md)
+- [ ] If pr-review approves: invoke wrap-up
 - [ ] Create local commit — do NOT push
 - [ ] Present questions to user (if any)
 ```
 
 Mark each item as completed. If any step fails, stop and report — do not skip.
-Do not implement fixes in this session — this session orchestrates, a fresh subagent implements.
+This session orchestrates; the implement and verify items run as dispatched subagents.
 
 ## Step 1: Gather Input
 
@@ -157,7 +159,7 @@ Address PR review feedback (round N): <count> comments from <PR_URL>
 
 ## VERIFY
 
-After implementation, dispatch a fresh `verify-task` subagent (model: haiku, effort: medium).
+Verified fresh by a verify-task subagent.
 ```
 
 ### STANDARD format (more than 5 comments)
@@ -176,8 +178,8 @@ files:
 
 ## Step 6: Execute TODO
 
-Follow the TODO list created at the start. The TODO is the authoritative sequence — refer to it for dispatch
-targets, model/effort configs, and gates. Commit message format:
+Load `dispatch.md` in the `shared` skill directory, then follow the TODO — dispatch each subagent per its rule.
+Commit message format:
 
 ```text
 fix(review): address PR review feedback (round N)
@@ -198,13 +200,18 @@ These comments appear to be questions, not change requests:
 You may want to reply to these directly on the PR.
 ```
 
-## Hard constraints
+## Hard rules
 
 - If a comment references a file that doesn't exist, flag it and skip
 - If execute-task or verify-task fails, stop and report — do not auto-retry
 - Load `code-conventions` and `security` companion skills when applicable
 
-## Next
+## Handoff
 
-After the user pushes and receives more review comments, invoke `address-feedback` again — it auto-detects the
-next round number.
+- **Report:** the round-N fixes, committed locally (never pushed).
+- **TODO update:** if the pr-review re-check runs, its verdict is applied per `dispatch.md` (Approve → `invoke wrap-up`;
+  Request Changes → a Fix → Verify → Re-review cycle first). If the re-check is skipped, wrap-up does not run (it
+  requires a pr-review approval) and the round ends at the local commit.
+
+After the user pushes and receives more review comments, invoke `address-feedback` again — it auto-detects the next
+round number.

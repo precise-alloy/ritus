@@ -43,7 +43,9 @@ Replace `<path-to-this-skill>` with the absolute path of the directory containin
 
 Report the sync result to the user. If files were created, list them. If all files exist, say so.
 
-## Next
+## Handoff
 
-If this is the first time syncing (many files created), suggest running `setup workflow` or `/setup` to fill the profile
+- **Report:** the files created or verified.
+
+If this was the first sync (many files created), suggest running `setup workflow` / `/setup` to fill the profile
 data with project-specific values.

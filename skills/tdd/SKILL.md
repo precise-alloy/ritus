@@ -2,6 +2,7 @@
 name: tdd
 description: Loaded automatically by execute-task for new business logic or bug fixes — enforces red-green-refactor cycle. Do not invoke standalone
 argument-hint: Provide the behavior or bug being implemented and the expected failing test scenario
+user-invocable: false
 ---
 
 # Test-Driven Development
@@ -76,7 +77,7 @@ Add the next test for the next behavior. One test per red-green-refactor cycle, 
 4. One test per red-green-refactor cycle — do not batch.
 5. Run tests after every change — red, green, refactor, all require a test run.
 
-## Next
+## Handoff
 
-This is a companion skill — it does not chain to another skill. Return to the parent skill (execute-task) that
-loaded it.
+- **Report:** the standard applied to the parent skill's work.
+
