@@ -16,7 +16,7 @@ flowchart TD
     InputType -->|"Vague idea"| BS["brainstorm"]
     InputType -->|"Clear requirement / ticket"| TR["triage"]
     InputType -->|"Bug report"| DB["debug"]
-    InputType -->|"Review changes / PR"| CR["pr-review 🤖 sonnet subagent"]
+    InputType -->|"Review changes / PR"| CR["pr-review 🤖 standard model subagent"]
     InputType -->|"Fix PR review comments"| AF["address-feedback"]
 
     BS --> UserPicks{"User picks\napproach?"}
@@ -63,7 +63,7 @@ flowchart TD
     DBInvestigationApproval -->|"Adjust"| DBPhases
     DBInvestigationApproval -->|"Approve · TRIVIAL"| DBTriv["Apply inline + self-verify\n🧑 user commits"]
     DBInvestigationApproval -->|"Approve · SIMPLE+"| DBFix["Apply the fix\n🤖 execute-task subagent\n(case file = task artifact)"]
-    DBFix --> DBVerify["verify-task 🤖 haiku\n(fresh subagent)"]
+    DBFix --> DBVerify["verify-task 🤖 cheap model\n(fresh subagent)"]
     DBVerify --> CR
 ```
 
@@ -176,7 +176,7 @@ flowchart TD
         Escalation -->|"Yes"| Stop(["🧑 STOP - architectural problem\nwrite DECISION, discuss with user"])
     end
 
-    P4d -->|"PASS"| CR(["→ pr-review\n🤖 sonnet subagent"])
+    P4d -->|"PASS"| CR(["→ pr-review\n🤖 standard model subagent"])
 ```
 
 ## 4. Address-Feedback Round
@@ -189,7 +189,7 @@ flowchart TD
     AFFilter --> AFTask["Generate fix task\n(round N)"]
     AFTask --> AFExec["main thread walks fix TODO:\ndispatch execute-task, then verify-task"]
     AFExec --> AFRecheck{"pr-review\nre-check?"}
-    AFRecheck -->|"Yes"| AFReview["pr-review 🤖 sonnet subagent"]
+    AFRecheck -->|"Yes"| AFReview["pr-review 🤖 standard model subagent"]
     AFReview --> AFVerdict{"Verdict?"}
     AFVerdict -->|"Approve"| AFWrapUp["wrap-up\n(promote exploration, verify docs)"]
     AFVerdict -->|"Request changes"| AFExec
@@ -217,11 +217,11 @@ flowchart LR
         C["execute-task skill 🤖\n+ standards skills"]
     end
 
-    subgraph "Fresh Subagent - haiku"
+    subgraph "Fresh Subagent - cheap model"
         V["verify-task skill 🤖\nStandards loaded conditionally by skill"]
     end
 
-    subgraph "Fresh Subagent - sonnet"
+    subgraph "Fresh Subagent - standard model"
         R["pr-review skill 🤖\nStandards loaded conditionally by skill"]
     end
 
@@ -277,8 +277,8 @@ flowchart TD
     end
 
     subgraph "Subagent dispatch (defined in skills)"
-        VT["verify-task subagent\n📦 haiku"]
-        CR["pr-review subagent\n📦 sonnet"]
+        VT["verify-task subagent\n📦 cheap model"]
+        CR["pr-review subagent\n📦 standard model"]
     end
 
     subgraph "Project data (user-owned, never overwritten)"

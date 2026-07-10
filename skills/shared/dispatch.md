@@ -57,6 +57,7 @@ bottom; for each **dispatch `<skill>` subagent** item:
 | `verify-task` → FAIL | `Fix - dispatch execute-task subagent`, then `Re-verify - dispatch verify-task subagent` |
 | `pr-review` → Approve | nothing - continue to `invoke wrap-up` |
 | `pr-review` → Request Changes | `Fix - dispatch execute-task subagent`, then `Verify - dispatch verify-task subagent`, then `Re-review - dispatch pr-review subagent` |
+| any worker → `BLOCKED` (insufficient reasoning power) | re-dispatch one step up the `cheap → standard → most capable` ladder; if already `most capable`, stop and escalate to the user (terminal - do not loop) |
 
 This table is the main thread's authority; each worker's own `## Handoff` names the same outcome so it also holds
 when the worker is invoked standalone. When a `Fix` item follows pr-review findings, first create a SIMPLE fix task
@@ -74,9 +75,24 @@ The worker skills the main thread spawns. Main-thread skills (`brainstorm`, `tri
 `requirement-analysis` during its analysis step (an intra-skill dispatch: the worker reports its analysis back to
 ticket-review and is not a driving-TODO item, so it has no outcome-table row).
 
-| Worker skill | Model | Effort | Tools | Key constraints |
-|----------|-------|--------|-------|-----------------|
+**Model capability, not model names.** Each worker names one of `cheap`, `standard`, or `most capable` -
+never a vendor model ID. Map it to the best-matching model your platform offers:
+
+- **cheap** - fastest, lowest-cost model; mechanical, single-file, fully-specified work and independent verification.
+- **standard** - default model; multi-file integration, judgment, requirement analysis, adversarial review.
+- **most capable** - highest-capability model; architecture / design decisions and complex reasoning.
+
+**Model selection rule (select by capability; pin a concrete model at dispatch):** choose the *lowest* capability
+(`cheap → standard → most capable`) that can do the job. At dispatch time, map that capability to the concrete model
+your platform provides and name it explicitly - never let a subagent silently inherit the session's model. Scale the
+reviewer's capability to the diff's size and risk. If a subagent returns BLOCKED for insufficient reasoning power,
+re-dispatch it one step up the ladder; if it is already `most capable`, stop and escalate to the user (see the
+`BLOCKED` row in the outcome table). Tool names below denote capabilities - map them to your platform's equivalents
+(e.g. `web fetch` = your URL-reading tool).
+
+| Worker skill | Model capability | Effort | Tools | Key constraints |
+|----------|------------------|--------|-------|-----------------|
 | `execute-task` | per triage | per triage | all | Implement STEPS exactly; do not redesign |
-| `verify-task` | haiku | medium | Read, Grep, Glob, Bash | Read-only except build/test/lint; never fix; never trust implementer claims |
-| `pr-review` | sonnet | high | Read, Grep, Glob, Bash, WebFetch | Adversarial; never apply fixes; use `origin/` refs; default to "Request changes" |
+| `verify-task` | cheap | medium | Read, Grep, Glob, Bash | Read-only except build/test/lint; never fix; never trust implementer claims |
+| `pr-review` | standard | high | Read, Grep, Glob, Bash, `web fetch` | Adversarial; never apply fixes; use `origin/` refs; default to "Request changes" |
 | `requirement-analysis` | per triage | medium | Read, Grep, Glob, Bash, Write (review doc / exploration / DECISIONS only) | Read-only otherwise; non-interactive (defer questions to `[NEEDS CLARIFICATION]`); spawned by ticket-review |

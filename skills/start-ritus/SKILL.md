@@ -1,13 +1,13 @@
 ---
 name: start-ritus
-description: Use when starting any conversation - establishes skill routing and golden rules for the workflow, requiring Skill tool invocation before ANY response including clarifying questions
+description: Use when starting any conversation - establishes skill routing and golden rules for the workflow, requiring skill invocation before ANY response including clarifying questions
 argument-hint: Provide the user's request so the router can choose the next applicable skill
 ---
 
 > **Subagent guard:** If you were dispatched as a subagent to run a worker skill per `skills/shared/dispatch.md` (verify-task, pr-review, execute-task, or requirement-analysis), skip this skill entirely.
 > Run only the skill you were dispatched to execute.
 >
-> **Mandatory skill check:** Before responding to any task - including clarifying questions - check whether an available skill applies. If a skill covers your task, you **must** invoke it via the Skill tool. Do not skip this check. This is not optional.
+> **Mandatory skill check:** Before responding to any task - including clarifying questions - check whether an available skill applies. If a skill covers your task, you **must** invoke it via your platform's skill mechanism. Do not skip this check. This is not optional.
 
 # Ritus
 
@@ -48,10 +48,10 @@ argument-hint: Provide the user's request so the router can choose the next appl
 
 ## Skill invocation
 
-> **Terminology:** "Invoke" = trigger a skill via the Skill tool (user or system action). "Load" = a skill reading another skill's content as a companion standard (skill-to-skill action).
+> **Terminology:** "Invoke" = trigger a skill via your platform's skill mechanism (user or system action). "Load" = a skill reading another skill's content as a companion standard (skill-to-skill action).
 
 Before starting work, check which skill matches the user's intent by reading the available skill descriptions.
-Invoke the matching skill via the Skill tool. Each skill's `## Handoff` section defines what it returns and its TODO
+Invoke the matching skill via your platform's skill mechanism. Each skill's `## Handoff` section defines what it returns and its TODO
 update - follow it, do not pre-plan the full chain.
 
 ## Dispatch

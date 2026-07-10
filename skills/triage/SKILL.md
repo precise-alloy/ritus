@@ -1,6 +1,6 @@
 ---
 name: triage
-description: Use before any implementation work - classifies changes by blast radius and recommends model routing. TRIGGER - invoke when user provides a requirement, feature request, or ticket key/URL (e.g., PROJ-123)
+description: Use before any implementation work - classifies changes by blast radius and recommends a model capability and effort. TRIGGER - invoke when user provides a requirement, feature request, or ticket key/URL (e.g., PROJ-123)
 argument-hint: Provide the requirement, feature request, bug report, or ticket URL/key to classify
 ---
 
