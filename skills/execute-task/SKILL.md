@@ -94,7 +94,7 @@ Keep your working context clean to preserve performance and reduce cost:
 2. Grep before edit - confirm file paths exist before touching any file.
 3. No hallucinated features - if a STEP references something that doesn't exist, report BLOCKED.
 4. Stop on errors - compile fail, test fail, 4xx/5xx → stop immediately and report.
-5. Done = every STEP implemented and each DONE WHEN condition addressed in your report. You produce a report of what you changed.
+5. Done = every STEP implemented and each DONE WHEN condition addressed in your report - which is a claim the verify-task gate confirms in a fresh context, not a self-verified result. You produce a report of what you changed.
 6. Update docs per DOC UPDATE section before reporting done.
 7. One final report - no intermediate dumps.
 8. Grep before claiming - cite `file:line` when asserting any fact about existing code.

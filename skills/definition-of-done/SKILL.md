@@ -89,7 +89,8 @@ refactor outside the task's scope.
 Report done only after:
 
 1. All applicable hard gates above checked
-2. All DONE WHEN items in task file verified
+2. Every DONE WHEN item addressed - implemented and self-checked with the build/test/lint you ran (independent
+   verification of each condition is the verify-task gate, not self-verification)
 3. DOC UPDATE completed per doc trigger matrix in `ticket-review` skill
 4. Output block in execute-task format produced
 
