@@ -33,7 +33,7 @@ TODO:
   - SIMPLE (3-section): TASK + DONE WHEN + VERIFY only. Skip PRIOR CONTEXT, PATTERN, DOC UPDATE steps.
   - STANDARD/EPIC (full): TASK, PRIOR CONTEXT (if present), PATTERN, CONTEXT, GOAL, STEPS, DONE WHEN, VERIFY, DOC UPDATE, COMMIT.
   - Debug investigation case file (`investigation-{slug}.md`): read `Proposed Fix` as the STEPS and `Regression Test` as the DONE WHEN.
-- [ ] Load context - Read CONTEXT files + `docs/tasks/{branch-slug}/exploration.md` (prior findings from other
+- [ ] Load context - Read CONTEXT files + `docs/tasks/{branch-slug}/exploration.md` if it exists (prior findings from other
   subagents). For bug fixes, grep `docs/LESSONS.md` and `docs/DECISIONS.md` for affected module.
 - [ ] Load standard skills - see table below. **Blocking step.**
 

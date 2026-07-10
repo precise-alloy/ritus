@@ -101,7 +101,7 @@ If any check fails, resolve it before generating task files. Ask the user if nee
 
 Convert the analyzed requirements into task files + execution plan.
 
-Read `templates/task-files.md` in this skill's directory for TRIVIAL, SIMPLE, and STANDARD/EPIC templates.
+Read `templates/task-files.md` in this skill's directory for SIMPLE and STANDARD/EPIC templates.
 
 ### Classification
 
@@ -111,10 +111,12 @@ surfaced during analysis). Map to task file format:
 
 | Level        | Task file format                     |
 |--------------|--------------------------------------|
-| **TRIVIAL**  | Direct fix - no task file            |
 | **SIMPLE**   | 3-section: TASK + DONE WHEN + VERIFY |
 | **STANDARD** | Full task file                       |
 | **EPIC**     | Full task file + memory file         |
+
+> ticket-review runs for SIMPLE / STANDARD / EPIC only - triage handles a **TRIVIAL** change directly in-session
+> (implement + self-verify with build/test, no task file, no dispatch), so it never reaches here.
 
 ### Granularity rule
 
@@ -194,7 +196,6 @@ Migration: none
 ## Hard rules
 
 - Triage before generating task files - no exceptions
-- TRIVIAL: implement directly, no task file
 - SIMPLE: 3-section task note (TASK + DONE WHEN + VERIFY)
 - Safety override (changes touching auth, billing, migrations, tenant isolation, infra, or shared contracts) is non-negotiable - always upgrade to STANDARD
 - No executor field in task files
@@ -257,7 +258,10 @@ TODO:
 ```
 
 For parallel groups, list all tasks in the group together. Mark each item as subagents complete. If verify-task
-returns FAIL, add fix items inline before marking the original task done.
+returns FAIL, add fix items inline before marking the original task done. If the final pr-review returns Request
+Changes (not Approve), the main thread runs the fix cycle from `dispatch.md`'s outcome table - create a SIMPLE fix
+task from the findings, then execute-task → verify-task → re-review, capped by the circuit breaker; wrap-up runs only
+after an Approve.
 
 Then walk this driving TODO per the dispatch rule:
 

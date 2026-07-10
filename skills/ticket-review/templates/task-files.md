@@ -1,9 +1,5 @@
 # Task File Templates
 
-## TRIVIAL - no task file
-
-Implement directly. Log in commit message only.
-
 ## SIMPLE - task note (3 sections)
 
 ```markdown
