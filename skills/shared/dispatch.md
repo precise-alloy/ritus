@@ -57,6 +57,7 @@ bottom; for each **dispatch `<skill>` subagent** item:
 | `verify-task` → FAIL | `Fix - dispatch execute-task subagent`, then `Re-verify - dispatch verify-task subagent` |
 | `pr-review` → Approve | nothing - continue to `invoke wrap-up` |
 | `pr-review` → Request Changes | `Fix - dispatch execute-task subagent`, then `Verify - dispatch verify-task subagent`, then `Re-review - dispatch pr-review subagent` |
+| any worker → `BLOCKED` (insufficient reasoning power) | re-dispatch one model up the `cheap → standard → most capable` ladder; if already `most capable`, stop and escalate to the user (terminal - do not loop) |
 
 This table is the main thread's authority; each worker's own `## Handoff` names the same outcome so it also holds
 when the worker is invoked standalone. When a `Fix` item follows pr-review findings, first create a SIMPLE fix task
@@ -81,11 +82,12 @@ never a vendor model ID. Map the capability to the best-matching model your plat
 - **standard** - default model; multi-file integration, judgment, requirement analysis, adversarial review.
 - **most capable** - highest-capability model; architecture / design decisions and complex reasoning.
 
-**Model selection rule (always specify the model when dispatching):** pick the *least* capable model that can do the
-job, name it explicitly at dispatch time, and never let a subagent silently inherit the session's model. Scale the
-reviewer's model to the diff's size and risk. If a subagent returns BLOCKED for lack of reasoning power, re-dispatch
-it on a more capable model. Tool names below denote capabilities - map them to your platform's equivalents
-(e.g. `web fetch` = your URL-reading tool).
+**Model selection rule (choose by capability; name the model explicitly):** pick the *least* capable model that can
+do the job, name it explicitly at dispatch time, and never let a subagent silently inherit the session's model. Scale
+the reviewer's model to the diff's size and risk. If a subagent returns BLOCKED for insufficient reasoning power,
+re-dispatch it one step up the `cheap → standard → most capable` ladder; if it is already `most capable`, stop and
+escalate to the user (see the `BLOCKED` row in the outcome table). Tool names below denote capabilities - map them to
+your platform's equivalents (e.g. `web fetch` = your URL-reading tool).
 
 | Worker skill | Model | Effort | Tools | Key constraints |
 |----------|-------|--------|-------|-----------------|

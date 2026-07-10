@@ -140,8 +140,8 @@ using the single contract in `skills/shared/dispatch.md`.
 | `ticket-review`        | Analyze requirements (plain text or ticket) → produce task files                       |
 | `requirement-analysis` | Read-heavy analysis + draft review doc (dispatched by ticket-review for STANDARD/EPIC) |
 | `execute-task`         | Implement a task file - load context, implement steps, report                          |
-| `verify-task`          | Independent per-task verification (dispatched as fresh cheap-model subagent)            |
-| `pr-review`            | Adversarial review at ticket/PR level (dispatched as fresh standard-model subagent)     |
+| `verify-task`          | Independent per-task verification (dispatched as fresh cheap model subagent)            |
+| `pr-review`            | Adversarial review at ticket/PR level (dispatched as fresh standard model subagent)     |
 | `address-feedback`     | Read PR review comments, generate fix tasks; user reviews the diff and commits         |
 | `wrap-up`              | Post-review cleanup - promote exploration entries, verify docs, report status          |
 | `debug`                | Systematic 4-phase root cause investigation with evidence grading                      |
@@ -165,7 +165,7 @@ using the single contract in `skills/shared/dispatch.md`.
 Explore/brainstorm:   brainstorm → triage → ticket-review
 Plan/implement:       triage → ticket-review → execute-task → verify-task → pr-review → wrap-up
 Debug/fix:            debug → execute-task → verify-task → pr-review → wrap-up
-Review:               pr-review (standard-model subagent) → verdict  (wrap-up only within a task-driven run)
+Review:               pr-review (standard model subagent) → verdict  (wrap-up only within a task-driven run)
 Address feedback:     address-feedback → execute-task → verify-task → [pr-review re-check → wrap-up]
 Iterate:              wrap-up → user feedback → triage or brainstorm (restarts chain)
 ```

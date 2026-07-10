@@ -152,7 +152,7 @@ Options:
 
 - `cost-first` - prefer the cheapest capable model, lowest cost
 - `balanced` - cheap model for simple tasks, standard model for complex (recommended)
-- `quality-first` - standard model as default, most capable model for architecture decisions
+- `quality-first` - standard model for most work (cheap only for trivial edits), most capable for architecture decisions
 
 Default if skipped: `balanced`
 
@@ -334,18 +334,18 @@ platform offers:
 | TRIVIAL                 | cheap    | low    | Direct edits, single file       |
 | SIMPLE                  | cheap    | medium | 3-section task note             |
 | STANDARD                | standard | medium | Cross-module, design decision   |
-| EPIC                    | standard | high   | Multi-session, new architecture |
+| EPIC                    | standard | high   | Multi-session; cost-capped at standard |
 | Batch validate (pre-PR) | cheap    | low    | Diff + task review              |
 
 **balanced (default):**
 
-| Triage                  | Model                                     | Effort | Notes                         |
-|-------------------------|-------------------------------------------|--------|-------------------------------|
-| TRIVIAL                 | cheap                                     | low    | Direct edits, single file     |
-| SIMPLE                  | cheap                                     | medium | 3-section task note           |
-| STANDARD                | standard                                  | high   | Cross-module, design decision |
-| EPIC                    | standard · most capable (pure arch only)  | high   | Multi-session                 |
-| Batch validate (pre-PR) | cheap                                     | medium | Diff + task review            |
+| Triage                  | Model    | Effort | Notes                                                         |
+|-------------------------|----------|--------|---------------------------------------------------------------|
+| TRIVIAL                 | cheap    | low    | Direct edits, single file                                     |
+| SIMPLE                  | cheap    | medium | 3-section task note                                           |
+| STANDARD                | standard | high   | Cross-module, design decision                                 |
+| EPIC                    | standard | high   | Multi-session; escalate to most capable for pure architecture |
+| Batch validate (pre-PR) | cheap    | medium | Diff + task review                                            |
 
 **quality-first:**
 
