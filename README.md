@@ -181,9 +181,10 @@ and always shows the human exactly where it is.
 The TODO is the single control surface. Each skill ends with a `## Handoff` that (1) reports its result and
 (2) updates that TODO:
 
-- **Orchestrators** (`start-ritus`, `brainstorm`, `ticket-review`, `address-feedback`, `debug`) generate the run's full TODO up front.
-- **Workers** (`requirement-analysis`, `execute-task`, `verify-task`, `pr-review`) report follow-ups (e.g. a fix → re-verify
-  loop) and orchestrators will append new TODO item, so nothing is double-queued.
+- **Orchestrators** (`ticket-review`, `address-feedback`, `debug`) create/own the driving TODO and apply TODO updates from worker verdicts.
+- **Routing** (`start-ritus`, `brainstorm`, `triage`) direct to the next skill (typically `invoke <skill>`).
+- **Workers** (`execute-task`, `verify-task`, `pr-review`) run as dispatched subagents and only report a verdict + follow-up.
+- **Intra-skill worker** (`requirement-analysis`) is dispatched by `ticket-review` (not a driving-TODO item).
 - The **main thread** owns and walks the TODO top to bottom - dispatching each `dispatch <skill> subagent` item as
   a fresh, independent subagent and running each `invoke <skill>` item inline.
 
