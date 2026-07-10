@@ -82,12 +82,13 @@ never a vendor model ID. Map it to the best-matching model your platform offers:
 - **standard** - default model; multi-file integration, judgment, requirement analysis, adversarial review.
 - **most capable** - highest-capability model; architecture / design decisions and complex reasoning.
 
-**Model selection rule (choose by model capability; name the model explicitly):** pick the *least* capable model that can
-do the job, name it explicitly at dispatch time, and never let a subagent silently inherit the session's model. Scale
-the reviewer's model to the diff's size and risk. If a subagent returns BLOCKED for insufficient reasoning power,
-re-dispatch it one step up the `cheap → standard → most capable` ladder; if it is already `most capable`, stop and
-escalate to the user (see the `BLOCKED` row in the outcome table). Tool names below denote capabilities - map them to
-your platform's equivalents (e.g. `web fetch` = your URL-reading tool).
+**Model selection rule (select by capability; pin a concrete model at dispatch):** choose the *lowest* capability
+(`cheap → standard → most capable`) that can do the job. At dispatch time, map that capability to the concrete model
+your platform provides and name it explicitly - never let a subagent silently inherit the session's model. Scale the
+reviewer's capability to the diff's size and risk. If a subagent returns BLOCKED for insufficient reasoning power,
+re-dispatch it one step up the ladder; if it is already `most capable`, stop and escalate to the user (see the
+`BLOCKED` row in the outcome table). Tool names below denote capabilities - map them to your platform's equivalents
+(e.g. `web fetch` = your URL-reading tool).
 
 | Worker skill | Model capability | Effort | Tools | Key constraints |
 |----------|------------------|--------|-------|-----------------|
