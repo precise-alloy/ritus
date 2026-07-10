@@ -178,6 +178,7 @@ Note: `docs/PROJECT_CONTEXT.md` will be rendered from `.yml` data in Step 10 aft
    module_map:
      - human_phrase: <human phrase>
        kebab_case_name: <kebab-case-name>
+     # add this `misc` catch-all only if real files remain unclassified - omit it for an empty or module-less repo:
      - human_phrase: default
        kebab_case_name: misc
 4. Do not invent modules - only map what exists

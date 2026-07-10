@@ -147,7 +147,7 @@ VERIFY: PASS
 Phase 1 - DONE WHEN:
 - [ ] DONE WHEN condition 1 - verified at file:line (diff-checkable)
 - [ ] DONE WHEN condition 2 - verified by command output (command-checkable)
-- [ ] Scope clean - only CONTEXT + DOC UPDATE + test files modified
+- [ ] Scope clean - only CONTEXT + DOC UPDATE + test files (+ exploration.md) modified
 - [ ] Standards gates - all applicable gates passed
 - [ ] Build passes - exit code 0 (or skipped - not configured)
 - [ ] Tests pass - N tests, 0 failures (or skipped - not configured)

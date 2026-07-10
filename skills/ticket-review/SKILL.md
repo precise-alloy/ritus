@@ -245,6 +245,7 @@ Once the user approves:
 2. **Create the execution TODO list** from the execution plan - the concrete per-task tracker for implementation:
 
 TODO:
+
 ```markdown
 - [ ] Implement task 001: <name> - dispatch execute-task subagent
 - [ ] Verify task 001 - dispatch verify-task subagent

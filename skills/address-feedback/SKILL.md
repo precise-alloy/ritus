@@ -176,7 +176,8 @@ files:
   - tests/utils.test.ts  # update test for renamed function
 ```
 
-# Step 6: Dispatch execution
+## Step 6: Dispatch execution
+
 With the fix task file ready (Step 5), load `dispatch.md`, then walk the remaining TODO items, dispatch `execute-task` (implement the fixes), then `verify-task` (verify), and, if the user wants a re-check, `pr-review`.
 
 Once the fixes are verified, report them to the user with a suggested commit message, and let the user review the diff

@@ -27,9 +27,9 @@ TODO:
 - [ ] Phase 4: Present the proposed fix - get user approval, then classify the fix (TRIVIAL vs SIMPLE+)
 - [ ] TRIVIAL: apply the fix inline, self-verify with build + test, report to the user - done
 - [ ] SIMPLE+: write the case file, load `dispatch.md`, then apply the fix - dispatch execute-task subagent
-- [ ] Verify the fix - dispatch verify-task subagent
-- [ ] Run pr-review - dispatch pr-review subagent
-- [ ] If pr-review approves: invoke wrap-up
+- [ ] SIMPLE+: verify the fix - dispatch verify-task subagent
+- [ ] SIMPLE+: run pr-review - dispatch pr-review subagent
+- [ ] SIMPLE+: if pr-review approves - invoke wrap-up
 ```
 
 ## Iron law

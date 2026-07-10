@@ -26,10 +26,11 @@ A TODO item is executed by the main thread as one of:
   (per the Dispatch rule below).
 - `invoke <skill>` - run that main-thread skill inline.
 
-**Appends are idempotent.** When applying a Handoff's TODO update, add an item only if an equivalent item isn't
-already queued. So a worker can safely append its follow-up whether or not an orchestrator pre-seeded it - if the
-step is already present the append is a no-op; if it's missing (standalone invocation or an incomplete plan) the
-append fills the gap.
+**Fix items are inserted after the current step, not appended to the end.** When applying a Handoff's TODO update,
+place each new item **immediately after the step that produced it** (the just-finished verify/review), ahead of any
+downstream steps already queued - so a `Re-verify` runs before a `pr-review` that was already planned, never after it.
+The update is idempotent: if an equivalent item is already queued in that position it's a no-op; if it's missing
+(standalone invocation or an incomplete plan) it fills the gap.
 
 ## Dispatch rule (spawn-then-invoke)
 
@@ -45,10 +46,11 @@ bottom; for each **dispatch `<skill>` subagent** item:
 3. **Mark the item done** when the subagent returns.
 4. **Apply the outcome to the TODO - never stop at the verdict.** A dispatched subagent only *reports*; it cannot
    touch the main thread's TODO. So when it returns, the main thread must immediately translate its verdict into the
-   TODO items below, before moving on. Reading the verdict without applying its update is the main failure mode -
-   don't do it.
+   TODO items below and **insert them right after the item just finished** - ahead of any downstream steps already
+   queued (e.g. a pending `pr-review`) - before moving on. Reading the verdict without applying its update is the main
+   failure mode - don't do it.
 
-| Subagent returns | Main thread appends next (idempotent) |
+| Subagent returns | Main thread inserts next, right after the current item (idempotent) |
 |---|---|
 | `execute-task` (implemented) | `Verify - dispatch verify-task subagent` for that task |
 | `verify-task` → PASS | nothing - the plan's next item runs |

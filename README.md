@@ -79,7 +79,7 @@ The `/sync` skill copies template files into your project. Files are never overw
 
 | Strategy             | Behavior                                    | Files                                                                                                                                                                                                                                               |
 |----------------------|---------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| **user-owned**       | Created once, you own it - edit freely      | `docs/profiles/project.yml`, `team.yml`, `runtime.yml`, `docs/PROJECT_CONTEXT.md`, `docs/ARCHITECTURE.md`, `docs/CODE_CONVENTIONS.md`, `docs/TEST_CONVENTIONS.md`, `docs/DECISIONS.md`, `docs/LESSONS.md`, `docs/CUTOFF.md`, `docs/STAKEHOLDERS.md` |
+| **user-owned**       | Created once, you own it - edit freely      | `docs/profiles/project.yml`, `docs/profiles/team.yml`, `docs/profiles/runtime.yml`, `docs/PROJECT_CONTEXT.md`, `docs/ARCHITECTURE.md`, `docs/CODE_CONVENTIONS.md`, `docs/TEST_CONVENTIONS.md`, `docs/DECISIONS.md`, `docs/LESSONS.md`, `docs/CUTOFF.md`, `docs/STAKEHOLDERS.md` |
 | **append-only**      | Created once, only appended to              | `docs/CHANGELOG.md`                                                                                                                                                                                                                                 |
 | **scaffold**         | Directory placeholder                       | `docs/tasks/README.md`, `docs/memory/README.md`                                                                                                                                                                                                     |
 | **project-specific** | Created once, you own it - extend as needed | `.env.example`                                                                                                                                                                                                                                      |
@@ -181,7 +181,7 @@ and always shows the human exactly where it is.
 The TODO is the single control surface. Each skill ends with a `## Handoff` that (1) reports its result and
 (2) updates that TODO:
 
-- **Orchestrators** (`start-ristus`, `brainstorm`, `ticket-review`, `address-feedback`, `debug`) generate the run's full TODO up front.
+- **Orchestrators** (`start-ritus`, `brainstorm`, `ticket-review`, `address-feedback`, `debug`) generate the run's full TODO up front.
 - **Workers** (`requirement-analysis`, `execute-task`, `verify-task`, `pr-review`) report follow-ups (e.g. a fix → re-verify
   loop) and orchestrators will append new TODO item, so nothing is double-queued.
 - The **main thread** owns and walks the TODO top to bottom - dispatching each `dispatch <skill> subagent` item as

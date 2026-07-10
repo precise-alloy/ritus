@@ -243,7 +243,8 @@ Incremental (if applicable):
 
 - Never draft the review from stale or partial ticket data - fetch live data first, or stop and report the failure.
 - Never ask the user - every question is a `[NEEDS CLARIFICATION]` marker.
-- Write only the review document, the exploration log, and `DECISION-NNN` entries. No source or task files.
+- Write only the review document, the exploration log, `DECISION-NNN` entries, and the transient
+  `.ritus/attachments/{TICKET_KEY}/` scratch (per Operating constraints). No source or task files.
 - Cite `file:line` for every claim about existing code.
 
 ## Handoff
