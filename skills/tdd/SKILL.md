@@ -1,6 +1,6 @@
 ---
 name: tdd
-description: Loaded automatically by execute-task for new business logic or bug fixes - enforces red-green-refactor cycle. Do not invoke standalone
+description: Loaded automatically by execute-task for new business logic, new API endpoints, or bug fixes - enforces red-green-refactor cycle. Do not invoke standalone
 argument-hint: Provide the behavior or bug being implemented and the expected failing test scenario
 user-invocable: false
 ---
