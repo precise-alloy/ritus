@@ -1,15 +1,11 @@
 # Task File Templates
 
-## TRIVIAL — no task file
-
-Implement directly. Log in commit message only.
-
-## SIMPLE — task note (3 sections)
+## SIMPLE - task note (3 sections)
 
 ```markdown
 ## TASK
 
-<one focused logical change — imperative sentence>
+<one focused logical change - imperative sentence>
 
 ## DONE WHEN
 
@@ -19,15 +15,15 @@ Implement directly. Log in commit message only.
 
 ## VERIFY
 
-After implementation, dispatch a fresh `verify-task` subagent (model: haiku, effort: medium). Do not self-verify.
+Verified fresh by a verify-task subagent.
 ```
 
-## STANDARD / EPIC — full task file
+## STANDARD / EPIC - full task file
 
 ```markdown
 ## TASK
 
-<one focused logical change — imperative sentence>
+<one focused logical change - imperative sentence>
 Classification: STANDARD | EPIC
 
 ## PRIOR CONTEXT
@@ -51,7 +47,7 @@ none | Add a new <resource> | Add a new endpoint | ...
 
 ## GOAL
 
-<expected outcome — from ACCEPTANCE CRITERIA>
+<expected outcome - from ACCEPTANCE CRITERIA>
 
 ## STEPS
 
@@ -80,14 +76,13 @@ none | Add a new <resource> | Add a new endpoint | ...
 
 ## VERIFY
 
-After implementation, dispatch a fresh `verify-task` subagent (model: haiku, effort: medium) to independently verify
-DONE WHEN conditions. Do not self-verify — the reviewer must have a clean context.
-If verification fails, dispatch `execute-task` (fresh subagent) to fix the gaps,
-then dispatch a new `verify-task` subagent to re-verify. Repeat until PASS.
+Verified fresh by a verify-task subagent, in a clean context separate from the implementer's. On FAIL, the main thread
+owns the fix loop — it appends the fix + re-verify steps and applies the circuit breaker (cap: 3 attempts) from
+`skills/shared/dispatch.md`.
 
 ## DOC UPDATE
 
-<!-- Apply doc trigger matrix — do not default to "update all" -->
+<!-- Apply doc trigger matrix - do not default to "update all" -->
 <state each doc path + what to update, or "none required">
 
 ## COMMIT

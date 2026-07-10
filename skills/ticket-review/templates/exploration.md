@@ -1,23 +1,24 @@
 # Exploration Log Template
 
-Create `docs/tasks/{branch-slug}/exploration.md` when the first task on a branch starts.
+Create `docs/tasks/{branch-slug}/exploration.md` during requirement analysis - `requirement-analysis` seeds it, and
+ticket-review creates it for the SIMPLE inline path. It must exist before the first task on a branch starts.
 
-This file is **append-only** — subagents add entries, never modify or remove existing ones. Safe for parallel agents.
+This file is **append-only** - subagents add entries, never modify or remove existing ones. Safe for parallel agents.
 
 ## Entry format
 
 Each entry is timestamped, tagged with the task name, and flagged with a target doc:
 
 ```markdown
-# Exploration Log — {branch-slug}
+# Exploration Log - {branch-slug}
 
-## {YYYY-MM-DD HH:mm} — {task-name}
+## {YYYY-MM-DD HH:mm} - {task-name}
 
-- [CODE_CONVENTIONS] <codebase pattern discovered — one line>
-- [ARCHITECTURE] <structural finding — one line>
-- [LESSONS] <dangerous pattern found — one line>
-- [DECISIONS] <non-obvious decision made — one line>
-- [NONE] <useful context, no doc update needed — one line>
+- [CODE_CONVENTIONS] <codebase pattern discovered - one line>
+- [ARCHITECTURE] <structural finding - one line>
+- [LESSONS] <dangerous pattern found - one line>
+- [DECISIONS] <non-obvious decision made - one line>
+- [NONE] <useful context, no doc update needed - one line>
 ```
 
 ## Flags
@@ -33,6 +34,6 @@ Each entry is timestamped, tagged with the task name, and flagged with a target 
 ## Rules
 
 - One entry per finding. Keep entries to one line.
-- Flag every entry — no unflagged lines.
-- Read the full log before starting work — avoid re-discovering what another subagent already found.
-- Append before exiting — don't batch; write as you discover.
+- Flag every entry - no unflagged lines.
+- Read the full log before starting work - avoid re-discovering what another subagent already found.
+- Append before exiting - don't batch; write as you discover.

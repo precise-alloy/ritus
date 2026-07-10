@@ -1,12 +1,12 @@
 ---
 name: debug
-description: Use when investigating bugs, test failures, or unexpected behavior — 4-phase investigation with evidence grading before any fix. TRIGGER — invoke when user mentions bug, broken, failing, error, crash, not working
-argument-hint: Provide the symptom, exact error/log output, reproduction steps, and recent changes
+description: Use when investigating bugs, test failures, or unexpected behavior - 4-phase investigation with evidence grading before any fix. TRIGGER - invoke when user mentions bug, broken, failing, error, crash, not working
+argument-hint: Provide the symptom, exact error/log output, reproduction steps, recent changes, and any linked ticket URL/key
 ---
 
 # Debug
 
-**Core principle:** Understand before you fix. Guessing at fixes is slower than systematic investigation — every
+**Core principle:** Understand before you fix. Guessing at fixes is slower than systematic investigation - every
 failed guess adds noise and delays the real fix.
 
 ## When to use
@@ -16,7 +16,7 @@ Any bug, test failure, unexpected behavior, or issue investigation. Load this sk
 **Especially** when under time pressure, when a "quick fix" is tempting, when prior fixes have failed, or when the
 issue isn't fully understood.
 
-When starting debug, create this TODO and mark items as you complete them:
+When starting debug, create this TODO - **every item below, verbatim** (never a single item named after the skill) - and mark items done as you complete them:
 
 TODO:
 
@@ -24,8 +24,12 @@ TODO:
 - [ ] Phase 1: Root cause investigation
 - [ ] Phase 2: Pattern analysis
 - [ ] Phase 3: Hypothesis and testing
-- [ ] Phase 4: Fix and verify
-- [ ] Run pr-review
+- [ ] Phase 4: Present the proposed fix - get user approval, then classify the fix (TRIVIAL vs SIMPLE+)
+- [ ] TRIVIAL: apply the fix inline, self-verify with build + test, report to the user - done
+- [ ] SIMPLE+: write the case file, load `dispatch.md`, then apply the fix - dispatch execute-task subagent
+- [ ] SIMPLE+: verify the fix - dispatch verify-task subagent
+- [ ] SIMPLE+: run pr-review - dispatch pr-review subagent
+- [ ] SIMPLE+: if pr-review approves - invoke wrap-up
 ```
 
 ## Iron law
@@ -34,18 +38,25 @@ TODO:
 
 Phase 1 must complete before any fix is proposed. Violating this wastes more time than following it.
 
-## Phase 1: Root Cause Investigation (hard gate — must complete before Phase 2)
+## Phase 1: Root Cause Investigation (hard gate - must complete before Phase 2)
+
+**If the bug is linked to a ticket** (a URL/key was provided or is named in the symptom), fetch it first via
+`remote-api-access.md` in the `shared` skill directory - the single mechanism for fetching ticket data (it
+auto-detects the provider). Pull the reported symptom, reproduction steps, expected-vs-actual behavior, comments, and
+any attached screenshots or logs to ground the investigation. Treat it as *reported* context, not confirmed fact -
+reproduce and confirm the actual behavior yourself (1.2), and grade a ticket claim no higher than Hypothesized until
+you verify it. Skip this when no ticket is involved.
 
 ### 1.1 Read error messages carefully
 
-- Stack traces, line numbers, file paths, error codes — read them, don't skim.
+- Stack traces, line numbers, file paths, error codes - read them, don't skim.
 - Copy the exact error message. Note the exact file and line.
 
 ### 1.2 Reproduce consistently
 
 - Determine exact triggering steps.
 - Is it 100% reproducible or intermittent?
-- If not reproducible, gather more data — do not guess.
+- If not reproducible, gather more data - do not guess.
 
 ### 1.3 Check recent changes
 
@@ -69,7 +80,7 @@ For multi-component systems (API chains, CI pipelines, layered services):
 For errors deep in the call stack, trace backward from the bad value to its origin:
 
 1. Find where the bad value is used (the symptom).
-2. Trace backward through the call chain — where did this value come from?
+2. Trace backward through the call chain - where did this value come from?
 3. At each step, verify: is the value correct here? If yes, move one step forward. If no, move one step backward.
 4. The point where the value goes from correct to incorrect is the root cause location.
 
@@ -87,7 +98,7 @@ As you investigate, grade each finding:
 
 ---
 
-## Phase 2: Pattern Analysis (hard gate — must complete before Phase 3)
+## Phase 2: Pattern Analysis (hard gate - must complete before Phase 3)
 
 ### 2.1 Find working examples
 
@@ -101,7 +112,7 @@ As you investigate, grade each finding:
 
 ### 2.3 Identify differences
 
-Catalog every difference between working and broken code — no matter how small. Document each.
+Catalog every difference between working and broken code - no matter how small. Document each.
 
 ### 2.4 Understand dependencies
 
@@ -109,12 +120,12 @@ Map: required components, settings, configuration, environment, assumptions.
 
 ---
 
-## Phase 3: Hypothesis and Testing (hard gate — must complete before Phase 4)
+## Phase 3: Hypothesis and Testing (hard gate - must complete before Phase 4)
 
 ### 3.1 Form single hypothesis
 
 - Clearly stated, specific, written down.
-- "The bug occurs because X does Y when Z" — not "something is wrong with the auth."
+- "The bug occurs because X does Y when Z" - not "something is wrong with the auth."
 
 ### 3.2 Test minimally
 
@@ -151,72 +162,61 @@ Status: investigating | root-cause-found | fix-verified | escalated
 
 Grade: Confirmed | Deduced | Hypothesized
 
-<what is actually wrong and why — cite file:line>
+<what is actually wrong and why - cite file:line>
 
 ## Evidence
 
-- <finding 1> — Grade: Confirmed — `file:line`
-- <finding 2> — Grade: Deduced — follows from finding 1
-- <finding 3> — Grade: Hypothesized — needs verification
+- <finding 1> - Grade: Confirmed - `file:line`
+- <finding 2> - Grade: Deduced - follows from finding 1
+- <finding 3> - Grade: Hypothesized - needs verification
 
 ## Attempted Fixes (if any)
 
 | # | What was tried | Result |
 |---|---|---|
-| 1 | <description> | Failed — <why> |
+| 1 | <description> | Failed - <why> |
 
 ## Proposed Fix
 
-<what should change and where — becomes the STEPS in the task file>
+<what should change and where - becomes the STEPS in the task file>
 
 ## Regression Test
 
-<test that would have caught this — becomes part of DONE WHEN>
+<test that would have caught this - becomes part of DONE WHEN>
 ```
 
-For SIMPLE+, this case file is referenced in the task file's CONTEXT section. For TRIVIAL, it's optional — commit
+For a **SIMPLE+ fix this case file is required** - it is the task artifact the dispatched execute-task and verify-task
+consume, reading its `Proposed Fix` as the STEPS and its `Regression Test` as the DONE WHEN. A **TRIVIAL fix skips it**:
+that fix is applied inline with no dispatch (Phase 4), so there is no worker to hand an artifact to, and the commit
 message captures the root cause.
 
 ---
 
-## Phase 4: Fix and Verify
+## Phase 4: Approve the fix, then route by size
 
-**Present the investigation case file and proposed fix to the user and wait for approval before applying any
-changes.** The user may approve, adjust the approach, or ask for alternatives. Do NOT proceed until the user
-explicitly approves.
+**Present the proposed fix to the user and wait for approval before any change is applied.** The user may approve,
+adjust the approach, or ask for alternatives - proceed only after the user explicitly approves.
 
-### 4.1 Create failing test case
+Once approved, route the fix by its size (the same TRIVIAL / SIMPLE+ criteria `triage` uses):
 
-Write a test that reproduces the bug. Must fail before the fix, pass after. Reference the `testing-policy` skill for
-test conventions.
+- **TRIVIAL** (single file, no public-contract change, clear validation, low blast radius) - apply the fix inline in
+  this session, then self-verify with build + test and report to the user. The commit message captures the root
+  cause; no case file and no dispatch are needed.
+- **SIMPLE+** (anything larger) - write the investigation case file, then hand it to a dispatched `execute-task`
+  subagent; you investigated, so a fresh context applies the fix and another fresh context (verify-task) checks it.
+  The case file is the task artifact it consumes: `Proposed Fix` is the STEPS, `Regression Test` is the DONE WHEN.
+  execute-task writes the failing test and applies the single fix red-green (it loads `tdd` for bug fixes);
+  verify-task then verifies it independently. Your job here ends at handing the case file to the dispatch, per the TODO.
 
-### 4.2 Apply a single fix
+### Escalation - when the fix loop can't converge
 
-Fix the root cause directly. One fix, one variable. Do not bundle improvements or "while I'm here" refactoring.
+The verify → fix cycle runs through the dispatch (verify FAIL → `execute-task` → re-verify), bounded by the circuit
+breaker in `dispatch.md`. When that breaker trips - the same finding recurs, or several cycles pass without a clean
+state - treat it as an architectural problem, not another fix attempt. Signs: each fix reveals new issues elsewhere,
+the fix needs massive refactoring, or it creates new symptoms.
 
-After applying the fix:
-
-1. Run the failing test — it must now pass.
-2. Run the full test suite — no regressions.
-3. Run the build — it must succeed.
-
-If the fix fails, return to Phase 3 with new information. Form a new hypothesis. Do NOT layer additional fixes on top.
-
-### 4.3 Escalation gate — 3 failed fixes
-
-If 3 fix attempts have failed, **stop**.
-
-This is no longer a bug — it's likely an architectural problem. Signs:
-
-- Each fix reveals new issues elsewhere.
-- Fix requires massive refactoring.
-- Fix creates new symptoms.
-
-**Action**: stop fixing. Document findings. Discuss with the user before any further attempts. The architecture may
-need to change, not the code.
-
-Write a `DECISION-NNN` entry to `docs/DECISIONS.md` documenting the architectural finding — what was discovered,
-why the current approach fails, and what alternatives should be considered.
+**Action:** stop the loop and discuss with the user. Write a `DECISION-NNN` entry to `docs/DECISIONS.md` capturing the
+architectural finding - what was discovered, why the current approach fails, and what alternatives to consider.
 
 ---
 
@@ -225,31 +225,37 @@ why the current approach fails, and what alternatives should be considered.
 Create `docs/tasks/{branch-slug}/exploration.md` if it doesn't exist, using the header format from
 `skills/ticket-review/templates/exploration.md`. Before starting, read the full log to avoid re-discovering prior work; during investigation, append codebase findings per the exploration template (append-only; flag every entry).
 
-## Common rationalizations — STOP and return to Phase 1
+## Common rationalizations - STOP and return to Phase 1
 
 | Excuse | Reality |
 |---|---|
 | "Let me just try this quick fix" | Quick fixes without root cause create more bugs than they solve |
-| "It's a simple bug" | Simple bugs don't need guessing — they need reading. Process is fast for simple bugs. |
+| "It's a simple bug" | Simple bugs don't need guessing - they need reading. Process is fast for simple bugs. |
 | "We're under time pressure" | Systematic debugging is FASTER than guess-and-check. Every failed guess wastes more time. |
 | "I'll fix first, investigate later" | You'll fix the symptom and miss the cause. The bug will return. |
 | "I can bundle these fixes" | You won't know which one worked. One variable at a time. |
 | "It's probably X" (without evidence) | "Probably" is not evidence. Trace the data flow. |
 | "I can see the symptom so I know the cause" | Symptoms mislead. The error at line 42 may originate at line 7. |
-| "This fix should work" (3rd+ attempt) | Stop. This is no longer a bug — it's an architectural problem. Escalate. |
+| "This fix should work" (3rd+ attempt) | Stop. This is no longer a bug - it's an architectural problem. Escalate. |
 
 ---
 
 ## Output
 
-After completing all four phases, the skill produces:
+After the investigation phases and the approval gate, the skill produces one of:
 
-1. **Investigation case file** — `docs/tasks/{branch-slug}/investigation-{slug}.md`
-2. **The fix itself** — applied, tested
+- **TRIVIAL** - the fix applied inline and self-verified (build + test); the commit message captures the root cause.
+- **SIMPLE+** - an investigation case file (`docs/tasks/{branch-slug}/investigation-{slug}.md`, the fix's task
+  artifact) plus the approved fix dispatched to `execute-task` and checked by verify-task, per the TODO.
 
-## Next
+## Handoff
 
-Report the fix: root cause, what changed, and test results. Do NOT commit — the user decides when to commit.
-
-After the fix is verified, dispatch a fresh subagent (model: haiku, effort: medium) to run the `verify-task` skill for
-adversarial review of the changes.
+- **Report:** the root cause and the outcome. For a **TRIVIAL** fix - applied inline and self-verified (build + test);
+  the user decides on committing. For a **SIMPLE+** fix - the approved proposed fix, report only; it is applied by the
+  dispatched execute-task subagent, and the user decides on committing.
+- **TODO update:** a **TRIVIAL** fix has nothing to dispatch - the round ends after the inline fix + self-verify. For a
+  **SIMPLE+** fix the gates run next - `Apply the fix - dispatch execute-task subagent`, then
+  `Verify the fix - dispatch verify-task subagent`, then `Run pr-review - dispatch pr-review subagent`, then
+  `invoke wrap-up` once pr-review approves. The **investigation case file** is the task artifact those gates consume -
+  its `Proposed Fix` is the STEPS and its `Regression Test` is the DONE WHEN; the fix's execute-task and verify-task
+  both read it as the task file.

@@ -1,4 +1,4 @@
-# Project profile data — filled by setup wizard and repo-scan.
+# Project profile data - filled by setup wizard and repo-scan.
 # Edit this file, then re-run the `setup` skill to regenerate docs/PROJECT_CONTEXT.md.
 # Values like off/no/yes must be quoted: key: "off"
 
@@ -9,7 +9,7 @@ project_name: ""
 primary_language: ""
 framework: ""
 
-# Filled by repo-scan — stack detection
+# Filled by repo-scan - stack detection
 stack:
   package_manager: ""
   build_tool: ""

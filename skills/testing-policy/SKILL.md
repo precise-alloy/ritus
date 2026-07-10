@@ -1,7 +1,8 @@
 ---
 name: testing-policy
-description: Loaded automatically by execute-task and verify-task for new services, endpoints, workers, or bug fixes — test type rules and coverage requirements. Do not invoke standalone
+description: Loaded automatically by execute-task and verify-task for new services, endpoints, workers, or bug fixes - test type rules and coverage requirements. Do not invoke standalone
 argument-hint: Provide the changed area and the type of behavior that needs validation
+user-invocable: false
 ---
 
 # Testing Policy
@@ -15,14 +16,14 @@ against the matrix before reporting done.
 
 | Change type                                | Unit                  | Integration       | Contract   | Migration  |
 |--------------------------------------------|-----------------------|-------------------|------------|------------|
-| New service method                         | required              | —                 | —          | —          |
-| New API endpoint                           | auth + validation     | happy path        | —          | —          |
-| New background worker / job                | dispatch logic        | queue behavior    | —          | —          |
-| New DB table / column                      | —                     | —                 | —          | required   |
-| Shared type / contract change              | all callers compile   | —                 | required   | —          |
-| Bug fix                                    | regression required   | —                 | —          | —          |
-| Auth / permission change                   | required              | required          | required   | —          |
-| External integration (API client, webhook) | required              | mocked external   | —          | —          |
+| New service method                         | required              | -                 | -          | -          |
+| New API endpoint                           | auth + validation     | happy path        | -          | -          |
+| New background worker / job                | dispatch logic        | queue behavior    | -          | -          |
+| New DB table / column                      | -                     | -                 | -          | required   |
+| Shared type / contract change              | all callers compile   | -                 | required   | -          |
+| Bug fix                                    | regression required   | -                 | -          | -          |
+| Auth / permission change                   | required              | required          | required   | -          |
+| External integration (API client, webhook) | required              | mocked external   | -          | -          |
 
 ## Unit test rules
 
@@ -32,7 +33,7 @@ against the matrix before reporting done.
 
 ## Integration test rules
 
-- Use a real test DB — never mock the database in integration tests.
+- Use a real test DB - never mock the database in integration tests.
 - Mock external HTTP and third-party API calls.
 - New API endpoints: test 401 (no token), 403 (wrong tenant/permission), happy path.
 
@@ -72,7 +73,6 @@ patterns), load it alongside this skill for concrete patterns, APIs, and code ex
 See `docs/PROJECT_CONTEXT.md` build commands section. If `docs/PROJECT_CONTEXT.md` or `docs/TEST_CONVENTIONS.md`
 don't exist yet, use reasonable defaults for the detected stack and flag missing docs in your report.
 
-## Next
+## Handoff
 
-This is a companion skill — it does not chain to another skill. Return to the parent skill (execute-task or
-verify-task) that loaded it.
+- **Report:** the standard applied to the parent skill's work.

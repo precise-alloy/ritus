@@ -10,8 +10,8 @@
   "plugins": [
     {
       "name": "ritus",
-      "description": "AI-assisted development workflow — triage, task generation, execution, verification, and adversarial code review",
-      "version": "2.0.5",
+      "description": "AI-assisted development workflow - triage, task generation, execution, verification, and adversarial code review",
+      "version": "2.0.6",
       "source": "./"
     }
   ]

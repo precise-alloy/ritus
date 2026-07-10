@@ -280,7 +280,7 @@ export const jiraProvider: Provider = {
       `${cmd} jira comments ${key}`,
       `${cmd} jira comments ${key} 20`,
       `${cmd} jira attachments ${key}`,
-      `${cmd} jira attachment-download ${key} .jira-attachments/${key}`,
+      `${cmd} jira attachment-download ${key} .ritus/attachments/${key}`,
     ];
   },
 };
