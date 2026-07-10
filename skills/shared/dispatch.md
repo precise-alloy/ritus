@@ -74,9 +74,22 @@ The worker skills the main thread spawns. Main-thread skills (`brainstorm`, `tri
 `requirement-analysis` during its analysis step (an intra-skill dispatch: the worker reports its analysis back to
 ticket-review and is not a driving-TODO item, so it has no outcome-table row).
 
+**Capability, not model names.** Each worker names a *model capability* - `cheap`, `standard`, or `most capable` -
+never a vendor model ID. Map the capability to the best-matching model your platform offers:
+
+- **cheap** - fastest, lowest-cost model; mechanical, single-file, fully-specified work and independent verification.
+- **standard** - default model; multi-file integration, judgment, requirement analysis, adversarial review.
+- **most capable** - highest-capability model; architecture / design decisions and complex reasoning.
+
+**Model selection rule (always specify the model when dispatching):** pick the *least* capable model that can do the
+job, name it explicitly at dispatch time, and never let a subagent silently inherit the session's model. Scale the
+reviewer's model to the diff's size and risk. If a subagent returns BLOCKED for lack of reasoning power, re-dispatch
+it on a more capable model. Tool names below denote capabilities - map them to your platform's equivalents
+(e.g. `web fetch` = your URL-reading tool).
+
 | Worker skill | Model | Effort | Tools | Key constraints |
 |----------|-------|--------|-------|-----------------|
 | `execute-task` | per triage | per triage | all | Implement STEPS exactly; do not redesign |
-| `verify-task` | haiku | medium | Read, Grep, Glob, Bash | Read-only except build/test/lint; never fix; never trust implementer claims |
-| `pr-review` | sonnet | high | Read, Grep, Glob, Bash, WebFetch | Adversarial; never apply fixes; use `origin/` refs; default to "Request changes" |
+| `verify-task` | cheap | medium | Read, Grep, Glob, Bash | Read-only except build/test/lint; never fix; never trust implementer claims |
+| `pr-review` | standard | high | Read, Grep, Glob, Bash, web fetch | Adversarial; never apply fixes; use `origin/` refs; default to "Request changes" |
 | `requirement-analysis` | per triage | medium | Read, Grep, Glob, Bash, Write (review doc / exploration / DECISIONS only) | Read-only otherwise; non-interactive (defer questions to `[NEEDS CLARIFICATION]`); spawned by ticket-review |

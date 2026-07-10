@@ -150,9 +150,9 @@ Ask:
 
 Options:
 
-- `cost-first` - maximize Haiku usage, lowest API cost
-- `balanced` - Haiku for light tasks, Sonnet for complex (recommended)
-- `quality-first` - Sonnet as default, Opus for architecture decisions
+- `cost-first` - prefer the cheapest capable model, lowest cost
+- `balanced` - cheap model for simple tasks, standard model for complex (recommended)
+- `quality-first` - standard model as default, most capable model for architecture decisions
 
 Default if skipped: `balanced`
 
@@ -320,35 +320,42 @@ first and GitHub Issues (#) second, the branch format uses `PROJ-123` style as t
 
 ### Model routing table → `{{MODEL_ROUTING}}`
 
+Routing names a **model capability**, not a vendor model ID - map each to the best-matching model the target
+platform offers:
+
+- **cheap** - fastest, lowest-cost model; mechanical, single-file, fully-specified work + independent verification.
+- **standard** - default model; multi-file integration, judgment, reviews.
+- **most capable** - highest-capability model; architecture / design decisions and complex reasoning.
+
 **cost-first:**
 
-| Triage                  | Model                       | Effort | Notes                           |
-|-------------------------|-----------------------------|--------|---------------------------------|
-| TRIVIAL                 | `claude-haiku-4-5-20251001` | low    | Direct edits, single file       |
-| SIMPLE                  | `claude-haiku-4-5-20251001` | medium | 3-section task note             |
-| STANDARD                | `claude-sonnet-4-6`         | medium | Cross-module, design decision   |
-| EPIC                    | `claude-sonnet-4-6`         | high   | Multi-session, new architecture |
-| Batch validate (pre-PR) | `claude-haiku-4-5-20251001` | low    | Diff + task review              |
+| Triage                  | Model    | Effort | Notes                           |
+|-------------------------|----------|--------|---------------------------------|
+| TRIVIAL                 | cheap    | low    | Direct edits, single file       |
+| SIMPLE                  | cheap    | medium | 3-section task note             |
+| STANDARD                | standard | medium | Cross-module, design decision   |
+| EPIC                    | standard | high   | Multi-session, new architecture |
+| Batch validate (pre-PR) | cheap    | low    | Diff + task review              |
 
 **balanced (default):**
 
-| Triage                  | Model                                                              | Effort | Notes                         |
-|-------------------------|--------------------------------------------------------------------|----|-------------------------------|
-| TRIVIAL                 | `claude-haiku-4-5-20251001`                                        | low    | Direct edits, single file     |
-| SIMPLE                  | `claude-haiku-4-5-20251001`                                        | medium | 3-section task note           |
-| STANDARD                | `claude-sonnet-4-6`                                                | high   | Cross-module, design decision |
-| EPIC                    | `claude-sonnet-4-6` · `claude-opus-4-7` (pure arch decisions only) | high   | Multi-session                 |
-| Batch validate (pre-PR) | `claude-haiku-4-5-20251001`                                        | medium | Diff + task review            |
+| Triage                  | Model                                     | Effort | Notes                         |
+|-------------------------|-------------------------------------------|--------|-------------------------------|
+| TRIVIAL                 | cheap                                     | low    | Direct edits, single file     |
+| SIMPLE                  | cheap                                     | medium | 3-section task note           |
+| STANDARD                | standard                                  | high   | Cross-module, design decision |
+| EPIC                    | standard · most capable (pure arch only)  | high   | Multi-session                 |
+| Batch validate (pre-PR) | cheap                                     | medium | Diff + task review            |
 
 **quality-first:**
 
-| Triage                  | Model                       | Effort | Notes                           |
-|-------------------------|-----------------------------|--------|---------------------------------|
-| TRIVIAL                 | `claude-haiku-4-5-20251001` | medium | Direct edits, single file       |
-| SIMPLE                  | `claude-sonnet-4-6`         | medium | 3-section task note             |
-| STANDARD                | `claude-sonnet-4-6`         | high   | Cross-module, design decision   |
-| EPIC                    | `claude-opus-4-7`           | xhigh  | Multi-session, new architecture |
-| Batch validate (pre-PR) | `claude-sonnet-4-6`         | high   | Diff + task review              |
+| Triage                  | Model        | Effort | Notes                           |
+|-------------------------|--------------|--------|---------------------------------|
+| TRIVIAL                 | cheap        | medium | Direct edits, single file       |
+| SIMPLE                  | standard     | medium | 3-section task note             |
+| STANDARD                | standard     | high   | Cross-module, design decision   |
+| EPIC                    | most capable | xhigh  | Multi-session, new architecture |
+| Batch validate (pre-PR) | standard     | high   | Diff + task review              |
 
 ---
 

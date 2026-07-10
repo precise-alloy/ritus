@@ -113,6 +113,10 @@ Traceability policy: `{{TRACEABILITY_POLICY}}`
 
 ## Model routing
 
+Each value names a **model capability**, not a specific model - map it to the best-matching model your platform offers:
+**cheap** (fastest/lowest-cost; mechanical single-file work + verification), **standard** (default; multi-file
+integration and judgment), **most capable** (highest-capability; architecture and complex reasoning).
+
 {{MODEL_ROUTING}}
 
 ## Module map
