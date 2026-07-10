@@ -1,6 +1,6 @@
 ---
 name: ticket-review
-description: Use after triage to produce task files - analyzes requirements, fetches Jira, Azure DevOps, or GitHub Issues tickets, and generates execution plans. Reached via triage's Next section, not invoked directly for code review. Do NOT use for reviewing code diffs or PRs - that is pr-review
+description: Use after triage to produce task files - analyzes requirements from a plain description or a Jira, Azure DevOps, or GitHub Issues ticket, and generates execution plans.
 argument-hint: Provide a requirement description or ticket URL(s)/key(s) (Jira, Azure DevOps, or GitHub Issues) with any additional context
 ---
 
@@ -114,9 +114,6 @@ surfaced during analysis). Map to task file format:
 | **SIMPLE**   | 3-section: TASK + DONE WHEN + VERIFY |
 | **STANDARD** | Full task file                       |
 | **EPIC**     | Full task file + memory file         |
-
-> ticket-review runs for SIMPLE / STANDARD / EPIC only - triage handles a **TRIVIAL** change directly in-session
-> (implement + self-verify with build/test, no task file, no dispatch), so it never reaches here.
 
 ### Granularity rule
 
