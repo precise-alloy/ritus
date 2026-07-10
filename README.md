@@ -26,7 +26,7 @@ AI Agent Workflow = Primary rules + Core workflow + Project profile + Runtime co
 | Layer           | File(s)                                           | What it does                                                                                    |
 |-----------------|---------------------------------------------------|-------------------------------------------------------------------------------------------------|
 | Primary rules   | CLAUDE.md / copilot-instructions.md               | User's behavioral directives - highest authority                                                |
-| Core workflow   | Skills (via plugin)                               | On-demand pure-capability skills; the main thread dispatches subagents per `shared/dispatch.md` |
+| Core workflow   | Skills (via plugin)                               | On-demand pure-capability skills; the main thread dispatches subagents per `skills/shared/dispatch.md` |
 | Project profile | `docs/profiles/*.yml` → `docs/PROJECT_CONTEXT.md` | Project facts rendered from YAML data                                                           |
 | Runtime context | Current task file + active skill                  | What to work on now                                                                             |
 
