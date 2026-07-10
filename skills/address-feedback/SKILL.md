@@ -1,20 +1,20 @@
 ---
 name: address-feedback
-description: Use when PR review comments need to be addressed — fetches review feedback, generates fix tasks, dispatches execute-task, commits locally. TRIGGER — invoke when user says "address feedback", "fix PR comments", "resolve comments", "address review", "fix review feedback", or provides a PR URL with review comments to fix. Do NOT use for reviewing code — that is pr-review
+description: Use when PR review comments need to be addressed - fetches review feedback, generates fix tasks, dispatches execute-task, and prepares a reviewable local change for the user to commit. TRIGGER - invoke when user says "address feedback", "fix PR comments", "resolve comments", "address review", "fix review feedback", or provides a PR URL with review comments to fix. Do NOT use for reviewing code - that is pr-review
 argument-hint: Provide the PR URL (GitHub or Azure DevOps) and optionally the count of comments to process
 ---
 
 # Address Feedback
 
-**Core principle:** Read the actual review feedback, understand what each comment asks, fix it, verify it, commit
-locally. Never push — the human reviews the diff and pushes when ready.
+**Core principle:** Read the actual review feedback, understand what each comment asks, fix it, verify it, and hand
+back a reviewable local change with a suggested commit message. The human reviews the diff and commits when ready.
 
 ## When to use
 
 After a PR is created and reviewers (human or AI) have left comments that need code changes. This skill bridges
 PR review comments to actionable task files for execute-task.
 
-**Hard gate — before any other action, create this TODO list — every item below, verbatim (never a single item named after the skill) — and follow it exactly.**
+**Hard gate - before any other action, create this TODO list - every item below, verbatim (never a single item named after the skill) - and follow it exactly.**
 
 TODO:
 
@@ -22,26 +22,26 @@ TODO:
 - [ ] Fetch and filter PR comments
 - [ ] Present filtered list to user for approval
 - [ ] Generate fix task file (round N)
-- [ ] Load `dispatch.md`, then implement fix — dispatch execute-task subagent
-- [ ] Verify fix — dispatch verify-task subagent
+- [ ] Load `dispatch.md`, then implement fix - dispatch execute-task subagent
+- [ ] Verify fix - dispatch verify-task subagent
 - [ ] Ask user about pr-review re-check
 - [ ] If user wants re-check, dispatch pr-review subagent (apply its verdict per dispatch.md)
 - [ ] If pr-review approves: invoke wrap-up
-- [ ] Create local commit — do NOT push
+- [ ] Report the fixes + suggested commit message - the user reviews the diff and commits
 - [ ] Present questions to user (if any)
 ```
 
-Mark each item as completed. If any step fails, stop and report — do not skip.
+Mark each item as completed. If any step fails, stop and report - do not skip.
 This session orchestrates; the implement and verify items run as dispatched subagents.
 
 ## Step 1: Gather Input
 
 Ask the user for:
 
-1. **PR URL** — GitHub (`https://github.com/owner/repo/pull/123`) or Azure DevOps PR URL
-2. **Comment count** (optional) — limit to the latest N comments. Default: all.
+1. **PR URL** - GitHub (`https://github.com/owner/repo/pull/123`) or Azure DevOps PR URL
+2. **Comment count** (optional) - limit to the latest N comments. Default: all.
 
-The provider is auto-detected from the PR URL — no manual provider selection needed.
+The provider is auto-detected from the PR URL - no manual provider selection needed.
 
 ## Step 2: Fetch PR Comments
 
@@ -67,9 +67,9 @@ Do not continue with stale or partial data.
 ### Response structure
 
 **GitHub** returns two sets:
-- `reviewComments` — inline code review comments with `path`, `line`, `original_line`, `diff_hunk`, `body`,
+- `reviewComments` - inline code review comments with `path`, `line`, `original_line`, `diff_hunk`, `body`,
   `user.login`, `in_reply_to_id`
-- `issueComments` — general PR conversation comments with `body`, `user.login`
+- `issueComments` - general PR conversation comments with `body`, `user.login`
 
 **ADO** returns threads:
 - Each thread has `status`, `threadContext.filePath`, `threadContext.rightFileStart`, `threadContext.rightFileEnd`
@@ -116,7 +116,7 @@ Actionable:
 Proceed with fixes?
 ```
 
-**Hard gate — wait for user approval before proceeding.**
+**Hard gate - wait for user approval before proceeding.**
 
 ## Step 4: Detect Round Number
 
@@ -127,7 +127,7 @@ Check `docs/tasks/{branch-slug}/` for existing `fix-review-round-*.md` files:
 - Pattern: `fix-review-round-{N}.md`
 
 If previous rounds exist, compare comment timestamps against the previous round's task file creation time.
-Exclude comments that predate the previous round — they were already addressed. Only include new comments
+Exclude comments that predate the previous round - they were already addressed. Only include new comments
 from the current review cycle.
 
 ## Step 5: Generate Fix Task File
@@ -146,13 +146,13 @@ Address PR review feedback (round N): <count> comments from <PR_URL>
 
 ## STEPS
 
-1. **[src/index.ts:42]** Add null check before accessing `.name` — _"@reviewer1: Add null check before accessing .name"_
-2. **[src/utils.ts:15]** Rename function to `parseConfig` — _"@reviewer2: Rename this to parseConfig for clarity"_
+1. **[src/index.ts:42]** Add null check before accessing `.name` - _"@reviewer1: Add null check before accessing .name"_
+2. **[src/utils.ts:15]** Rename function to `parseConfig` - _"@reviewer2: Rename this to parseConfig for clarity"_
 
 ## DONE WHEN
 
-- [ ] src/index.ts:42 — null check added before `.name` access
-- [ ] src/utils.ts:15 — function renamed to `parseConfig`, all call sites updated
+- [ ] src/index.ts:42 - null check added before `.name` access
+- [ ] src/utils.ts:15 - function renamed to `parseConfig`, all call sites updated
 - [ ] Compiles/builds without errors
 - [ ] Existing tests pass
 - [ ] No files outside the referenced paths modified
@@ -176,10 +176,11 @@ files:
   - tests/utils.test.ts  # update test for renamed function
 ```
 
-## Step 6: Execute TODO
+# Step 6: Dispatch execution
+With the fix task file ready (Step 5), load `dispatch.md`, then walk the remaining TODO items, dispatch `execute-task` (implement the fixes), then `verify-task` (verify), and, if the user wants a re-check, `pr-review`.
 
-Load `dispatch.md` in the `shared` skill directory, then follow the TODO — dispatch each subagent per its rule.
-Commit message format:
+Once the fixes are verified, report them to the user with a suggested commit message, and let the user review the diff
+and commit locally. Suggested commit message format:
 
 ```text
 fix(review): address PR review feedback (round N)
@@ -189,7 +190,7 @@ fix(review): address PR review feedback (round N)
 
 ## Step 7: Handle Questions
 
-If Step 3 flagged comments as questions, present them to the user after fixes are committed:
+If Step 3 flagged comments as questions, present them to the user alongside the reported fixes:
 
 ```text
 These comments appear to be questions, not change requests:
@@ -203,15 +204,15 @@ You may want to reply to these directly on the PR.
 ## Hard rules
 
 - If a comment references a file that doesn't exist, flag it and skip
-- If execute-task or verify-task fails, stop and report — do not auto-retry
+- If execute-task or verify-task fails, stop and report - do not auto-retry
 - Load `code-conventions` and `security` companion skills when applicable
 
 ## Handoff
 
-- **Report:** the round-N fixes, committed locally (never pushed).
+- **Report:** the round-N fixes + a suggested commit message, ready for the user to review and commit locally.
 - **TODO update:** if the pr-review re-check runs, its verdict is applied per `dispatch.md` (Approve → `invoke wrap-up`;
   Request Changes → a Fix → Verify → Re-review cycle first). If the re-check is skipped, wrap-up does not run (it
-  requires a pr-review approval) and the round ends at the local commit.
+  requires a pr-review approval) and the round ends with the fixes ready for the user to commit.
 
-After the user pushes and receives more review comments, invoke `address-feedback` again — it auto-detects the next
+When more review comments arrive on the PR, invoke `address-feedback` again - it auto-detects the next
 round number.

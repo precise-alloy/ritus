@@ -19,7 +19,7 @@ This ensures no two developers on different branches collide on the same memory 
 ## Template
 
 ```markdown
-# <Feature> — Context
+# <Feature> - Context
 
 Branch: <git branch name>
 Created-by: <first task ID>
@@ -40,7 +40,7 @@ Auto-expire: <today + expiry days>
 
 ## QA
 
-<!-- Accumulated from task .qa.md files — only when QA mode is not off -->
+<!-- Accumulated from task .qa.md files - only when QA mode is not off -->
 Affected features so far:
 
 - (add as tasks complete)

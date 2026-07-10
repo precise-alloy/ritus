@@ -105,7 +105,7 @@ Test file location convention: see docs/PROJECT_CONTEXT.md section `## Test loca
 
 Guidelines:
 
-- Existing docs are intentionally brief — **expand them** with implementation details, usage examples, and architecture
+- Existing docs are intentionally brief - **expand them** with implementation details, usage examples, and architecture
   notes when touching related features.
 - Create new docs for entirely new features or workflows.
 - Include: purpose, how it works, configuration, edge cases, and troubleshooting tips.

@@ -1,6 +1,6 @@
 ---
 name: repo-scan
-description: Use when user says "run repo-scan", "scan repo", "detect my stack", "analyze my codebase", "what framework am I using", or "what's my tech stack" — detects stack, conventions, and patterns from existing codebase
+description: Use when user says "run repo-scan", "scan repo", "detect my stack", "analyze my codebase", "what framework am I using", or "what's my tech stack" - detects stack, conventions, and patterns from existing codebase
 argument-hint: Provide the repository path or specific areas to scan, if different from the current workspace
 ---
 
@@ -14,16 +14,16 @@ Run when human says `run repo-scan` or `scan repo`, or after setup completes for
 
 ## Behavior rules
 
-- Grep and read entry points only — do not scan the full repo
-- **Steps 1–8 are read-only** — collect findings in your working notes, do NOT write any files yet
+- Grep and read entry points only - do not scan the full repo
+- **Steps 1–8 are read-only** - collect findings in your working notes, do NOT write any files yet
 - **Step 9** presents the scan report for human review and blocks on confirmation
 - Only write files AFTER human confirms the findings (Step 10)
 - Fill what you can detect with confidence; mark `❓` for anything ambiguous
-- Never guess — if detection is unclear, leave `❓` and note what to ask human
+- Never guess - if detection is unclear, leave `❓` and note what to ask human
 
 ---
 
-## Step 1 — detect stack
+## Step 1 - detect stack
 
 Run these checks in parallel:
 
@@ -40,7 +40,7 @@ Run these checks in parallel:
 | ORM / query builder | Grep deps for `prisma`, `drizzle`, `typeorm`, `sequelize`, `sqlalchemy`, `knex` | ORM / query builder |
 | Deployment target | Look for `Dockerfile`, `fly.toml`, `vercel.json`, `railway.toml`, `.github/workflows/` | Deployment target |
 
-Collect detected values (do NOT write yet — present in scan report first). Use EXACT field names from the schema:
+Collect detected values (do NOT write yet - present in scan report first). Use EXACT field names from the schema:
 
 ```yaml
 primary_language: <detected>
@@ -60,7 +60,7 @@ Mark each found value. Mark each not found `❓` with a note of what to ask.
 
 ---
 
-## Step 2 — detect auth pattern
+## Step 2 - detect auth pattern
 
 ```text
 1. Grep for: middleware, auth, jwt, session, cookie, bearer, token, passport, nextauth, clerk, supabase
@@ -81,7 +81,7 @@ Mark each found value. Mark each not found `❓` with a note of what to ask.
 
 ---
 
-## Step 3 — detect error handling
+## Step 3 - detect error handling
 
 ```text
 1. Grep for: catch, error, throw, HttpException, APIError, logger, log.error
@@ -96,7 +96,7 @@ Mark each found value. Mark each not found `❓` with a note of what to ask.
 
 ---
 
-## Step 4 — detect test setup
+## Step 4 - detect test setup
 
 ```text
 1. Read package.json scripts (or equivalent in detected build tool)
@@ -116,12 +116,12 @@ Mark each found value. Mark each not found `❓` with a note of what to ask.
    - Mocking: detect mock strategy from test files (e.g., "vi.mock() for external deps")
    - Fixtures: check for test helper/factory directories
    - Async: detect async test patterns (async/await, done callbacks, etc.)
-   - If a convention cannot be confidently detected, leave it with `<!-- Not detected — fill manually -->`
+   - If a convention cannot be confidently detected, leave it with `<!-- Not detected - fill manually -->`
 ```
 
 ---
 
-## Step 5 — detect code conventions (collect for `docs/CODE_CONVENTIONS.md`)
+## Step 5 - detect code conventions (collect for `docs/CODE_CONVENTIONS.md`)
 
 Based on what was detected in Steps 1–4, collect findings for `docs/CODE_CONVENTIONS.md` (do NOT write yet):
 
@@ -159,17 +159,17 @@ Based on what was detected in Steps 1–4, collect findings for `docs/CODE_CONVE
    - Write framework-specific conventions
 ```
 
-If a section cannot be confidently filled, leave it with `<!-- Not detected — fill manually -->` instead of guessing.
+If a section cannot be confidently filled, leave it with `<!-- Not detected - fill manually -->` instead of guessing.
 
 ---
 
-## Step 6 — prepare docs/PROJECT_CONTEXT.md rendering
+## Step 6 - prepare docs/PROJECT_CONTEXT.md rendering
 
 Note: `docs/PROJECT_CONTEXT.md` will be rendered from `.yml` data in Step 10 after human confirms findings.
 
 ---
 
-## Step 7 — build module map
+## Step 7 - build module map
 
 ```text
 1. List top-level directories in src/ (or equivalent source root)
@@ -180,38 +180,38 @@ Note: `docs/PROJECT_CONTEXT.md` will be rendered from `.yml` data in Step 10 aft
        kebab_case_name: <kebab-case-name>
      - human_phrase: default
        kebab_case_name: misc
-4. Do not invent modules — only map what exists
+4. Do not invent modules - only map what exists
 ```
 
 ---
 
-## Step 8 — prepare docs/CUTOFF.md entries
+## Step 8 - prepare docs/CUTOFF.md entries
 
 ```text
 1. For each module identified in Step 7:
    - Prepare a row for the "Undocumented" table in docs/CUTOFF.md (do NOT write yet)
-   - Status: "source only — read directly"
+   - Status: "source only - read directly"
 2. Leave "Documented" table empty
 ```
 
 ---
 
-## Step 9 — pre-flight conflict check
+## Step 9 - pre-flight conflict check
 
 Before merging any workflow files, check:
 
 ```text
 1. Are there existing docs/tasks/ or docs/memory/ files?
-   → If yes: never touch them — list them as "preserved"
+   → If yes: never touch them - list them as "preserved"
 2. Does docs/ contain existing docs/ARCHITECTURE.md, docs/DECISIONS.md, docs/LESSONS.md?
-   → If yes: never touch them — list as "preserved"
+   → If yes: never touch them - list as "preserved"
 ```
 
 Output conflict report. **Wait for human confirmation before writing any files.**
 
 ---
 
-## Step 10 — write findings and apply merge strategy
+## Step 10 - write findings and apply merge strategy
 
 After human confirms, write ALL collected findings from Steps 1–8:
 
@@ -227,22 +227,22 @@ Then apply merge strategy (for existing projects adopting the workflow):
 | File/folder | Action |
 | --- | --- |
 | `docs/PROJECT_CONTEXT.md` | Render from `.yml` data |
-| `docs/profiles/*.yml` | Merge filled values — preserve existing user data |
+| `docs/profiles/*.yml` | Merge filled values - preserve existing user data |
 | `docs/tasks/**` | Never touch |
 | `docs/memory/**` | Never touch |
-| `docs/CODE_CONVENTIONS.md` | Merge — repo-scan fills, user refines |
-| `docs/TEST_CONVENTIONS.md` | Merge — repo-scan fills, user refines |
-| `docs/CUTOFF.md` | Append new modules — never remove existing |
-| `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`, `docs/LESSONS.md` | Never touch — user-owned |
+| `docs/CODE_CONVENTIONS.md` | Merge - repo-scan fills, user refines |
+| `docs/TEST_CONVENTIONS.md` | Merge - repo-scan fills, user refines |
+| `docs/CUTOFF.md` | Append new modules - never remove existing |
+| `docs/ARCHITECTURE.md`, `docs/DECISIONS.md`, `docs/LESSONS.md` | Never touch - user-owned |
 
 ---
 
-## Output — scan report
+## Output - scan report
 
 After completing all steps, output:
 
 ```text
-## Repo scan complete — {{PROJECT_NAME}}
+## Repo scan complete - {{PROJECT_NAME}}
 
 ### Stack detected (written to docs/profiles/project.yml)
 ✅ Language: <value>
@@ -265,9 +265,9 @@ After completing all steps, output:
 ✅ Generated from filled .yml data
 
 ### Files preserved (not touched)
-- docs/tasks/** — N task files
-- docs/memory/** — N memory files
-- docs/** — N docs files
+- docs/tasks/** - N task files
+- docs/memory/** - N memory files
+- docs/** - N docs files
 
 ### Conflicts found (requires human decision)
 - <file>: <conflict description>
@@ -282,11 +282,11 @@ Next step: resolve ❓ rows, then begin work.
 
 - Never write files before outputting the conflict report and receiving human confirmation
 - Only write to `docs/profiles/`, `docs/PROJECT_CONTEXT.md`, `docs/CODE_CONVENTIONS.md`, `docs/TEST_CONVENTIONS.md`,
-  and `docs/CUTOFF.md` — never touch `docs/tasks/`, `docs/memory/`, or other user-created docs
-- Never guess `❓` values — ask human once per unknown
+  and `docs/CUTOFF.md` - never touch `docs/tasks/`, `docs/memory/`, or other user-created docs
+- Never guess `❓` values - ask human once per unknown
 - Scan is read-only until Step 9
 
 ## Handoff
 
 - **Report:** the detected stack, conventions, and build/test commands written to the profiles + convention docs.
-  Terminal utility — no onward chain.
+  Terminal utility - no onward chain.

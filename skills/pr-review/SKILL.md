@@ -1,6 +1,6 @@
 ---
 name: pr-review
-description: Use when reviewing code diffs, pull requests, or completed implementation — adversarial review of code quality and correctness. TRIGGER — invoke when user says "review my code", "review this PR", "code review", "check my changes", or all tasks are verified. Do NOT use for analyzing requirements or generating tasks — that is ticket-review
+description: Use when reviewing code diffs, pull requests, or completed implementation - adversarial review of code quality and correctness. TRIGGER - invoke when user says "review my code", "review this PR", "code review", "check my changes", or all tasks are verified. Do NOT use for analyzing requirements or generating tasks - that is ticket-review
 argument-hint: Provide either the Azure DevOps/GitHub PR URL or describe the local branch/worktree to review, plus relevant ticket URL(s)
 ---
 
@@ -11,16 +11,16 @@ can prove correctness with evidence at `file:line`.
 
 ## Operating constraints
 
-- **Independent reviewer** — you must not have authored the code under review. If you produced it in this same
+- **Independent reviewer** - you must not have authored the code under review. If you produced it in this same
   context you are not independent; a fresh review context is required. (The orchestrator guarantees this by spawning
   pr-review fresh; this is the safety net when pr-review is invoked directly.)
 - Adversarial mindset; **never apply fixes or modify source files**.
-- Never create or modify environment files (.env, .env.local) — report missing setup to the user.
-- Use `git fetch origin` and `origin/<branch>` refs — never mutate local branches.
-- Default to "Request changes" — the burden of proof is on the code, not the reviewer.
+- Never create or modify environment files (.env, .env.local) - report missing setup to the user.
+- Use `git fetch origin` and `origin/<branch>` refs - never mutate local branches.
+- Default to "Request changes" - the burden of proof is on the code, not the reviewer.
 - **When dispatched you cannot reach the user.** Your inputs (review mode, requirement source, base branch) come from
   the dispatcher; for anything missing, an access failure, or an unclear requirement, **report BLOCKED** with the
-  specific question rather than asking — the dispatcher relays it. (Invoked directly, you may ask the user.)
+  specific question rather than asking - the dispatcher relays it. (Invoked directly, you may ask the user.)
 
 Inputs to provide:
 1. Review mode: local diff/worktree or remote PR URL
@@ -32,7 +32,7 @@ Inputs to provide:
 After all tasks for a ticket are complete, or before opening a PR. This skill runs a full adversarial review of
 cumulative changes.
 
-When starting pr-review, create this TODO — **every item below, verbatim** (never a single item named after the skill) — and mark items done as you complete them:
+When starting pr-review, create this TODO - **every item below, verbatim** (never a single item named after the skill) - and mark items done as you complete them:
 
 TODO:
 
@@ -40,12 +40,12 @@ TODO:
 - [ ] Load context and gather input
 - [ ] Adversarial review (Phases 1-5)
 - [ ] Report findings and state verdict
-- [ ] Hand off per `## Handoff` (Approve → wrap-up / Request Changes → main thread runs the fix cycle), then stop
+- [ ] Hand off per `## Handoff` (Approve → none; Request Changes → main thread runs the fix cycle), then stop
 ```
 
 ## Remote API access
 
-Read `remote-api-access.md` in the `shared` skill directory for full remote API instructions — helper commands, URL parsing,
+Read `remote-api-access.md` in the `shared` skill directory for full remote API instructions - helper commands, URL parsing,
 environment setup, and error handling.
 
 ## Before starting
@@ -53,34 +53,34 @@ environment setup, and error handling.
 1. Load relevant profile sections: `docs/PROJECT_CONTEXT.md` sections `## Requirement source precedence`,
    `## Testing`, and integration-specific entries from `## Source layout`; `docs/PROJECT_CONTEXT.md`
    section `## Team conventions`.
-2. **Always start from Step 1** (Gather Input) — establish whether this is a PR review or a local pre-PR review and
+2. **Always start from Step 1** (Gather Input) - establish whether this is a PR review or a local pre-PR review and
    gather the relevant URLs/context (from the dispatcher if dispatched, else ask the user). Never silently load
    existing review/task files or resume previous sessions.
-3. After gathering input, load `definition-of-done` skill — verify all hard gates pass.
-4. Grep `docs/LESSONS.md` for the affected module/file names — flag if known failure patterns are being repeated.
-5. Read `docs/STAKEHOLDERS.md` — know who authored/owns what and who to escalate questions to.
-6. Read `docs/tasks/{branch-slug}/exploration.md` if it exists — findings from implementation subagents.
-7. Check `docs/tasks/` for task files matching the reviewed branch — verify DONE WHEN conditions are met.
+3. After gathering input, load `definition-of-done` skill - verify all hard gates pass.
+4. Grep `docs/LESSONS.md` for the affected module/file names - flag if known failure patterns are being repeated.
+5. Read `docs/STAKEHOLDERS.md` - know who authored/owns what and who to escalate questions to.
+6. Read `docs/tasks/{branch-slug}/exploration.md` if it exists - findings from implementation subagents.
+7. Check `docs/tasks/` for task files matching the reviewed branch - verify DONE WHEN conditions are met.
 
 ### Review checklist (in addition to §2.5 below)
 
 - [ ] All DONE WHEN conditions in the task file are satisfied
 - [ ] No claim about existing code without `file:line` citation
 - [ ] Skill files updated if public interface changed (per skill maintenance rules in context)
-- [ ] Load `testing-policy` skill — required test types present
-- [ ] Load `security` skill — gates pass (if auth/billing/tenant touched)
+- [ ] Load `testing-policy` skill - required test types present
+- [ ] Load `security` skill - gates pass (if auth/billing/tenant touched)
 - [ ] QA file verified per `qa-files.md` rules (if QA mode active)
-- [ ] Adversarial pass completed — at least one fault-injection scenario attempted per changed method
+- [ ] Adversarial pass completed - at least one fault-injection scenario attempted per changed method
 - [ ] Every acceptance criterion mapped to a specific `file:line` or marked missing
-- [ ] Blast radius analysis — all upstream callers of changed interfaces verified
-- [ ] **Traceability policy followed** — verify ticket IDs and rationale appear where `docs/PROJECT_CONTEXT.md` section
+- [ ] Blast radius analysis - all upstream callers of changed interfaces verified
+- [ ] **Traceability policy followed** - verify ticket IDs and rationale appear where `docs/PROJECT_CONTEXT.md` section
   `## Team conventions` requires them.
-- [ ] **Documentation up-to-date** — verify affected docs (skill files, docs/ARCHITECTURE.md, docs/DECISIONS.md, docs/LESSONS.md) were
+- [ ] **Documentation up-to-date** - verify affected docs (skill files, docs/ARCHITECTURE.md, docs/DECISIONS.md, docs/LESSONS.md) were
   updated to reflect the PR changes. Flag stale or missing doc updates.
 
 ## Step 1: Gather Input
 
-Obtain these inputs — provided by the dispatcher when dispatched, otherwise ask the user (report BLOCKED if unavailable):
+Obtain these inputs - provided by the dispatcher when dispatched, otherwise ask the user (report BLOCKED if unavailable):
 
 1. **Review mode**:
     - PR review: the Azure DevOps or GitHub pull request URL matching the configured remote system.
@@ -146,7 +146,7 @@ Fetch remote refs without mutating local branches. The reviewer must not modify 
 git fetch origin
 ```
 
-Use `origin/<baseBranch>` and `origin/<sourceBranch>` for all comparisons — never update local branch refs.
+Use `origin/<baseBranch>` and `origin/<sourceBranch>` for all comparisons - never update local branch refs.
 
 ### 2.3 Get the Diff
 
@@ -215,7 +215,7 @@ and proceed directly to the adversarial review.
 
 Parse ticket keys according to `docs/PROJECT_CONTEXT.md` section `## Team conventions` ticket format.
 
-Fetch each ticket (the provider is auto-detected from the key/URL shape — works with Jira keys, GitHub Issue URLs,
+Fetch each ticket (the provider is auto-detected from the key/URL shape - works with Jira keys, GitHub Issue URLs,
 and Azure DevOps work item URLs):
 
 ```bash
@@ -246,16 +246,16 @@ or partial ticket data.
 Adopt an **adversarial mindset**: your job is to break the code, not confirm it works. Assume every change contains at
 least one latent defect and hunt for it.
 
-#### Phase 1 — Requirement Mismatch Attack
+#### Phase 1 - Requirement Mismatch Attack
 
 1. Extract **acceptance criteria**, **test data**, and **expected behavior** using `docs/PROJECT_CONTEXT.md` section
    `## Requirement source precedence`.
 2. For each criterion, attempt to construct a scenario where the code produces the wrong result or silently does
    nothing.
-3. Look for requirements that are addressed in name only — where the code path exists but the behavior diverges from
+3. Look for requirements that are addressed in name only - where the code path exists but the behavior diverges from
    what the ticket actually specifies.
 
-#### Phase 2 — Fault Injection (Mental Fuzzing)
+#### Phase 2 - Fault Injection (Mental Fuzzing)
 
 For every changed method or code path, ask:
 
@@ -265,24 +265,24 @@ For every changed method or code path, ask:
 - **Ordering**: Does this assume a specific call order that isn't enforced?
 - **External failures**: What if an API call, DB query, or file read throws? Is there a silent swallow?
 
-#### Phase 3 — Blast Radius Analysis
+#### Phase 3 - Blast Radius Analysis
 
 1. Trace every changed public interface upstream and downstream. Identify callers that were not updated.
 2. Look for implicit contracts (e.g., a method that used to return non-null now can return null).
 3. Check if removed or renamed symbols leave dead references in views, JSON contracts, or config.
 4. Verify feature flags, DI registrations, and route registrations are consistent with the change.
 
-#### Phase 4 — Security Adversarial Pass
+#### Phase 4 - Security Adversarial Pass
 
 - **Injection**: Can user-controlled input reach SQL, HTML, or command execution without sanitization?
 - **AuthZ/AuthN**: Does the change accidentally expose data or actions to unauthorized users?
 - **Information leakage**: Do error messages, logs, or API responses expose internals?
 - **IDOR**: Can a user manipulate IDs to access another tenant's or user's data?
 
-#### Phase 5 — Specification Completeness
+#### Phase 5 - Specification Completeness
 
 - List every acceptance criterion and mark it ✅ proven-covered or ❌ not-covered/partially-covered.
-- Flag any behavior that is implemented but has **no corresponding test** — treat untested logic as suspect.
+- Flag any behavior that is implemented but has **no corresponding test** - treat untested logic as suspect.
 - Identify any ticket requirement that is entirely missing from the diff.
 
 ### 2.6 Summarize Findings
@@ -331,7 +331,7 @@ Reference test style examples listed in `docs/PROJECT_CONTEXT.md` section `## Te
 After presenting the review:
 
 1. Report the verdict (Approve / Request Changes / Needs Clarification) with all findings.
-2. **Do NOT apply fixes directly.** The reviewer must remain independent — applying changes is the orchestrating
+2. **Do NOT apply fixes directly.** The reviewer must remain independent - applying changes is the orchestrating
    session's responsibility via `execute-task`.
 3. If verdict is Request Changes, list the specific issues to fix. The orchestrating session dispatches `execute-task`
    to address them.
@@ -339,16 +339,16 @@ After presenting the review:
 ## Notes
 
 - If anything is unclear about the requirements or the code, **report BLOCKED with the specific question** (or ask the
-  user if invoked directly) — do not make assumptions. Refer to `docs/STAKEHOLDERS.md` for escalation guidance.
+  user if invoked directly) - do not make assumptions. Refer to `docs/STAKEHOLDERS.md` for escalation guidance.
 - When the diff is large, focus on the most impactful changes first.
 - Always verify string literals, magic values, and status codes against the Jira ticket spec.
 - Pay special attention to integration-specific API field values listed in `docs/PROJECT_CONTEXT.md` sections
-  `## Source layout` and `## Project-specific constraints` — typos in status strings or field names can cause silent
+  `## Source layout` and `## Project-specific constraints` - typos in status strings or field names can cause silent
   failures.
 
 ## Handoff
 
 - **Report:** your verdict (Approve / Request Changes) with findings, each cited at `file:line`.
 - **TODO update:** Approve → none (the plan continues to `invoke wrap-up`). Request Changes →
-  `Fix — dispatch execute-task subagent`, then `Verify — dispatch verify-task subagent`, then
-  `Re-review — dispatch pr-review subagent`.
+  `Fix - dispatch execute-task subagent`, then `Verify - dispatch verify-task subagent`, then
+  `Re-review - dispatch pr-review subagent`.

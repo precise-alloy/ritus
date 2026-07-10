@@ -1,7 +1,7 @@
 # Workflow Diagrams
 
 > **AI agents: do NOT read this file during workflow execution.** These diagrams are for human
-> onboarding and reference only. The authoritative process lives in the skill files — follow those.
+> onboarding and reference only. The authoritative process lives in the skill files - follow those.
 
 Visual reference for the Ritus workflow process. All diagrams use Mermaid syntax.
 
@@ -60,8 +60,9 @@ flowchart TD
 
     DB --> DBPhases["4-phase investigation\n(see Diagram 3)"]
     DBPhases --> DBInvestigationApproval{"🧑 User approves\ninvestigation + fix?"}
-    DBInvestigationApproval -->|"Approve"| DBFix["Apply the fix\n🤖 execute-task subagent\n(case file = task artifact)"]
     DBInvestigationApproval -->|"Adjust"| DBPhases
+    DBInvestigationApproval -->|"Approve · TRIVIAL"| DBTriv["Apply inline + self-verify\n🧑 user commits"]
+    DBInvestigationApproval -->|"Approve · SIMPLE+"| DBFix["Apply the fix\n🤖 execute-task subagent\n(case file = task artifact)"]
     DBFix --> DBVerify["verify-task 🤖 haiku\n(fresh subagent)"]
     DBVerify --> CR
 ```
@@ -128,7 +129,7 @@ flowchart TD
 flowchart TD
     Bug([Bug reported]) --> P1
 
-    subgraph "Phase 1 — Root Cause Investigation (hard gate)"
+    subgraph "Phase 1 - Root Cause Investigation (hard gate)"
         P1["Read error messages\nstack traces, line numbers"]
         P1 --> P1b["Reproduce the bug\nconfirm exact conditions"]
         P1b --> P1c["Check recent changes\ngit log + git diff"]
@@ -141,7 +142,7 @@ flowchart TD
         P1f --> P1
     end
 
-    subgraph "Phase 2 — Pattern Analysis (hard gate)"
+    subgraph "Phase 2 - Pattern Analysis (hard gate)"
         P2["Find working examples\nin same codebase"]
         P2 --> P2b["Compare working vs broken\nline by line"]
         P2b --> P2c["Identify differences\n+ map dependencies"]
@@ -149,27 +150,30 @@ flowchart TD
 
     P2c --> P3
 
-    subgraph "Phase 3 — Hypothesis & Testing (hard gate)"
+    subgraph "Phase 3 - Hypothesis & Testing (hard gate)"
         P3["Form single hypothesis\nclearly stated, specific"]
         P3 --> P3b["Test minimally\none variable at a time"]
         P3b --> P3c{"Hypothesis\nconfirmed?"}
-        P3c -->|"Yes"| CaseFile["Create investigation case file\ndocs/tasks/{branch-slug}/investigation-{slug}.md"]
+        P3c -->|"Yes"| ProposedFix["Proposed fix + regression test\n(root cause confirmed)"]
         P3c -->|"No"| P3d["New hypothesis\ndo NOT layer fixes"]
         P3d --> P3
     end
 
-    CaseFile --> DBInvestigationApproval{"🧑 User approves\ninvestigation + proposed fix?"}
-    DBInvestigationApproval -->|"Approve"| P4
+    ProposedFix --> DBInvestigationApproval{"🧑 User approves\nproposed fix?"}
     DBInvestigationApproval -->|"Adjust"| P3
+    DBInvestigationApproval -->|"Approve"| Size{"Fix size?\n(triage criteria)"}
+    Size -->|"TRIVIAL"| Inline["Apply inline + self-verify\n(build + test)"]
+    Inline --> TrivDone(["Report - 🧑 user commits\n(commit message = root cause)"])
+    Size -->|"SIMPLE+"| P4
 
-    subgraph "Phase 4 — Approve, then dispatch the fix"
-        P4["Hand case file to dispatch\nProposed Fix = STEPS · Regression Test = DONE WHEN"]
+    subgraph "Phase 4 - SIMPLE+: case file, then dispatch the fix"
+        P4["Write investigation case file\nProposed Fix = STEPS · Regression Test = DONE WHEN"]
         P4 --> P4b["Apply the fix\n🤖 execute-task subagent (tdd red-green)"]
         P4b --> P4c["Verify\n🤖 verify-task subagent (fresh, independent)"]
         P4c --> P4d{"PASS?"}
         P4d -->|"FAIL"| Escalation{"Circuit breaker\ntripped?"}
         Escalation -->|"No"| P4b
-        Escalation -->|"Yes"| Stop(["🧑 STOP — architectural problem\nwrite DECISION, discuss with user"])
+        Escalation -->|"Yes"| Stop(["🧑 STOP - architectural problem\nwrite DECISION, discuss with user"])
     end
 
     P4d -->|"PASS"| CR(["→ pr-review\n🤖 sonnet subagent"])
@@ -177,7 +181,7 @@ flowchart TD
 
 ## 4. Address-Feedback Round
 
-The PR-feedback fix round: filter comments, fix, verify, optionally re-review, then commit locally (never push).
+The PR-feedback fix round: filter comments, fix, verify, optionally re-review, then report the fixes for the user to review and commit locally.
 
 ```mermaid
 flowchart TD
@@ -189,9 +193,9 @@ flowchart TD
     AFReview --> AFVerdict{"Verdict?"}
     AFVerdict -->|"Approve"| AFWrapUp["wrap-up\n(promote exploration, verify docs)"]
     AFVerdict -->|"Request changes"| AFExec
-    AFRecheck -->|"No / Skip"| AFCommit["Local commit\n(no push)"]
+    AFRecheck -->|"No / Skip"| AFCommit["Report fixes\n+ suggested commit message"]
     AFWrapUp --> AFCommit
-    AFCommit --> AFDone(["🧑 Human reviews + pushes\nmore comments → re-run address-feedback"])
+    AFCommit --> AFDone(["🧑 Human reviews, commits + pushes\nmore comments → re-run address-feedback"])
 ```
 
 **Legend:** 🧑 = human-in-the-loop gate. 🤖 = runs as a dedicated subagent with specified model.
@@ -209,19 +213,19 @@ flowchart LR
         E["address-feedback\n(PR comment fixes)"]
     end
 
-    subgraph "Fresh Subagent — per triage model/effort"
+    subgraph "Fresh Subagent - per triage model/effort"
         C["execute-task skill 🤖\n+ standards skills"]
     end
 
-    subgraph "Fresh Subagent — haiku"
+    subgraph "Fresh Subagent - haiku"
         V["verify-task skill 🤖\nStandards loaded conditionally by skill"]
     end
 
-    subgraph "Fresh Subagent — sonnet"
+    subgraph "Fresh Subagent - sonnet"
         R["pr-review skill 🤖\nStandards loaded conditionally by skill"]
     end
 
-    subgraph "Fresh Subagent — per triage"
+    subgraph "Fresh Subagent - per triage"
         RA["requirement-analysis skill 🤖\nread-heavy analysis, drafts review doc"]
     end
 
@@ -269,7 +273,7 @@ flowchart TD
     end
 
     subgraph "On-demand (skill activation)"
-        SK["18 on-demand skills\n📦 workflow plugin"]
+        SK["19 on-demand skills\n📦 workflow plugin"]
     end
 
     subgraph "Subagent dispatch (defined in skills)"

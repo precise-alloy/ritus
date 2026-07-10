@@ -1,6 +1,6 @@
 {
   "name": "ritus",
-  "description": "AI-assisted development workflow — triage, task generation, execution, verification, and adversarial code review",
+  "description": "AI-assisted development workflow - triage, task generation, execution, verification, and adversarial code review",
   "version": "2.0.4",
   "skills": "./skills/",
   "author": {

@@ -1,6 +1,6 @@
 ---
 name: sync
-description: Use when scaffolding or checking project files — creates missing docs, profiles, scripts without the full setup interview. TRIGGER — invoke when user says "check project files", "sync files", "what files am I missing", or after a plugin upgrade. For first-time setup with interview, use setup instead
+description: Use when scaffolding or checking project files - creates missing docs, profiles, scripts without the full setup interview. TRIGGER - invoke when user says "check project files", "sync files", "what files am I missing", or after a plugin upgrade. For first-time setup with interview, use setup instead
 argument-hint: Provide whether to check only or apply missing project files
 ---
 
@@ -17,7 +17,7 @@ When you need to scaffold project files without running the full setup interview
 ## Commands
 
 The sync script lives at `skills/sync/script/sync.ts` relative to the plugin root. To find the correct path,
-use the skill directory you loaded this file from — the script is at `script/sync.ts` next to this SKILL.md.
+use the skill directory you loaded this file from - the script is at `script/sync.ts` next to this SKILL.md.
 
 ### Check (report only, no writes)
 
@@ -36,7 +36,7 @@ Replace `<path-to-this-skill>` with the absolute path of the directory containin
 ## Behavior
 
 - Creates files that don't exist in the project from plugin templates
-- **Never overwrites existing files** — all project files are user-owned
+- **Never overwrites existing files** - all project files are user-owned
 - Reports what was created and what was skipped
 
 ## Output

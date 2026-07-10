@@ -1,12 +1,12 @@
 ---
 name: execute-task
-description: Use when given a task file to implement — reads context, implements steps, runs tests, reports results. TRIGGER — invoke when user says "implement task", "run task", "execute task", "work on task", or provides a task file path (e.g., docs/tasks/.../*.md)
+description: Use when given a task file to implement - reads context, implements steps, runs tests, reports results. TRIGGER - invoke when user says "implement task", "run task", "execute task", "work on task", or provides a task file path (e.g., docs/tasks/.../*.md)
 argument-hint: Provide the task file path, requirement source, and expected validation commands
 ---
 
 # Execute Task
 
-**Core principle:** Implement exactly what the task file says — no more, no less. If a step is unclear, stop and
+**Core principle:** Implement exactly what the task file says - no more, no less. If a step is unclear, stop and
 report BLOCKED instead of guessing.
 
 ## When to use
@@ -24,18 +24,18 @@ You are a **code executor**. You receive task files and implement them.
 
 ## Process
 
-When starting execute-task, create this TODO — **every item below, verbatim** (never a single item named after the skill) — and mark items done as you complete them:
+When starting execute-task, create this TODO - **every item below, verbatim** (never a single item named after the skill) - and mark items done as you complete them:
 
 TODO:
 
 ```markdown
-- [ ] Read task file — Three shapes exist:
+- [ ] Read task file - Three shapes exist:
   - SIMPLE (3-section): TASK + DONE WHEN + VERIFY only. Skip PRIOR CONTEXT, PATTERN, DOC UPDATE steps.
   - STANDARD/EPIC (full): TASK, PRIOR CONTEXT (if present), PATTERN, CONTEXT, GOAL, STEPS, DONE WHEN, VERIFY, DOC UPDATE, COMMIT.
   - Debug investigation case file (`investigation-{slug}.md`): read `Proposed Fix` as the STEPS and `Regression Test` as the DONE WHEN.
-- [ ] Load context — Read CONTEXT files + `docs/tasks/{branch-slug}/exploration.md` (prior findings from other
+- [ ] Load context - Read CONTEXT files + `docs/tasks/{branch-slug}/exploration.md` (prior findings from other
   subagents). For bug fixes, grep `docs/LESSONS.md` and `docs/DECISIONS.md` for affected module.
-- [ ] Load standard skills — see table below. **Blocking step.**
+- [ ] Load standard skills - see table below. **Blocking step.**
 
   <!-- Keep in sync with verify-task/SKILL.md -->
 
@@ -47,22 +47,24 @@ TODO:
   | Auth / billing / migration / tenant isolation / infra config / shared contracts | `security` |
   | Any STANDARD or EPIC task | `definition-of-done` |
 
-- [ ] If PATTERN set — read `docs/ARCHITECTURE.md` for the relevant checklist.
-- [ ] Implement STEPS — exactly as written. If a STEP is unclear: report BLOCKED.
-- [ ] Run build + tests — smoke test + unit tests per DONE WHEN.
-- [ ] Update docs — per DOC UPDATE. Append new findings to `docs/tasks/{branch-slug}/exploration.md` using
-  flagged format from `skills/ticket-review/templates/exploration.md`. Create the file if it doesn't exist.
-- [ ] Report — use the output format below. One final report, no intermediate dumps.
+- [ ] If PATTERN set - read `docs/ARCHITECTURE.md` for the relevant checklist.
+- [ ] Implement STEPS - exactly as written. If a STEP is unclear: report BLOCKED.
+- [ ] Run build + tests - smoke test + unit tests per DONE WHEN.
+- [ ] Update docs - apply the DOC UPDATE section when the task has one, and append any finding worth carrying forward
+  (reusable pattern, gotcha, decision) to `docs/tasks/{branch-slug}/exploration.md` (flagged format from
+  `skills/ticket-review/templates/exploration.md`; create it if needed). A focused SIMPLE change with neither leaves
+  both untouched.
+- [ ] Report - use the output format below. One final report, no intermediate dumps.
 ```
 
 ## Output format
 
 ```text
 Files changed:
-- path — summary
+- path - summary
 
 Docs updated:
-- path — what changed   (or: none required)
+- path - what changed   (or: none required)
 
 Commit message:
 type(scope): subject
@@ -88,18 +90,18 @@ Keep your working context clean to preserve performance and reduce cost:
 
 ## Hard rules
 
-1. Minimal change — implement only what STEPS specify. No unsolicited refactors.
-2. Grep before edit — confirm file paths exist before touching any file.
-3. No hallucinated features — if a STEP references something that doesn't exist, report BLOCKED.
-4. Stop on errors — compile fail, test fail, 4xx/5xx → stop immediately and report.
+1. Minimal change - implement only what STEPS specify. No unsolicited refactors.
+2. Grep before edit - confirm file paths exist before touching any file.
+3. No hallucinated features - if a STEP references something that doesn't exist, report BLOCKED.
+4. Stop on errors - compile fail, test fail, 4xx/5xx → stop immediately and report.
 5. Done = every STEP implemented and each DONE WHEN condition addressed in your report. You produce a report of what you changed.
 6. Update docs per DOC UPDATE section before reporting done.
-7. One final report — no intermediate dumps.
-8. Grep before claiming — cite `file:line` when asserting any fact about existing code.
-9. Finish the work — before ending your turn, check your last output. If it describes work you haven't done yet
+7. One final report - no intermediate dumps.
+8. Grep before claiming - cite `file:line` when asserting any fact about existing code.
+9. Finish the work - before ending your turn, check your last output. If it describes work you haven't done yet
    ("I'll now...", "next I should..."), do that work with tool calls instead of stopping.
 
 ## Handoff
 
 - **Report:** your implementation report (files changed + commit message).
-- **TODO update:** `Verify — dispatch verify-task subagent` for this task.
+- **TODO update:** `Verify - dispatch verify-task subagent` for this task.

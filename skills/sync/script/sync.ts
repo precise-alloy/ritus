@@ -107,7 +107,7 @@ function check(): void {
 
   const staleScriptsDir = join(projectRoot, ".ritus", "scripts");
   if (existsSync(staleScriptsDir)) {
-    console.log("ritus: WARNING — .ritus/scripts/ is stale and can be safely deleted. Scripts now live in the plugin directory.");
+    console.log("ritus: WARNING - .ritus/scripts/ is stale and can be safely deleted. Scripts now live in the plugin directory.");
   }
 
   if (missing.length === 0) {
@@ -143,7 +143,7 @@ function apply(): void {
       continue;
     }
 
-    skipped.push({ file, reason: getStrategy(file) + " — already exists" });
+    skipped.push({ file, reason: getStrategy(file) + " - already exists" });
   }
 
   if (created.length > 0) {

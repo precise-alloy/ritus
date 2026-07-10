@@ -47,7 +47,7 @@ Target format conventions (no ambiguity between providers):
 |----------|-----------------|---------|
 | Jira | Key prefix | `PROJ-123` |
 | ADO | Bare number | `340796` |
-| GitHub | `#` prefix (requires `GITHUB_REPO_URL` in `.env.local`) | `'#18'` (quotes required — `#` is a shell comment character) |
+| GitHub | `#` prefix (requires `GITHUB_REPO_URL` in `.env.local`) | `'#18'` (quotes required - `#` is a shell comment character) |
 
 Auto-detection logic:
 
@@ -69,7 +69,7 @@ provider (e.g., a bare numeric ID that could be either an ADO work item or a Jir
 ## Command catalogue
 
 > Commands below use **explicit provider syntax** for reference. To use auto-detection instead, omit the provider
-> prefix — e.g., `bun run "<plugin-root>/scripts/remote-api.ts" pr <URL>` instead of `github pr <URL>`.
+> prefix - e.g., `bun run "<plugin-root>/scripts/remote-api.ts" pr <URL>` instead of `github pr <URL>`.
 
 If the command you need is not listed, run `bun run "<plugin-root>/scripts/remote-api.ts"` with no arguments to print the current subcommand list:
 
@@ -165,7 +165,7 @@ GH_TOKEN=
 GITHUB_REPO_URL=
 ```
 
-Not all providers need to be configured — only the ones the project uses. `check-env` reports which providers are configured; the helper validates the required keys for the invoked provider before dispatch.
+Not all providers need to be configured - only the ones the project uses. `check-env` reports which providers are configured; the helper validates the required keys for the invoked provider before dispatch.
 
 To generate a tailored `.env.example` from the project's `team.yml` provider config:
 
@@ -181,9 +181,9 @@ bun run "<plugin-root>/scripts/remote-api.ts" check-env
 
 Interpret the result:
 
-- Exit 0 — at least one provider is fully configured. Proceed.
-- Exit 1 with `envLocalExists: false` — report that `.env.local` is missing. Ask the user to copy `.env.example` to `.env.local` and fill in the values. Do NOT create the file yourself.
-- Exit 1 with no providers configured — tell the user which keys are missing and ask them to fill those values, then re-run the skill.
+- Exit 0 - at least one provider is fully configured. Proceed.
+- Exit 1 with `envLocalExists: false` - report that `.env.local` is missing. Ask the user to copy `.env.example` to `.env.local` and fill in the values. Do NOT create the file yourself.
+- Exit 1 with no providers configured - tell the user which keys are missing and ask them to fill those values, then re-run the skill.
 
 Authentication or authorization failures (`401`, `403`, invalid credentials, PAT expired/revoked, permission-style `404`) are hard stops for remote analysis or review. Ask the user to provide valid access for the failing system before continuing.
 
@@ -193,11 +193,11 @@ Projects that use multiple instances of the same provider (e.g., two Jira tenant
 configure routing and env var mapping in `docs/profiles/team.yml`.
 
 Default instances use standard env var names (backward compatible). Additional instances declare custom env var names
-in their `env:` block — users pick their own env var names. Routing config lives in `team.yml`; `.env.local` carries
+in their `env:` block - users pick their own env var names. Routing config lives in `team.yml`; `.env.local` carries
 only credentials.
 
 ```yaml
-# docs/profiles/team.yml — routing config
+# docs/profiles/team.yml - routing config
 ticket_providers:
   - type: jira
     name: primary
@@ -213,7 +213,7 @@ ticket_providers:
 ```
 
 ```dotenv
-# .env.local — credentials with natural names
+# .env.local - credentials with natural names
 JIRA_BASE_URL=https://company.atlassian.net
 JIRA_PAT=xxx
 JIRA_EMAIL=user@company.com
@@ -224,4 +224,4 @@ JIRA_EXT_EMAIL=user@other.com
 
 When a target matches multiple instances (e.g., a Jira key prefix defined in two instances), the script returns a
 hard error listing the candidates with explicit disambiguation commands. Single-instance setups do not need any
-`team.yml` changes — existing scalar fields and env var names continue to work.
+`team.yml` changes - existing scalar fields and env var names continue to work.

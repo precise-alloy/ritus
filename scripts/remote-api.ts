@@ -12,7 +12,7 @@ const PROVIDER_MAP = new Map(PROVIDERS.map((p) => [p.name, p]));
 const HELP_FLAGS = new Set(['-h', '--help', 'help']);
 
 // ---------------------------------------------------------------------------
-// team.yml parsing — extracts ticket_providers list
+// team.yml parsing - extracts ticket_providers list
 // ---------------------------------------------------------------------------
 
 type RawProviderEntry = {
@@ -128,7 +128,7 @@ function parseTeamYaml(content: string): { ticketProviders?: ProviderInstanceCon
 }
 
 // ---------------------------------------------------------------------------
-// Instance loading — builds ProviderInstance[] from team.yml or defaults
+// Instance loading - builds ProviderInstance[] from team.yml or defaults
 // ---------------------------------------------------------------------------
 
 type LoadedInstances = {
@@ -263,7 +263,7 @@ function canGitHubInstanceHandle(instance: ProviderInstance, action: string, tar
     try {
       repoHostname = new URL(repoUrl).hostname;
     } catch {
-      console.warn(`Warning: invalid ${repoUrlEnvVar} value — must be a valid URL (e.g., https://github.com/owner/repo).`);
+      console.warn(`Warning: invalid ${repoUrlEnvVar} value - must be a valid URL (e.g., https://github.com/owner/repo).`);
       return false;
     }
 
@@ -339,7 +339,7 @@ function canAdoInstanceHandle(instance: ProviderInstance, action: string, target
              urlProject.toLowerCase() === instanceProject.toLowerCase();
     }
   } catch {
-    // Not a URL — should have been caught by isBareId check above
+    // Not a URL - should have been caught by isBareId check above
   }
 
   return false;
@@ -672,7 +672,7 @@ async function main(): Promise<void> {
       provider = matchingInstances[0].provider;
       resolvedEnvMapping = matchingInstances[0].envMapping;
     } else if (matchingInstances.length > 1) {
-      // Multiple instances can handle this target — ambiguous, error out
+      // Multiple instances can handle this target - ambiguous, error out
       const candidateNames = matchingInstances.map((inst) =>
         inst.config.name !== 'default'
           ? `${inst.provider.name} (${inst.config.name})`
