@@ -35,7 +35,7 @@ function assertSameJiraHost(rawUrl: string, envMapping?: EnvMapping): void {
   try {
     parsed = new URL(rawUrl);
   } catch {
-    throw new Error(`Invalid Jira attachment URL: ${rawUrl}`);
+    throw new Error('Invalid Jira attachment URL: must be a valid absolute URL');
   }
 
   if (parsed.protocol !== 'https:') {
