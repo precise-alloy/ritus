@@ -109,7 +109,7 @@ missing project files. Run the setup again to create any new files. Existing use
 
 | Component | What it contains           |
 |-----------|----------------------------|
-| 19 skills | Workflow + standard skills |
+| 20 skills | Workflow + standard skills |
 
 **By setup / repo-scan (user-owned in target project):**
 
