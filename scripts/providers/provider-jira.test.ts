@@ -37,6 +37,23 @@ mock.module('./http.ts', () => ({
 
 const { jiraProvider } = await import('./provider-jira.ts');
 
+const JIRA_ENV_KEYS = ['JIRA_BASE_URL', 'JIRA_PAT', 'JIRA_EMAIL'] as const;
+const priorJiraEnv: Record<string, string | undefined> = {};
+for (const key of JIRA_ENV_KEYS) {
+  priorJiraEnv[key] = process.env[key];
+}
+
+function restoreEnv(): void {
+  for (const key of JIRA_ENV_KEYS) {
+    const prior = priorJiraEnv[key];
+    if (prior === undefined) {
+      delete process.env[key];
+    } else {
+      process.env[key] = prior;
+    }
+  }
+}
+
 function setEnv(): void {
   process.env.JIRA_BASE_URL = JIRA_BASE_URL;
   process.env.JIRA_PAT = 'test-pat';
@@ -63,6 +80,7 @@ describe('downloadJiraAttachments host validation', () => {
   afterEach(() => {
     state.requestJson = async () => ({});
     state.requestBinaryCalls = [];
+    restoreEnv();
   });
 
   it('rejects an off-host attachment content URL before sending credentials', async () => {
