@@ -16,47 +16,6 @@ function jiraBaseUrl(env: EnvMapping): string {
   return resolveEnv(env, 'base_url').replace(/\/+$/, '');
 }
 
-function assertSameJiraHost(rawUrl: string, envMapping?: EnvMapping): void {
-  const env = envMapping ?? JIRA_DEFAULT_ENV;
-
-  const baseUrl = jiraBaseUrl(env);
-  let expectedBase: URL;
-  try {
-    expectedBase = new URL(baseUrl);
-  } catch {
-    throw new Error(`Invalid Jira base URL (${env.base_url}): ${baseUrl}`);
-  }
-
-  if (expectedBase.protocol !== 'https:') {
-    throw new Error(`Invalid Jira base URL (${env.base_url}): must use https://`);
-  }
-
-  let parsed: URL;
-  try {
-    parsed = new URL(rawUrl);
-  } catch {
-    throw new Error('Invalid Jira attachment URL: must be a valid absolute URL');
-  }
-
-  if (parsed.protocol !== 'https:') {
-    throw new Error(`Refusing to download Jira attachment over non-HTTPS URL (host=${parsed.hostname}, protocol=${parsed.protocol})`);
-  }
-
-  const expectedHostname = expectedBase.hostname.toLowerCase();
-  const actualHostname = parsed.hostname.toLowerCase();
-  if (actualHostname !== expectedHostname) {
-    throw new Error(
-      `Refusing to send Jira credentials to unexpected host ${parsed.hostname} (expected ${expectedBase.hostname})`,
-    );
-  }
-
-  const expectedPort = expectedBase.port || '443';
-  const actualPort = parsed.port || '443';
-  if (actualPort !== expectedPort) {
-    throw new Error(`Refusing to send Jira credentials to unexpected port ${actualPort} (expected ${expectedPort})`);
-  }
-}
-
 function jiraHeaders(env: EnvMapping): RequestHeaders {
   const pat = resolveEnv(env, 'pat');
   const email = resolveEnv(env, 'email');
@@ -275,11 +234,10 @@ async function downloadJiraAttachments(target: string, extra?: string, envMappin
   const downloaded: { filename: string; path: string; mimeType: string; size: number }[] = [];
 
   for (const attachment of images) {
-    assertSameJiraHost(attachment.content, env);
     const rawName = basename(attachment.filename).trim();
     const safeName = rawName && rawName !== '.' && rawName !== '..' ? rawName : `attachment-${attachment.id}`;
     const outputPath = join(outputDir, safeName);
-    const bytesWritten = await requestBinary(attachment.content, headers, outputPath, (redirectUrl) => assertSameJiraHost(redirectUrl, env));
+    const bytesWritten = await requestBinary(attachment.content, headers, outputPath);
     downloaded.push({
       filename: safeName,
       path: outputPath,
