@@ -1,3 +1,4 @@
+import { Buffer } from 'node:buffer';
 import { afterEach, describe, expect, it, mock } from 'bun:test';
 
 const JIRA_BASE_URL = 'https://your-company.atlassian.net';
