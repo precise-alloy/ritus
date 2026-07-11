@@ -33,7 +33,7 @@ argument-hint: Provide the user's request so the router can choose the next appl
 
 ## Workflow tracking
 
-**MANDATORY:** When a core workflow skill (brainstorm/triage/ticket-review/requirement-analysis/execute-task/verify-task/pr-review/address-feedback/wrap-up/comprehension/debug) is invoked, its **first action** - before any work - is to create a todo list containing **every step in that skill's own `TODO:` block, copied verbatim**, ending with the handoff to the next skill. Mark items done as you go. This ensures you never stop mid-chain and never skip steps in long context windows.
+**MANDATORY:** When a core workflow skill (brainstorm/triage/ticket-review/requirement-analysis/execute-task/verify-task/pr-review/address-feedback/wrap-up/comprehension/debug) is invoked, its **first action** - before any work - is to create a todo list containing **every step in that skill's own `TODO:` block, copied verbatim** (including any handoff line; terminal skills have none). Mark items done as you go. This ensures you never stop mid-chain and never skip steps in long context windows.
 
 **Never collapse a skill into one todo item** (e.g. a single `Brainstorm: <task>` item) and **never build a one-item-per-skill chain checklist.** Each invoked skill contributes its own full list of steps; the chain advances because a skill's last step invokes the next skill, which then creates its own step list.
 
