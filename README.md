@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/precise-alloy/.github/raw/main/images/ritus-banner.png" alt="Ritus Banner" width="2142" style="max-width: 100%; height: auto;" height="500">
+  <img src="https://github.com/precise-alloy/.github/raw/main/images/ritus-banner.svg" alt="Ritus Banner" width="2142" style="max-width: 100%; height: auto;" height="500">
 </p>
 
 <div align="center">
