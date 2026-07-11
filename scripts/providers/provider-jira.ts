@@ -234,7 +234,8 @@ async function downloadJiraAttachments(target: string, extra?: string, envMappin
   const downloaded: { filename: string; path: string; mimeType: string; size: number }[] = [];
 
   for (const attachment of images) {
-    const safeName = basename(attachment.filename);
+    const rawName = basename(attachment.filename).trim();
+    const safeName = rawName && rawName !== '.' && rawName !== '..' ? rawName : `attachment-${attachment.id}`;
     const outputPath = join(outputDir, safeName);
     const bytesWritten = await requestBinary(attachment.content, headers, outputPath);
     downloaded.push({

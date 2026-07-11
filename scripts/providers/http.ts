@@ -4,6 +4,7 @@ import type { EnvMapping, HttpError, RequestHeaders } from './types.ts';
 export const REQUEST_TIMEOUT_MS = 30_000;
 export const MAX_RETRIES = 3;
 export const RETRY_BASE_DELAY_MS = 500;
+export const MAX_REDIRECTS = 5;
 
 export async function readEnvFile(filePath: string): Promise<void> {
   const file = Bun.file(filePath);
@@ -104,7 +105,11 @@ export function isTransientStatus(status: number): boolean {
   return status === 408 || status === 429 || (status >= 500 && status <= 599);
 }
 
-async function requestWithRetry(url: string, headers: RequestHeaders): Promise<Response> {
+export function isRedirectStatus(status: number): boolean {
+  return status === 301 || status === 302 || status === 303 || status === 307 || status === 308;
+}
+
+async function requestWithRetry(url: string, headers: RequestHeaders, redirect: 'follow' | 'manual' = 'follow'): Promise<Response> {
   let lastError: HttpError | null = null;
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
@@ -117,6 +122,7 @@ async function requestWithRetry(url: string, headers: RequestHeaders): Promise<R
         method: 'GET',
         headers,
         signal: controller.signal,
+        redirect,
       });
     } catch (err) {
       clearTimeout(timer);
@@ -133,6 +139,10 @@ async function requestWithRetry(url: string, headers: RequestHeaders): Promise<R
     clearTimeout(timer);
 
     if (response.ok) {
+      return response;
+    }
+
+    if (redirect === 'manual' && isRedirectStatus(response.status)) {
       return response;
     }
 
@@ -175,9 +185,26 @@ export function safeDecode(value: string): string {
   }
 }
 
-export async function requestBinary(url: string, headers: RequestHeaders, outputPath: string): Promise<number> {
-  const response = await requestWithRetry(url, headers);
-  const buffer = await response.arrayBuffer();
-  await Bun.write(outputPath, buffer);
-  return buffer.byteLength;
+export async function requestBinary(url: string, headers: RequestHeaders, outputPath: string, validateUrl?: (url: string) => void): Promise<number> {
+  let currentUrl = url;
+
+  for (let redirects = 0; redirects <= MAX_REDIRECTS; redirects++) {
+    validateUrl?.(currentUrl);
+    const response = await requestWithRetry(currentUrl, headers, 'manual');
+
+    if (isRedirectStatus(response.status)) {
+      const location = response.headers.get('location');
+      if (!location) {
+        throw new Error(`Redirect from ${currentUrl} is missing a Location header`);
+      }
+      currentUrl = new URL(location, currentUrl).toString();
+      continue;
+    }
+
+    const buffer = await response.arrayBuffer();
+    await Bun.write(outputPath, buffer);
+    return buffer.byteLength;
+  }
+
+  throw new Error(`Too many redirects (>${MAX_REDIRECTS}) while downloading ${url}`);
 }
