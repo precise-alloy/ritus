@@ -1,7 +1,8 @@
 ---
 name: tdd
-description: Loaded automatically by execute-task for new business logic or bug fixes — enforces red-green-refactor cycle. Do not invoke standalone
+description: Loaded automatically by execute-task for new business logic, new API endpoints, or bug fixes - enforces red-green-refactor cycle. Do not invoke standalone
 argument-hint: Provide the behavior or bug being implemented and the expected failing test scenario
+user-invocable: false
 ---
 
 # Test-Driven Development
@@ -25,26 +26,26 @@ Wrote code before the test? Delete it. Start over. This is not optional.
 
 ## The cycle
 
-### Red — write a failing test
+### Red - write a failing test
 
 1. Write the simplest test that describes the expected behavior.
 2. Run it. It MUST fail.
-3. If it passes, the test is wrong — it's not testing anything new. Rewrite it.
+3. If it passes, the test is wrong - it's not testing anything new. Rewrite it.
 
 Load `testing-policy` for what type of test to write and project-specific conventions (framework, naming, mocking
 strategy). If a framework-specific testing skill is installed, load it for concrete patterns and examples.
 
-### Green — make it pass
+### Green - make it pass
 
 1. Write the **minimal** code to make the test pass.
 2. Run the test. It MUST pass.
 3. Do not add features, handle edge cases, or refactor yet. Just make the test green.
 
-### Refactor — clean up
+### Refactor - clean up
 
 1. Improve the code without changing behavior.
 2. Run tests after each change. They must stay green.
-3. Extract helpers, rename for clarity, remove duplication — but only if tests still pass.
+3. Extract helpers, rename for clarity, remove duplication - but only if tests still pass.
 
 ### Repeat
 
@@ -52,9 +53,9 @@ Add the next test for the next behavior. One test per red-green-refactor cycle, 
 
 ## For bug fixes
 
-1. Write a test that **reproduces the bug** — it must fail with the current code.
+1. Write a test that **reproduces the bug** - it must fail with the current code.
 2. Verify it fails for the right reason (the bug, not a typo in the test).
-3. Fix the bug — the test turns green.
+3. Fix the bug - the test turns green.
 4. This test is now a permanent regression guard.
 
 ## Anti-patterns
@@ -73,10 +74,10 @@ Add the next test for the next behavior. One test per red-green-refactor cycle, 
 1. Every new function/method has at least one test written BEFORE the implementation.
 2. Every bug fix has a regression test written BEFORE the fix.
 3. Tests must fail before the implementation proves they test something real.
-4. One test per red-green-refactor cycle — do not batch.
-5. Run tests after every change — red, green, refactor, all require a test run.
+4. One test per red-green-refactor cycle - do not batch.
+5. Run tests after every change - red, green, refactor, all require a test run.
 
-## Next
+## Handoff
 
-This is a companion skill — it does not chain to another skill. Return to the parent skill (execute-task) that
-loaded it.
+- **Report:** the standard applied to the parent skill's work.
+

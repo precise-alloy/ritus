@@ -10,14 +10,14 @@ Check QA mode in docs/PROJECT_CONTEXT.md section `## Team conventions` before ge
 
 **TRIVIAL and SIMPLE tasks never get `.qa.md` files regardless of QA mode.**
 
-## Per-task `.qa.md` (STANDARD / EPIC — same name as task file)
+## Per-task `.qa.md` (STANDARD / EPIC - same name as task file)
 
 ```markdown
-# QA — {task title}
+# QA - {task title}
 
 Task: {relative task file path}
 Generated: {YYYY-MM-DD}
-Risk: low | medium | high — {one-line reason}
+Risk: low | medium | high - {one-line reason}
 
 ## Affected features
 
@@ -35,11 +35,11 @@ Risk: low | medium | high — {one-line reason}
 
 ### Regression checks
 
-- [ ] {existing feature to re-verify — not changed but at risk}
+- [ ] {existing feature to re-verify - not changed but at risk}
 
 ## Not affected (skip these)
 
-{features or areas testers can safely skip — be explicit}
+{features or areas testers can safely skip - be explicit}
 
 ## Status
 
@@ -47,10 +47,10 @@ Risk: low | medium | high — {one-line reason}
 - [ ] Tester sign-off
 ```
 
-## EPIC QA summary (`docs/qa/{epic-slug}.qa.md`) — generated at EPIC close
+## EPIC QA summary (`docs/qa/{epic-slug}.qa.md`) - generated at EPIC close
 
 ```markdown
-# QA Summary — {EPIC name}
+# QA Summary - {EPIC name}
 
 Branch: {git branch}
 Closed: {YYYY-MM-DD}
@@ -64,7 +64,7 @@ Tasks: {N completed}
 
 ## Test first (high risk areas)
 
-1. {feature} — {reason it's high risk}
+1. {feature} - {reason it's high risk}
 
 ## Full affected feature list
 

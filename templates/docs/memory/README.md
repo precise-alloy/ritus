@@ -1,4 +1,4 @@
-# memory/ — Multi-session context snapshots
+# memory/ - Multi-session context snapshots
 
 EPIC tasks use memory files to persist context across sessions.
 

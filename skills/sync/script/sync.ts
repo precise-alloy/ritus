@@ -52,14 +52,6 @@ const STRATEGIES: Record<Strategy, string[]> = {
     "docs/memory/README.md",
   ],
   "project-specific": [
-    ".ritus/scripts/remote-api.ts",
-    ".ritus/scripts/providers/types.ts",
-    ".ritus/scripts/providers/http.ts",
-    ".ritus/scripts/providers/provider-jira.ts",
-    ".ritus/scripts/providers/sanitize.ts",
-    ".ritus/scripts/providers/provider-ado.ts",
-    ".ritus/scripts/providers/provider-github.ts",
-    ".ritus/scripts/tsconfig.json",
     ".env.example",
   ],
 };
@@ -113,6 +105,11 @@ function check(): void {
     }
   }
 
+  const staleScriptsDir = join(projectRoot, ".ritus", "scripts");
+  if (existsSync(staleScriptsDir)) {
+    console.log("ritus: WARNING - .ritus/scripts/ is stale and can be safely deleted. Scripts now live in the plugin directory.");
+  }
+
   if (missing.length === 0) {
     console.log("ritus: project files up to date (v" + pluginVersion + ")");
     return;
@@ -146,7 +143,7 @@ function apply(): void {
       continue;
     }
 
-    skipped.push({ file, reason: getStrategy(file) + " — already exists" });
+    skipped.push({ file, reason: getStrategy(file) + " - already exists" });
   }
 
   if (created.length > 0) {

@@ -1,5 +1,5 @@
 import { Buffer } from 'node:buffer';
-import type { HttpError, RequestHeaders } from './types.ts';
+import type { EnvMapping, HttpError, RequestHeaders } from './types.ts';
 
 export const REQUEST_TIMEOUT_MS = 30_000;
 export const MAX_RETRIES = 3;
@@ -49,6 +49,21 @@ export function requireEnv(name: string): string {
     throw new Error(`Missing required environment variable ${name}. Populate it in .env.local before using this helper.`);
   }
 
+  return value;
+}
+
+export function resolveEnv(envMapping: EnvMapping, logicalKey: string): string {
+  const envVarName = envMapping[logicalKey];
+  if (!envVarName) {
+    throw new Error(`No env var mapping found for logical key "${logicalKey}"`);
+  }
+  if (!/^[A-Za-z_][A-Za-z0-9_]*$/.test(envVarName)) {
+    throw new Error(`Invalid env var name "${envVarName}" for key "${logicalKey}": must be alphanumeric and underscores only`);
+  }
+  const value = process.env[envVarName]?.trim();
+  if (!value) {
+    throw new Error(`Missing ${envVarName} (mapped from ${logicalKey}). Populate it in .env.local before using this helper.`);
+  }
   return value;
 }
 
@@ -149,6 +164,15 @@ export async function requestJson(url: string, headers: RequestHeaders): Promise
 export async function requestJsonWithHeaders(url: string, headers: RequestHeaders): Promise<{ body: unknown; headers: Headers }> {
   const response = await requestWithRetry(url, headers);
   return { body: parseJson(await response.text()), headers: response.headers };
+}
+
+/** Wraps decodeURIComponent so invalid percent-encoding (e.g. a literal '%') returns the raw value instead of throwing. */
+export function safeDecode(value: string): string {
+  try {
+    return decodeURIComponent(value);
+  } catch {
+    return value;
+  }
 }
 
 export async function requestBinary(url: string, headers: RequestHeaders, outputPath: string): Promise<number> {

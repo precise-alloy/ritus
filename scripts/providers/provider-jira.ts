@@ -1,17 +1,25 @@
 import { basename, join } from 'node:path';
-import type { Provider, RequestHeaders } from './types.ts';
-import { basicAuth, requestBinary, requestJson, requireEnv } from './http.ts';
+import type { EnvMapping, Provider, RequestHeaders } from './types.ts';
+import { basicAuth, requestBinary, requestJson, resolveEnv } from './http.ts';
 import { sanitizeJiraIssue, sanitizeJiraComment, sanitizeJiraChangelog } from './sanitize.ts';
 
 const JIRA_PAGE_SIZE = 100;
 const JIRA_MAX_COMMENT_PAGES = 200;
 
-function jiraBaseUrl(): string {
-  return requireEnv('JIRA_BASE_URL').replace(/\/+$/, '');
+const JIRA_DEFAULT_ENV: EnvMapping = {
+  base_url: 'JIRA_BASE_URL',
+  pat: 'JIRA_PAT',
+  email: 'JIRA_EMAIL',
+};
+
+function jiraBaseUrl(env: EnvMapping): string {
+  return resolveEnv(env, 'base_url').replace(/\/+$/, '');
 }
 
-function assertSameJiraHost(rawUrl: string): void {
-  const expectedHost = new URL(jiraBaseUrl()).host;
+function assertSameJiraHost(rawUrl: string, envMapping?: EnvMapping): void {
+  const env = envMapping ?? JIRA_DEFAULT_ENV;
+
+  const expectedHost = new URL(jiraBaseUrl(env)).host;
 
   let parsed: URL;
   try {
@@ -29,9 +37,9 @@ function assertSameJiraHost(rawUrl: string): void {
   }
 }
 
-function jiraHeaders(): RequestHeaders {
-  const pat = requireEnv('JIRA_PAT');
-  const email = requireEnv('JIRA_EMAIL');
+function jiraHeaders(env: EnvMapping): RequestHeaders {
+  const pat = resolveEnv(env, 'pat');
+  const email = resolveEnv(env, 'email');
   return {
     Authorization: basicAuth(`${email}:${pat}`),
     Accept: 'application/json',
@@ -89,15 +97,16 @@ async function fetchAllJiraPages(baseUrl: string, headers: RequestHeaders, items
   return { pages, items };
 }
 
-async function getJiraIssue(target: string, extra?: string): Promise<unknown> {
+async function getJiraIssue(target: string, extra?: string, envMapping?: EnvMapping): Promise<unknown> {
+  const env = envMapping ?? JIRA_DEFAULT_ENV;
   const ticketKey = parseJiraKey(target);
   const requestedFields = extra || 'summary,description,status,issuetype,comment';
-  const url = `${jiraBaseUrl()}/rest/api/3/issue/${encodeURIComponent(ticketKey)}?fields=${encodeURIComponent(requestedFields)}`;
+  const url = `${jiraBaseUrl(env)}/rest/api/3/issue/${encodeURIComponent(ticketKey)}?fields=${encodeURIComponent(requestedFields)}`;
 
   return {
     ticketKey,
     fields: requestedFields.split(',').map(f => f.trim()).filter(Boolean),
-    issue: sanitizeJiraIssue(await requestJson(url, jiraHeaders())),
+    issue: sanitizeJiraIssue(await requestJson(url, jiraHeaders(env))),
   };
 }
 
@@ -131,10 +140,11 @@ async function fetchJiraLatestComments(baseUrl: string, headers: RequestHeaders,
   return { total, items: items.slice(-limit) };
 }
 
-async function getJiraComments(target: string, extra?: string): Promise<unknown> {
+async function getJiraComments(target: string, extra?: string, envMapping?: EnvMapping): Promise<unknown> {
+  const env = envMapping ?? JIRA_DEFAULT_ENV;
   const ticketKey = parseJiraKey(target);
-  const baseUrl = `${jiraBaseUrl()}/rest/api/3/issue/${encodeURIComponent(ticketKey)}/comment`;
-  const headers = jiraHeaders();
+  const baseUrl = `${jiraBaseUrl(env)}/rest/api/3/issue/${encodeURIComponent(ticketKey)}/comment`;
+  const headers = jiraHeaders(env);
 
   let limit: number | undefined;
   if (extra) {
@@ -169,10 +179,11 @@ async function getJiraComments(target: string, extra?: string): Promise<unknown>
   };
 }
 
-async function getJiraChangelog(target: string): Promise<unknown> {
+async function getJiraChangelog(target: string, extra?: string, envMapping?: EnvMapping): Promise<unknown> {
+  const env = envMapping ?? JIRA_DEFAULT_ENV;
   const ticketKey = parseJiraKey(target);
-  const baseUrl = `${jiraBaseUrl()}/rest/api/3/issue/${encodeURIComponent(ticketKey)}/changelog`;
-  const { items } = await fetchAllJiraPages(baseUrl, jiraHeaders(), 'values');
+  const baseUrl = `${jiraBaseUrl(env)}/rest/api/3/issue/${encodeURIComponent(ticketKey)}/changelog`;
+  const { items } = await fetchAllJiraPages(baseUrl, jiraHeaders(env), 'values');
 
   return {
     ticketKey,
@@ -199,11 +210,12 @@ const IMAGE_MIME_TYPES = new Set([
   'image/svg+xml',
 ]);
 
-async function getJiraAttachments(target: string): Promise<{ ticketKey: string; attachments: JiraAttachment[] }> {
+async function getJiraAttachments(target: string, extra?: string, envMapping?: EnvMapping): Promise<{ ticketKey: string; attachments: JiraAttachment[] }> {
+  const env = envMapping ?? JIRA_DEFAULT_ENV;
   const ticketKey = parseJiraKey(target);
-  const url = `${jiraBaseUrl()}/rest/api/3/issue/${encodeURIComponent(ticketKey)}?fields=attachment`;
+  const url = `${jiraBaseUrl(env)}/rest/api/3/issue/${encodeURIComponent(ticketKey)}?fields=attachment`;
 
-  const issue = (await requestJson(url, jiraHeaders())) as { fields?: { attachment?: JiraAttachment[] } };
+  const issue = (await requestJson(url, jiraHeaders(env))) as { fields?: { attachment?: JiraAttachment[] } };
 
   const attachments = (issue?.fields?.attachment ?? []).map((a) => ({
     id: a.id,
@@ -216,14 +228,15 @@ async function getJiraAttachments(target: string): Promise<{ ticketKey: string; 
   return { ticketKey, attachments };
 }
 
-async function downloadJiraAttachments(target: string, extra?: string): Promise<unknown> {
+async function downloadJiraAttachments(target: string, extra?: string, envMapping?: EnvMapping): Promise<unknown> {
   if (!extra) {
     console.error('Missing output directory. Usage: jira attachment-download <ticket-key> <output-dir>');
     process.exit(2);
   }
 
+  const env = envMapping ?? JIRA_DEFAULT_ENV;
   const outputDir = extra;
-  const { ticketKey, attachments } = await getJiraAttachments(target);
+  const { ticketKey, attachments } = await getJiraAttachments(target, undefined, env);
   const images = attachments.filter((a) => IMAGE_MIME_TYPES.has(a.mimeType));
 
   if (images.length === 0) {
@@ -233,8 +246,8 @@ async function downloadJiraAttachments(target: string, extra?: string): Promise<
   const { mkdirSync } = await import('node:fs');
   mkdirSync(outputDir, { recursive: true });
 
-  const pat = requireEnv('JIRA_PAT');
-  const email = requireEnv('JIRA_EMAIL');
+  const pat = resolveEnv(env, 'pat');
+  const email = resolveEnv(env, 'email');
   const headers: RequestHeaders = {
     Authorization: basicAuth(`${email}:${pat}`),
   };
@@ -242,7 +255,7 @@ async function downloadJiraAttachments(target: string, extra?: string): Promise<
   const downloaded: { filename: string; path: string; mimeType: string; size: number }[] = [];
 
   for (const attachment of images) {
-    assertSameJiraHost(attachment.content);
+    assertSameJiraHost(attachment.content, env);
     const safeName = basename(attachment.filename);
     const outputPath = join(outputDir, safeName);
     const bytesWritten = await requestBinary(attachment.content, headers, outputPath);
@@ -261,6 +274,7 @@ export const jiraProvider: Provider = {
   name: 'jira',
   label: 'Jira Cloud',
   requiredEnvKeys: ['JIRA_BASE_URL', 'JIRA_PAT', 'JIRA_EMAIL'],
+  defaultEnvMapping: JIRA_DEFAULT_ENV,
   actions: {
     'issue': getJiraIssue,
     'comments': getJiraComments,
@@ -268,23 +282,27 @@ export const jiraProvider: Provider = {
     'attachments': getJiraAttachments,
     'attachment-download': downloadJiraAttachments,
   },
-  usageLines: () => [
-    'bun run .ritus/scripts/remote-api.ts jira issue <ticket-key-or-url> [fields]',
-    'bun run .ritus/scripts/remote-api.ts jira comments <ticket-key-or-url> [count]',
-    'bun run .ritus/scripts/remote-api.ts jira changelog <ticket-key-or-url>',
-    'bun run .ritus/scripts/remote-api.ts jira attachments <ticket-key-or-url>',
-    'bun run .ritus/scripts/remote-api.ts jira attachment-download <ticket-key-or-url> <output-dir>',
+  canHandleTarget(action: string, target: string): boolean {
+    if (!Object.hasOwn(this.actions, action)) return false;
+    return /^[A-Z][A-Z0-9]+-\d+$/i.test(target) || /\/browse\/[A-Z][A-Z0-9]+-\d+/i.test(target);
+  },
+  usageLines: (cmd) => [
+    `${cmd} jira issue <ticket-key-or-url> [fields]`,
+    `${cmd} jira comments <ticket-key-or-url> [count]`,
+    `${cmd} jira changelog <ticket-key-or-url>`,
+    `${cmd} jira attachments <ticket-key-or-url>`,
+    `${cmd} jira attachment-download <ticket-key-or-url> <output-dir>`,
   ],
-  exampleLines: () => {
+  exampleLines: (cmd) => {
     const key = process.env.EXAMPLE_JIRA_TICKET_KEY || 'PROJ-123';
     const url = process.env.EXAMPLE_JIRA_TICKET_URL || 'https://your-company.atlassian.net/browse/PROJ-123';
     return [
-      `bun run .ritus/scripts/remote-api.ts jira issue ${key}`,
-      `bun run .ritus/scripts/remote-api.ts jira issue ${url} summary,description,status,issuetype,comment`,
-      `bun run .ritus/scripts/remote-api.ts jira comments ${key}`,
-      `bun run .ritus/scripts/remote-api.ts jira comments ${key} 20`,
-      `bun run .ritus/scripts/remote-api.ts jira attachments ${key}`,
-      `bun run .ritus/scripts/remote-api.ts jira attachment-download ${key} .jira-attachments/${key}`,
+      `${cmd} jira issue ${key}`,
+      `${cmd} jira issue ${url} summary,description,status,issuetype,comment`,
+      `${cmd} jira comments ${key}`,
+      `${cmd} jira comments ${key} 20`,
+      `${cmd} jira attachments ${key}`,
+      `${cmd} jira attachment-download ${key} .ritus/attachments/${key}`,
     ];
   },
 };

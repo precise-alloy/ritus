@@ -5,15 +5,32 @@ export type HttpError = Error & {
   responseBody?: unknown;
 };
 
-export type ActionHandler = (target: string, extra?: string) => Promise<unknown>;
+export type EnvMapping = Record<string, string>;
+
+export type ProviderInstanceConfig = {
+  type: string;
+  name: string;
+  keyPrefixes?: string[];
+  env?: EnvMapping;
+};
+
+export type ProviderInstance = {
+  provider: Provider;
+  config: ProviderInstanceConfig;
+  envMapping: EnvMapping;
+};
+
+export type ActionHandler = (target: string, extra?: string, envMapping?: EnvMapping) => Promise<unknown>;
 
 export type Provider = {
   name: string;
   label: string;
   requiredEnvKeys: readonly string[];
+  defaultEnvMapping: EnvMapping;
   actions: Record<string, ActionHandler>;
-  usageLines: () => string[];
-  exampleLines: () => string[];
+  canHandleTarget: (action: string, target: string) => boolean;
+  usageLines: (scriptCmd: string) => string[];
+  exampleLines: (scriptCmd: string) => string[];
 };
 
 export type EnvKeyStatus = { name: string; present: boolean };

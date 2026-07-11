@@ -1,7 +1,8 @@
 ---
 name: code-conventions
-description: Loaded automatically by execute-task and verify-task for any code change — covers comments, abstraction limits, dependency rules, and project-specific conventions from docs/CODE_CONVENTIONS.md. Do not invoke standalone unless the user specifically asks about coding conventions
+description: Loaded automatically by execute-task and verify-task for any code change - covers comments, abstraction limits, dependency rules, and project-specific conventions from docs/CODE_CONVENTIONS.md. Do not invoke standalone unless the user specifically asks about coding conventions
 argument-hint: Provide the task or ticket identifier and the files/modules likely to change
+user-invocable: false
 ---
 
 # Code Conventions
@@ -22,7 +23,7 @@ Never explain what the code does. Never reference the task, PR, or callers.
 
 - Three similar lines is better than a premature abstraction.
 - No helper extraction unless used in 3+ places.
-- No feature flags or backwards-compat shims — change the code directly.
+- No feature flags or backwards-compat shims - change the code directly.
 
 ### Dependencies
 
@@ -36,7 +37,6 @@ logging, and stack-specific rules. That file is filled by repo-scan and maintain
 
 Project-specific rules in `docs/CODE_CONVENTIONS.md` override the universal principles above when they conflict.
 
-## Next
+## Handoff
 
-This is a companion skill — it does not chain to another skill. Return to the parent skill (execute-task or
-verify-task) that loaded it.
+- **Report:** the standard applied to the parent skill's work.

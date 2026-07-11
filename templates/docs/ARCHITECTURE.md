@@ -1,7 +1,7 @@
-# <Project> — Architecture
+# <Project> - Architecture
 
 _Last updated: <YYYY-MM-DD>_
-_Status: stub — fill after repo-scan_
+_Status: stub - fill after repo-scan_
 
 ## Stack
 
@@ -21,7 +21,7 @@ _Status: stub — fill after repo-scan_
 
 ## Key flows
 
-<!-- Fill during work — describe main user/system flows -->
+<!-- Fill during work - describe main user/system flows -->
 
 ## Runbook patterns
 
