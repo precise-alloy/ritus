@@ -20,6 +20,13 @@ mock.module('./http.ts', () => ({
     if (!value) throw new Error(`Missing required environment variable ${name}.`);
     return value;
   },
+  resolveEnv: (envMapping: Record<string, string>, logicalKey: string) => {
+    const envVarName = envMapping[logicalKey];
+    if (!envVarName) throw new Error(`No env var mapping found for logical key "${logicalKey}"`);
+    const value = process.env[envVarName];
+    if (!value) throw new Error(`Missing ${envVarName} (mapped from ${logicalKey}).`);
+    return value.trim();
+  },
   requestJson: (url: string, headers: unknown) => state.requestJson(url, headers),
   requestBinary: async (url: string) => {
     state.requestBinaryCalls.push(url);
