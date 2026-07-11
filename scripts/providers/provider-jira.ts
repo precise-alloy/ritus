@@ -39,7 +39,7 @@ function assertSameJiraHost(rawUrl: string, envMapping?: EnvMapping): void {
   }
 
   if (parsed.protocol !== 'https:') {
-    throw new Error(`Refusing to download Jira attachment over non-HTTPS URL: ${rawUrl}`);
+    throw new Error(`Refusing to download Jira attachment over non-HTTPS URL (host=${parsed.hostname}, protocol=${parsed.protocol})`);
   }
 
   const expectedHostname = expectedBase.hostname.toLowerCase();
