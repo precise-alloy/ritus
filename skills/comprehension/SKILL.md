@@ -74,8 +74,8 @@ the diff already answers those.
   could hold about this change. Keep all options parallel in length, specificity, and tone so the
   correct one is not obvious by shape.
 - **Rotate the correct answer's position across the questions** - never default it to the first slot,
-  and never mark it as `recommended`. Cycle deterministically (e.g. Q1 -> B, Q2 -> D, Q3 -> A,
-  Q4 -> C, Q5 -> B) so the position is never predictable. Before asking, self-check that the correct
+  and never mark it as `recommended`. Use a predetermined rotation (e.g. Q1 -> B, Q2 -> D, Q3 -> A,
+  Q4 -> C, Q5 -> B) so the correct answer isn't consistently in the same position. Before asking, self-check that the correct
   answers are spread across positions, not clustered in one slot.
 
 After each answer:
