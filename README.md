@@ -88,8 +88,9 @@ Run `/sync check missing` to see what's missing, or `/sync create missing` to cr
 
 Ritus keeps all per-project runtime state under a `.ritus/` directory at the project root: remote API credentials at
 `.ritus/.env.local` plus transient scratch such as downloaded attachments. The `/sync` skill adds a managed
-`.gitignore` block (`.ritus/*` with `!.ritus/.env.example`) so everything under `.ritus/` stays out of version control
-except the committed template `.ritus/.env.example`.
+`.gitignore` block that lists the runtime files to ignore (`.ritus/.env.local` and `.ritus/attachments/`), so
+credentials and scratch stay out of version control while the committed template `.ritus/.env.example` and any other
+tracked `.ritus/` files remain in git.
 
 **Note for upgrading projects:** If you previously installed Ritus and have a `.ritus/scripts/` directory in your
 project, it can be safely deleted. These scripts now live in the plugin's `scripts/` directory and are no longer copied

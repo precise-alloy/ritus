@@ -57,7 +57,7 @@ const STRATEGIES: Record<Strategy, string[]> = {
 };
 
 const GITIGNORE_MARKER = "# --- ritus (managed) ---";
-const GITIGNORE_BLOCK = `${GITIGNORE_MARKER}\n.ritus/*\n!.ritus/.env.example\n`;
+const GITIGNORE_BLOCK = `${GITIGNORE_MARKER}\n.ritus/.env.local\n.ritus/attachments/\n`;
 
 function ensureGitignore(root: string): "created" | "appended" | "present" {
   const gitignorePath = join(root, ".gitignore");
