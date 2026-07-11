@@ -70,7 +70,7 @@ or just
 /setup
 ```
 
-The setup skill automatically scaffolds all project files (`docs/`, `.env.example`) and runs an
+The setup skill automatically scaffolds all project files (`docs/`, `.ritus/.env.example`) and runs an
 11-question interview to fill your project profiles.
 
 ## What gets installed
@@ -82,9 +82,14 @@ The `/sync` skill copies template files into your project. Files are never overw
 | **user-owned**       | Created once, you own it - edit freely      | `docs/profiles/project.yml`, `docs/profiles/team.yml`, `docs/profiles/runtime.yml`, `docs/PROJECT_CONTEXT.md`, `docs/ARCHITECTURE.md`, `docs/CODE_CONVENTIONS.md`, `docs/TEST_CONVENTIONS.md`, `docs/DECISIONS.md`, `docs/LESSONS.md`, `docs/CUTOFF.md`, `docs/STAKEHOLDERS.md` |
 | **append-only**      | Created once, only appended to              | `docs/CHANGELOG.md`                                                                                                                                                                                                                                 |
 | **scaffold**         | Directory placeholder                       | `docs/tasks/README.md`, `docs/memory/README.md`                                                                                                                                                                                                     |
-| **project-specific** | Created once, you own it - extend as needed | `.env.example`                                                                                                                                                                                                                                      |
+| **project-specific** | Created once, you own it - extend as needed | `.ritus/.env.example`                                                                                                                                                                                                                                      |
 
 Run `/sync check missing` to see what's missing, or `/sync create missing` to create missing files.
+
+Ritus keeps all per-project runtime state under a `.ritus/` directory at the project root: remote API credentials at
+`.ritus/.env.local` plus transient scratch such as downloaded attachments. The `/sync` skill adds a managed
+`.gitignore` block (`.ritus/*` with `!.ritus/.env.example`) so everything under `.ritus/` stays out of version control
+except the committed template `.ritus/.env.example`.
 
 **Note for upgrading projects:** If you previously installed Ritus and have a `.ritus/scripts/` directory in your
 project, it can be safely deleted. These scripts now live in the plugin's `scripts/` directory and are no longer copied
@@ -231,7 +236,7 @@ marketplace.json                 ← Copilot marketplace manifest
     marketplace.json       ← Claude marketplace manifest
     plugin.json   ← Claude Code plugin manifest
 README.md                        ← this file
-.env.example                     ← remote API credentials template
+.ritus/.env.example              ← remote API credentials template
 skills/
   start-ritus/SKILL.md     ← entry-point meta-skill: golden rules, dispatch instructions
   brainstorm/SKILL.md
@@ -310,7 +315,7 @@ bun run scripts/remote-api.ts issue PROJ-123
 bun run scripts/remote-api.ts issue 12345
 bun run scripts/remote-api.ts issue https://dev.azure.com/org/project/_workitems/edit/12345
 
-# GitHub - detected from #-prefixed number (requires GITHUB_REPO_URL in .env.local)
+# GitHub - detected from #-prefixed number (requires GITHUB_REPO_URL in .ritus/.env.local)
 bun run scripts/remote-api.ts pr '#18'
 bun run scripts/remote-api.ts comments '#18'
 bun run scripts/remote-api.ts issue '#7'
@@ -402,7 +407,7 @@ ticket_providers:
       email: JIRA_EXT_EMAIL
 ```
 
-Then set credentials in `.env.local` using the env var names declared in `team.yml`:
+Then set credentials in `.ritus/.env.local` using the env var names declared in `team.yml`:
 
 ```env
 JIRA_EXT_BASE_URL=https://other.atlassian.net
@@ -410,7 +415,7 @@ JIRA_EXT_PAT=yyy
 JIRA_EXT_EMAIL=user@other.com
 ```
 
-Default instances (those without an `env:` block) use the standard env var names from `.env.example`.
+Default instances (those without an `env:` block) use the standard env var names from `.ritus/.env.example`.
 The `check-env` command reports per-instance credential status when `team.yml` lists are present.
 
 ### Environment check

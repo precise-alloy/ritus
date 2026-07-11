@@ -446,8 +446,8 @@ ${exampleLines.map((l) => '  ' + l).join('\n')}
     ${cmd} issue AMPS-123                    # → Jira (primary)
     ${cmd} issue EXT-456                     # → Jira (external)
 
-  Generate .env.example from team.yml:
-    ${cmd} generate-env > .env.example`);
+  Generate .ritus/.env.example from team.yml:
+    ${cmd} generate-env > .ritus/.env.example`);
 }
 
 function checkProviderEnv(provider: Provider): ProviderEnvStatus {
@@ -473,7 +473,7 @@ function checkProviderEnv(provider: Provider): ProviderEnvStatus {
 }
 
 async function checkEnv(loaded?: LoadedInstances): Promise<EnvCheckResult> {
-  const envLocalPath = `${process.cwd()}/.env.local`;
+  const envLocalPath = `${process.cwd()}/.ritus/.env.local`;
   const envLocalExists = await Bun.file(envLocalPath).exists();
 
   const { instances, hasTeamConfig } = loaded ?? await loadInstances();
@@ -498,13 +498,46 @@ async function checkEnv(loaded?: LoadedInstances): Promise<EnvCheckResult> {
   };
 }
 
+// Advisory only: warns when the creds file exists but is not git-ignored. Skips
+// silently outside a git work tree or when git is unavailable so exit codes and
+// non-git workflows are unaffected.
+async function warnIfCredsNotIgnored(): Promise<void> {
+  const relPath = '.ritus/.env.local';
+  let ignoreExit: number;
+  let trackedExit: number;
+  try {
+    ignoreExit = await Bun.spawn(['git', 'check-ignore', '-q', relPath], {
+      stdout: 'ignore',
+      stderr: 'ignore',
+    }).exited;
+    // 128 = fatal (not a git repo / no work tree) - nothing to advise on
+    if (ignoreExit === 128) return;
+
+    trackedExit = await Bun.spawn(['git', 'ls-files', '--error-unmatch', relPath], {
+      stdout: 'ignore',
+      stderr: 'ignore',
+    }).exited;
+  } catch {
+    // git binary not on PATH - skip the advisory check
+    return;
+  }
+
+  const ignored = ignoreExit === 0;
+  const tracked = trackedExit === 0;
+  if (ignored && !tracked) return;
+
+  console.error(`\n⚠  WARNING: ${relPath} exists but is not git-ignored.`);
+  console.error('   Your credentials could be committed to version control.');
+  console.error('   Run `sync --apply` to add the managed .gitignore rule.');
+}
+
 async function runCheckEnv(): Promise<void> {
   const loaded = await loadInstances();
   const result = await checkEnv(loaded);
   console.log(JSON.stringify(result, null, 2));
 
   if (!result.envLocalExists) {
-    console.error(`\n.env.local is missing at ${result.envLocalPath}.`);
+    console.error(`\n.ritus/.env.local is missing at ${result.envLocalPath}.`);
     console.error('Create it with the keys you need:\n');
 
     if (loaded.hasTeamConfig) {
@@ -541,9 +574,11 @@ async function runCheckEnv(): Promise<void> {
       }
     }
 
-    console.error(`Tip: run \`${getScriptCmd()} generate-env\` to generate a complete .env.local template.`);
+    console.error(`Tip: run \`${getScriptCmd()} generate-env\` to generate a complete .ritus/.env.local template.`);
     process.exit(1);
   }
+
+  await warnIfCredsNotIgnored();
 
   const configured = result.providers.filter((p) => p.ok);
   const unconfigured = result.providers.filter((p) => !p.ok);
@@ -554,7 +589,7 @@ async function runCheckEnv(): Promise<void> {
       const missing = p.keys.filter((k) => !k.present).map((k) => k.name);
       console.error(`  ${p.label}: missing ${missing.join(', ')}`);
     }
-    console.error('\nFill at least one provider in .env.local.');
+    console.error('\nFill at least one provider in .ritus/.env.local.');
     process.exit(1);
   }
 
@@ -573,7 +608,7 @@ async function runGenerateEnv(): Promise<void> {
   const { instances, hasTeamConfig } = await loadInstances();
   const lines: string[] = [
     '# Generated from provider registry' + (hasTeamConfig ? ' + docs/profiles/team.yml' : ''),
-    '# Copy to .env.local and fill in values',
+    '# Copy to .ritus/.env.local and fill in values',
     '',
   ];
 
@@ -784,9 +819,9 @@ async function main(): Promise<void> {
     const tokenEnvVar = envMapping.token ?? 'GITHUB_TOKEN';
     const token = process.env[tokenEnvVar]?.trim();
     if (!token && tokenEnvVar === 'GITHUB_TOKEN' && !process.env.GH_TOKEN?.trim()) {
-      throw new Error('Missing GITHUB_TOKEN (or GH_TOKEN). Populate it in .env.local before using this helper.');
+      throw new Error('Missing GITHUB_TOKEN (or GH_TOKEN). Populate it in .ritus/.env.local before using this helper.');
     } else if (!token && tokenEnvVar !== 'GITHUB_TOKEN') {
-      throw new Error(`Missing ${tokenEnvVar}. Populate it in .env.local before using this helper.`);
+      throw new Error(`Missing ${tokenEnvVar}. Populate it in .ritus/.env.local before using this helper.`);
     }
   } else {
     // Only require credential/auth env vars (those in provider.requiredEnvKeys).

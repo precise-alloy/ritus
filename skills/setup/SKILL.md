@@ -174,7 +174,7 @@ Accept one or more ticket systems. For each, capture:
 
 Record primary format as: `{{TICKET_FORMAT}}` (scalar, backward compat - use the first ticket system's format, e.g. `PROJ-123` or `#123`; set to `none` if no systems).
 
-Note: GitHub Issues uses `#`-prefixed numbers (e.g. `#18`) for short refs, which requires `GITHUB_REPO_URL` in `.env.local`. Full URLs (e.g. `https://github.com/owner/repo/issues/123`) also work without `GITHUB_REPO_URL`.
+Note: GitHub Issues uses `#`-prefixed numbers (e.g. `#18`) for short refs, which requires `GITHUB_REPO_URL` in `.ritus/.env.local`. Full URLs (e.g. `https://github.com/owner/repo/issues/123`) also work without `GITHUB_REPO_URL`.
 
 After collecting the list, for each selected ticket system ask:
 
@@ -362,7 +362,7 @@ platform offers:
 ## Pre-output - scaffold project files
 
 Before writing any profile data, **invoke the `sync` skill** to create all project files. This is a **blocking
-step** - do not skip it. The sync skill creates all template files (profiles, docs, scripts, .env.example).
+step** - do not skip it. The sync skill creates all template files (profiles, docs, scripts, .ritus/.env.example).
 Existing user-edited files are never overwritten.
 
 ---

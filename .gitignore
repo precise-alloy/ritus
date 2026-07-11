@@ -1,0 +1,3 @@
+# --- ritus (managed) ---
+.ritus/*
+!.ritus/.env.example

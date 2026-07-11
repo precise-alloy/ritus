@@ -37,7 +37,7 @@ export async function readEnvFile(filePath: string): Promise<void> {
 }
 
 export async function loadLocalEnv(): Promise<void> {
-  await readEnvFile(`${process.cwd()}/.env.local`);
+  await readEnvFile(`${process.cwd()}/.ritus/.env.local`);
 }
 
 export function basicAuth(value: string): string {
@@ -47,7 +47,7 @@ export function basicAuth(value: string): string {
 export function requireEnv(name: string): string {
   const value = process.env[name]?.trim();
   if (!value) {
-    throw new Error(`Missing required environment variable ${name}. Populate it in .env.local before using this helper.`);
+    throw new Error(`Missing required environment variable ${name}. Populate it in .ritus/.env.local before using this helper.`);
   }
 
   return value;
@@ -63,7 +63,7 @@ export function resolveEnv(envMapping: EnvMapping, logicalKey: string): string {
   }
   const value = process.env[envVarName]?.trim();
   if (!value) {
-    throw new Error(`Missing ${envVarName} (mapped from ${logicalKey}). Populate it in .env.local before using this helper.`);
+    throw new Error(`Missing ${envVarName} (mapped from ${logicalKey}). Populate it in .ritus/.env.local before using this helper.`);
   }
   return value;
 }
