@@ -19,7 +19,17 @@ function jiraBaseUrl(env: EnvMapping): string {
 function assertSameJiraHost(rawUrl: string, envMapping?: EnvMapping): void {
   const env = envMapping ?? JIRA_DEFAULT_ENV;
 
-  const expectedHost = new URL(jiraBaseUrl(env)).host;
+  const baseUrl = jiraBaseUrl(env);
+  let expectedBase: URL;
+  try {
+    expectedBase = new URL(baseUrl);
+  } catch {
+    throw new Error(`Invalid Jira base URL (${env.base_url}): ${baseUrl}`);
+  }
+
+  if (expectedBase.protocol !== 'https:') {
+    throw new Error(`Invalid Jira base URL (${env.base_url}): must use https://`);
+  }
 
   let parsed: URL;
   try {
@@ -32,8 +42,18 @@ function assertSameJiraHost(rawUrl: string, envMapping?: EnvMapping): void {
     throw new Error(`Refusing to download Jira attachment over non-HTTPS URL: ${rawUrl}`);
   }
 
-  if (parsed.host !== expectedHost) {
-    throw new Error(`Refusing to send Jira credentials to unexpected host ${parsed.host} (expected ${expectedHost})`);
+  const expectedHostname = expectedBase.hostname.toLowerCase();
+  const actualHostname = parsed.hostname.toLowerCase();
+  if (actualHostname !== expectedHostname) {
+    throw new Error(
+      `Refusing to send Jira credentials to unexpected host ${parsed.hostname} (expected ${expectedBase.hostname})`,
+    );
+  }
+
+  const expectedPort = expectedBase.port || '443';
+  const actualPort = parsed.port || '443';
+  if (actualPort !== expectedPort) {
+    throw new Error(`Refusing to send Jira credentials to unexpected port ${actualPort} (expected ${expectedPort})`);
   }
 }
 
