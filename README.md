@@ -168,7 +168,7 @@ Plan/implement:       triage → ticket-review → execute-task → verify-task 
 Debug/fix:            debug → execute-task → verify-task → pr-review → wrap-up → comprehension
 Review:               pr-review (standard model subagent) → verdict  (wrap-up only within a task-driven run)
 Address feedback:     address-feedback → execute-task → verify-task → [pr-review re-check → wrap-up → comprehension]
-Iterate:              wrap-up → comprehension → user feedback → triage or brainstorm (restarts chain)
+Iterate:              wrap-up → comprehension; then user feedback → triage or brainstorm (new run)
 ```
 
 ---
