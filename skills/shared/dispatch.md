@@ -15,8 +15,8 @@ update.)
 - **Workers** (`execute-task`, `verify-task`, `pr-review`) run as dispatched subagents: they **report a verdict** and
   name their follow-up (a fix cycle), which the **main thread applies** on their behalf per the outcome table in
   **Dispatch rule** below - a worker can't mutate the TODO it doesn't own. Happy path: nothing to append.
-- **Routing** (`brainstorm`, `triage`) set the next step as `invoke <skill>`.
-- **Terminal** (`wrap-up`) has no update.
+- **Routing** (`brainstorm`, `triage`, `wrap-up`) set the next step as `invoke <skill>` (`wrap-up` → `invoke comprehension`).
+- **Terminal** (`comprehension`) has no update.
 - **Intra-skill worker** (`requirement-analysis`) is spawned by another skill (ticket-review), not from the driving
   TODO; it reports its result to that skill and has no driving-TODO update (see **Subagent configs**).
 
@@ -71,7 +71,7 @@ discussion, not another fix attempt.
 ## Subagent configs (per-worker run config)
 
 The worker skills the main thread spawns. Main-thread skills (`brainstorm`, `triage`, `ticket-review`,
-`address-feedback`, `debug`, `wrap-up`) run inline and are not spawned - except that `ticket-review` itself spawns
+`address-feedback`, `debug`, `wrap-up`, `comprehension`) run inline and are not spawned - except that `ticket-review` itself spawns
 `requirement-analysis` during its analysis step (an intra-skill dispatch: the worker reports its analysis back to
 ticket-review and is not a driving-TODO item, so it has no outcome-table row).
 

@@ -46,7 +46,8 @@ flowchart TD
 
     CR --> Verdict{Verdict?}
     Verdict -->|"Approve ✅"| WrapUp["wrap-up\n(promote exploration, verify docs)"]
-    WrapUp --> HumanFinal{"🧑 Human reviews diff"}
+    WrapUp --> Comp["comprehension\n(advisory quiz before commit)"]
+    Comp --> HumanFinal{"🧑 Human reviews diff"}
     HumanFinal -->|"Finalize"| Done(["Commits + pushes"])
     Done -->|"PR has review comments"| AF
     HumanFinal -->|"Follow-up changes"| InputType
@@ -194,7 +195,8 @@ flowchart TD
     AFVerdict -->|"Approve"| AFWrapUp["wrap-up\n(promote exploration, verify docs)"]
     AFVerdict -->|"Request changes"| AFExec
     AFRecheck -->|"No / Skip"| AFCommit["Report fixes\n+ suggested commit message"]
-    AFWrapUp --> AFCommit
+    AFWrapUp --> AFComp["comprehension\n(advisory quiz)"]
+    AFComp --> AFCommit
     AFCommit --> AFDone(["🧑 Human reviews, commits + pushes\nmore comments → re-run address-feedback"])
 ```
 
@@ -273,7 +275,7 @@ flowchart TD
     end
 
     subgraph "On-demand (skill activation)"
-        SK["19 on-demand skills\n📦 workflow plugin"]
+        SK["20 on-demand skills\n📦 workflow plugin"]
     end
 
     subgraph "Subagent dispatch (defined in skills)"
