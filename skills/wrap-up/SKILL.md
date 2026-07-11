@@ -11,7 +11,7 @@ argument-hint: Provide the branch slug and pr-review verdict
 ## When to use
 
 After pr-review returns an Approve verdict. If pr-review has not run or the verdict is not Approve, stop and instruct the user to run pr-review first.
-This is the terminal skill in the workflow chain - it ensures post-implementation cleanup happens instead of being forgotten.
+This is the post-implementation cleanup skill - it ensures cleanup happens instead of being forgotten, then hands off to `comprehension` (the chain terminal) for a final understanding check before the human commits.
 
 When starting wrap-up, create this TODO - **every item below, verbatim** (never a single item named after the skill) - and mark items done as you complete them:
 
@@ -20,7 +20,8 @@ TODO:
 ```markdown
 - [ ] Promote exploration.md entries to target docs
 - [ ] Verify DOC UPDATE sections from task files were fulfilled
-- [ ] Report final status and next steps to user
+- [ ] Report final status to user
+- [ ] Hand off to comprehension (invoke comprehension)
 ```
 
 ## Step 1: Promote exploration entries
@@ -73,8 +74,7 @@ Report to the user:
   (or: no address-feedback rounds in this workflow)
 
 ### Next steps
-- Commit changes (suggested message: <type(scope): subject>)
-- Create PR / request merge
+- Comprehension check (`invoke comprehension`) - a final understanding pass before you commit
 ```
 
 ## Hard rules
@@ -86,3 +86,4 @@ Report to the user:
 ## Handoff
 
 - **Report:** final status (exploration promoted, doc updates verified, address-feedback rounds).
+- **TODO update:** `invoke comprehension` - the terminal comprehension check before the human commits.

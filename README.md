@@ -144,6 +144,7 @@ using the single contract in `skills/shared/dispatch.md`.
 | `pr-review`            | Adversarial review at ticket/PR level (dispatched as fresh standard model subagent)     |
 | `address-feedback`     | Read PR review comments, generate fix tasks; user reviews the diff and commits         |
 | `wrap-up`              | Post-review cleanup - promote exploration entries, verify docs, report status          |
+| `comprehension`        | Post-wrap-up advisory quiz - brief the human on the change, check understanding before commit |
 | `debug`                | Systematic 4-phase root cause investigation with evidence grading                      |
 | `setup`                | Setup interview - write YAML profiles, render docs/PROJECT_CONTEXT.md                  |
 | `sync`                 | Scaffold or check project files - create missing docs, profiles, scripts               |
@@ -163,11 +164,11 @@ using the single contract in `skills/shared/dispatch.md`.
 
 ```text
 Explore/brainstorm:   brainstorm → triage → ticket-review
-Plan/implement:       triage → ticket-review → execute-task → verify-task → pr-review → wrap-up
-Debug/fix:            debug → execute-task → verify-task → pr-review → wrap-up
+Plan/implement:       triage → ticket-review → execute-task → verify-task → pr-review → wrap-up → comprehension
+Debug/fix:            debug → execute-task → verify-task → pr-review → wrap-up → comprehension
 Review:               pr-review (standard model subagent) → verdict  (wrap-up only within a task-driven run)
-Address feedback:     address-feedback → execute-task → verify-task → [pr-review re-check → wrap-up]
-Iterate:              wrap-up → user feedback → triage or brainstorm (restarts chain)
+Address feedback:     address-feedback → execute-task → verify-task → [pr-review re-check → wrap-up → comprehension]
+Iterate:              wrap-up → comprehension; then user feedback → triage or brainstorm (new run)
 ```
 
 ---

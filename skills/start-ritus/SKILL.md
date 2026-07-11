@@ -33,7 +33,7 @@ argument-hint: Provide the user's request so the router can choose the next appl
 
 ## Workflow tracking
 
-**MANDATORY:** When a core workflow skill (brainstorm/triage/ticket-review/requirement-analysis/execute-task/verify-task/pr-review/address-feedback/wrap-up/debug) is invoked, its **first action** - before any work - is to create a todo list containing **every step in that skill's own `TODO:` block, copied verbatim**, ending with the handoff to the next skill. Mark items done as you go. This ensures you never stop mid-chain and never skip steps in long context windows.
+**MANDATORY:** When a core workflow skill (brainstorm/triage/ticket-review/requirement-analysis/execute-task/verify-task/pr-review/address-feedback/wrap-up/comprehension/debug) is invoked, its **first action** - before any work - is to create a todo list containing **every step in that skill's own `TODO:` block, copied verbatim** (including any handoff line; terminal skills have none). Mark items done as you go. This ensures you never stop mid-chain and never skip steps in long context windows.
 
 **Never collapse a skill into one todo item** (e.g. a single `Brainstorm: <task>` item) and **never build a one-item-per-skill chain checklist.** Each invoked skill contributes its own full list of steps; the chain advances because a skill's last step invokes the next skill, which then creates its own step list.
 
@@ -41,10 +41,10 @@ argument-hint: Provide the user's request so the router can choose the next appl
 
 ### Expected workflow chains (reference map only - NOT a todo template; each skill creates its own step TODO)
 
-- **Requirement with ticket:** triage → ticket-review → user approval → execute + verify → pr-review → wrap-up
-- **Exploratory question:** brainstorm → triage → ticket-review → user approval → execute + verify → pr-review → wrap-up
-- **Bug report:** debug (investigate + approve fix) → execute + verify → pr-review → wrap-up
-- **PR review feedback:** address-feedback → execute + verify → [pr-review re-check → wrap-up]
+- **Requirement with ticket:** triage → ticket-review → user approval → execute + verify → pr-review → wrap-up → comprehension
+- **Exploratory question:** brainstorm → triage → ticket-review → user approval → execute + verify → pr-review → wrap-up → comprehension
+- **Bug report:** debug (investigate + approve fix) → execute + verify → pr-review → wrap-up → comprehension
+- **PR review feedback:** address-feedback → execute + verify → [pr-review re-check → wrap-up → comprehension]
 
 ## Skill invocation
 
