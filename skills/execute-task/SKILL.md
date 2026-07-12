@@ -94,8 +94,8 @@ Keep your working context clean to preserve performance and reduce cost:
 1. Minimal change - implement only what STEPS specify. No unsolicited refactors.
 2. Grep before edit - confirm file paths exist before touching any file.
 3. No hallucinated features - if a STEP references something that doesn't exist, report BLOCKED.
-4. Stop on errors - compile fail, test fail, 4xx/5xx, or a command's actual output not matching the task's expected
-   result → stop immediately and report.
+4. Stop on errors - compile fail, test fail, or a command whose actual result (status or output) does not match the
+   task's expected result → stop immediately and report.
 5. Done = every STEP implemented and each DONE WHEN condition addressed in your report - which is a claim the verify-task gate confirms in a fresh context, not a self-verified result. You produce a report of what you changed.
 6. Update docs per DOC UPDATE section before reporting done.
 7. One final report - no intermediate dumps.

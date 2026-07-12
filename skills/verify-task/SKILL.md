@@ -126,9 +126,11 @@ For every changed method or code path, ask:
 - Did the change alter a return type, add a nullable field, or change method signatures?
 - Are there callers that weren't updated?
 - Did removed or renamed symbols leave dead references?
-- Do the task's INTERFACES `Produces` signatures exist in the diff with the exact names, parameters, and return
-  types promised to downstream tasks? (Confirm the diff uses the `Consumes` names as given; whether a `Consumes`
-  signature agrees with the sibling task's `Produces` is a ticket-review self-review check, not verified here.)
+- Do the task's INTERFACES `Produces` signatures exist in the final repository state (the resulting API/tree) with the
+  exact names, parameters, and return types promised to downstream tasks - using the diff as supporting evidence, since
+  a signature may pre-exist, be generated, or be preserved while its implementation changes? (Confirm the diff uses the
+  `Consumes` names as given; whether a `Consumes` signature agrees with the sibling task's `Produces` is a
+  ticket-review self-review check, not verified here.)
 
 ### 2.3 Regression Risk
 

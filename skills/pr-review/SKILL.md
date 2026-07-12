@@ -355,7 +355,7 @@ After presenting the review:
 
 ## Handoff
 
-- **Report:** your verdict (Approve / Request Changes) with findings, each cited at `file:line` and tagged with its
+- **Report:** your verdict (Approve / Request Changes / Needs Clarification) with findings, each cited at `file:line` and tagged with its
   **severity** and **`type`** (`logic | security | requirement | test | convention`, per `templates/finding-types.md`) -
   so the fix cycle gets a structured, per-finding payload.
 - **TODO update:** Approve → none (the plan continues to `invoke wrap-up`). Request Changes →
