@@ -60,7 +60,7 @@ none | Add a new <resource> | Add a new endpoint | ...
 
 - files:
     <!-- Annotate each path: Create | Modify:<line-range> | Test, plus a one-line responsibility. -->
-    - <path> — Create | Modify:<line> | Test — <one-line responsibility>
+    - <path> — Create | Modify:<line-range> | Test — <one-line responsibility>
 - docs (read-only references):
     - docs/PROJECT_CONTEXT.md
 
