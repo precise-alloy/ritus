@@ -63,8 +63,9 @@ working tree, cheapest-first, to keep token cost bounded:
 
 ## Phase 1: DONE WHEN Verification
 
-1. **Read the task file** - extract DONE WHEN conditions, CONTEXT files, DOC UPDATE section. (A debug fix arrives as
-   the investigation case file: its `Regression Test` is the DONE WHEN and its `Proposed Fix` is the STEPS.)
+1. **Read the task file** - extract DONE WHEN conditions, CONTEXT files, CONSTRAINTS, INTERFACES, NON-GOALS, and the
+   DOC UPDATE section. (A debug fix arrives as the investigation case file: its `Regression Test` is the DONE WHEN and
+   its `Proposed Fix` is the STEPS.)
 
 2. **Check every DONE WHEN condition:**
    - **Diff-checkable** conditions (file exists, field added, logic changed): verify from the scoped working-tree
@@ -76,6 +77,7 @@ working tree, cheapest-first, to keep token cost bounded:
    - For STANDARD/EPIC tasks: allowed scope = source files listed in CONTEXT `files` + files listed in DOC UPDATE
      + test files co-located with or covering changed source files. CONTEXT `docs` entries are read-only
      references - modifications to them are scope violations. Flag modifications outside this scope as violations.
+     Any change touching something listed under NON-GOALS is a violation; confirm each CONSTRAINTS line holds in the diff.
    - For SIMPLE tasks (no CONTEXT section): check that changes are limited to what the TASK description implies.
    - `docs/tasks/{branch-slug}/exploration.md` (append-only) is always allowed regardless of task type.
 
@@ -97,6 +99,8 @@ working tree, cheapest-first, to keep token cost bounded:
    - Build: run the build command from `docs/PROJECT_CONTEXT.md` → must pass
    - Test: run the test command from `docs/PROJECT_CONTEXT.md` → must pass
    - Lint: run the lint command from `docs/PROJECT_CONTEXT.md` → must pass
+   - Task VERIFY: run the concrete commands in the task's VERIFY block (build/test/smoke) → each must produce its
+     stated expected output
 
    If any command is not configured in `docs/PROJECT_CONTEXT.md` (empty, placeholder, or `N/A`), skip it with a
    warning in the output - do not hard-fail on missing build/test/lint configuration.
@@ -122,6 +126,9 @@ For every changed method or code path, ask:
 - Did the change alter a return type, add a nullable field, or change method signatures?
 - Are there callers that weren't updated?
 - Did removed or renamed symbols leave dead references?
+- Do the task's INTERFACES `Produces` signatures exist in the diff with the exact names, parameters, and return
+  types promised to downstream tasks? (Confirm the diff uses the `Consumes` names as given; whether a `Consumes`
+  signature agrees with the sibling task's `Produces` is a ticket-review self-review check, not verified here.)
 
 ### 2.3 Regression Risk
 
@@ -148,6 +155,7 @@ Phase 1 - DONE WHEN:
 - [ ] DONE WHEN condition 1 - verified at file:line (diff-checkable)
 - [ ] DONE WHEN condition 2 - verified by command output (command-checkable)
 - [ ] Scope clean - STANDARD/EPIC: only CONTEXT + DOC UPDATE + test files (+ exploration.md); SIMPLE: only files implied by TASK + tests (+ exploration.md)
+- [ ] Contract clean - CONSTRAINTS satisfied, nothing under NON-GOALS touched, INTERFACES `Produces` present
 - [ ] Standards gates - all applicable gates passed
 - [ ] Build passes - exit code 0 (or skipped - not configured)
 - [ ] Tests pass - N tests, 0 failures (or skipped - not configured)

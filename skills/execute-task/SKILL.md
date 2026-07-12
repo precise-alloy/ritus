@@ -31,10 +31,11 @@ TODO:
 ```markdown
 - [ ] Read task file - Three shapes exist:
   - SIMPLE (3-section): TASK + DONE WHEN + VERIFY only. Skip PRIOR CONTEXT, PATTERN, DOC UPDATE steps.
-  - STANDARD/EPIC (full): TASK, PRIOR CONTEXT (if present), PATTERN, CONTEXT, GOAL, STEPS, DONE WHEN, VERIFY, DOC UPDATE, COMMIT.
+  - STANDARD/EPIC (full): TASK, PRIOR CONTEXT (if present), PATTERN, CONSTRAINTS, CONTEXT, INTERFACES, GOAL, NON-GOALS, STEPS, DONE WHEN, VERIFY, DOC UPDATE, COMMIT.
   - Debug investigation case file (`investigation-{slug}.md`): read `Proposed Fix` as the STEPS and `Regression Test` as the DONE WHEN.
 - [ ] Load context - Read CONTEXT files + `docs/tasks/{branch-slug}/exploration.md` if it exists (prior findings from other
-  subagents). For bug fixes, grep `docs/LESSONS.md` and `docs/DECISIONS.md` for affected module.
+  subagents). Read INTERFACES - use each `Consumes` signature verbatim; treat CONSTRAINTS as hard requirements and
+  NON-GOALS as out of scope. For bug fixes, grep `docs/LESSONS.md` and `docs/DECISIONS.md` for affected module.
 - [ ] Load standard skills - see table below. **Blocking step.**
 
   <!-- Keep in sync with verify-task/SKILL.md -->
@@ -93,13 +94,17 @@ Keep your working context clean to preserve performance and reduce cost:
 1. Minimal change - implement only what STEPS specify. No unsolicited refactors.
 2. Grep before edit - confirm file paths exist before touching any file.
 3. No hallucinated features - if a STEP references something that doesn't exist, report BLOCKED.
-4. Stop on errors - compile fail, test fail, 4xx/5xx → stop immediately and report.
+4. Stop on errors - compile fail, test fail, 4xx/5xx, or a command's actual output not matching the task's expected
+   result → stop immediately and report.
 5. Done = every STEP implemented and each DONE WHEN condition addressed in your report - which is a claim the verify-task gate confirms in a fresh context, not a self-verified result. You produce a report of what you changed.
 6. Update docs per DOC UPDATE section before reporting done.
 7. One final report - no intermediate dumps.
 8. Grep before claiming - cite `file:line` when asserting any fact about existing code.
 9. Finish the work - before ending your turn, check your last output. If it describes work you haven't done yet
    ("I'll now...", "next I should..."), do that work with tool calls instead of stopping.
+10. Honor the contract - satisfy every CONSTRAINTS line, implement nothing listed under NON-GOALS, expose each
+    INTERFACES `Produces` signature exactly as written, and run the exact commands in VERIFY confirming their expected
+    output.
 
 ## Handoff
 
