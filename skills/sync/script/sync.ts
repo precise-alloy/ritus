@@ -61,11 +61,16 @@ const GITIGNORE_BLOCK = `${GITIGNORE_MARKER}\n.ritus/.env.local\n.ritus/attachme
 
 function ensureGitignore(root: string): "created" | "appended" | "present" {
   const gitignorePath = join(root, ".gitignore");
-  if (!existsSync(gitignorePath)) {
-    writeFileSync(gitignorePath, GITIGNORE_BLOCK);
-    return "created";
+  let content: string;
+  try {
+    content = readFileSync(gitignorePath, "utf-8");
+  } catch (err) {
+    if ((err as { code?: string }).code === "ENOENT") {
+      writeFileSync(gitignorePath, GITIGNORE_BLOCK);
+      return "created";
+    }
+    throw err;
   }
-  const content = readFileSync(gitignorePath, "utf-8");
   if (content.includes(GITIGNORE_MARKER)) return "present";
   const separator = content.length === 0 || content.endsWith("\n") ? "" : "\n";
   writeFileSync(gitignorePath, content + separator + GITIGNORE_BLOCK);

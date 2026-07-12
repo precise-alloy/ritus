@@ -524,11 +524,16 @@ async function warnIfCredsNotIgnored(): Promise<void> {
 
   const ignored = ignoreExit === 0;
   const tracked = trackedExit === 0;
-  if (ignored && !tracked) return;
+  if (tracked) {
+    console.error(`\n⚠  WARNING: ${relPath} is already tracked by git — your credentials may already be committed.`);
+    console.error('   Untrack it with `git rm --cached .ritus/.env.local` and rotate the exposed credentials.');
+    return;
+  }
+  if (ignored) return;
 
   console.error(`\n⚠  WARNING: ${relPath} exists but is not git-ignored.`);
   console.error('   Your credentials could be committed to version control.');
-  console.error('   Run `sync --apply` to add the managed .gitignore rule.');
+  console.error('   Run the /sync skill (or `bun <plugin>/skills/sync/script/sync.ts --apply`) to add the managed .gitignore rule.');
 }
 
 async function runCheckEnv(): Promise<void> {

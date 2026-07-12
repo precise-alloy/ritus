@@ -15,7 +15,7 @@ can prove correctness with evidence at `file:line`.
   context you are not independent; a fresh review context is required. (The orchestrator guarantees this by spawning
   pr-review fresh; this is the safety net when pr-review is invoked directly.)
 - Adversarial mindset; **never apply fixes or modify source files**.
-- Never create or modify environment files (.env, .ritus/.env.local) - report missing setup to the user.
+- Never create or modify environment files (.env, .env.local, .env.*, .ritus/.env.local) - only the committed .ritus/.env.example scaffold is allowed; report missing setup to the user.
 - Use `git fetch origin` and `origin/<branch>` refs - never mutate local branches.
 - Default to "Request changes" - the burden of proof is on the code, not the reviewer.
 - **When dispatched you cannot reach the user.** Your inputs (review mode, requirement source, base branch) come from
