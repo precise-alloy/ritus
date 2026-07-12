@@ -14,6 +14,6 @@ not raise them as findings; at most note once: "linter not configured / N lint e
 | `test`        | Missing, weak, or misplaced tests for changed logic                      | Blocking if critical logic, else Recommended |
 | `convention`  | Naming, structure, project idioms, maintainability / design smells, doc / traceability staleness       | Optional |
 
-Disposition drives the verdict: any `Blocking` finding → "Request changes". `Recommended` / `Optional` findings do
+Disposition drives the verdict: any `Blocking` finding → "Request Changes". `Recommended` / `Optional` findings do
 not block on their own. Severity overrides disposition: a `Critical/Bug` or `High` severity finding forces "Request
 changes" regardless of its type's default disposition - a severe issue never gets a non-blocking escape hatch.
