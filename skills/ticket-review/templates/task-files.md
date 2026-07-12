@@ -51,10 +51,10 @@ none | Add a new <resource> | Add a new endpoint | ...
 ## CONSTRAINTS
 
 <!-- Invariants that must hold, copied verbatim - project-wide rules relevant to this task plus task-specific ones.
-     State as positive "must" rules; the executor treats each line as a hard requirement. Use "none" if none apply. -->
+     Write as explicit requirements ("must" / "must not"); the executor treats each line as a hard requirement. Use "none" if none apply. -->
 
-- <e.g. Render user input as plain text - never via an HTML-injection sink>
-- <e.g. Public API responses stay backward-compatible - additive fields only>
+- <e.g. Must render user input as plain text (must not use an HTML-injection sink)>
+- <e.g. Public API responses must stay backward-compatible - additive fields only>
 
 ## CONTEXT
 
