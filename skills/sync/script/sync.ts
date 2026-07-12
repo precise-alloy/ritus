@@ -65,7 +65,7 @@ function missingGitignoreEntries(content: string): string[] {
   return GITIGNORE_ENTRIES.filter((e) => !lines.has(e));
 }
 
-function ensureGitignore(root: string): "created" | "appended" | "present" {
+function ensureGitignore(root: string): "created" | "appended" | "updated" | "present" {
   const gitignorePath = join(root, ".gitignore");
   let content: string;
   try {
@@ -79,9 +79,21 @@ function ensureGitignore(root: string): "created" | "appended" | "present" {
   }
   const missing = missingGitignoreEntries(content);
   if (missing.length === 0) return "present";
+
+  const markerPos = content.indexOf(GITIGNORE_MARKER);
+  if (markerPos !== -1) {
+    // Insert missing entries directly after the marker line so the managed block stays contiguous.
+    const lineEnd = content.indexOf("\n", markerPos);
+    const patched =
+      lineEnd === -1
+        ? `${content}\n${missing.join("\n")}\n`
+        : content.slice(0, lineEnd + 1) + missing.join("\n") + "\n" + content.slice(lineEnd + 1);
+    writeFileSync(gitignorePath, patched);
+    return "updated";
+  }
+
   const separator = content.length === 0 || content.endsWith("\n") ? "" : "\n";
-  const markerPrefix = content.includes(GITIGNORE_MARKER) ? "" : `${GITIGNORE_MARKER}\n`;
-  writeFileSync(gitignorePath, content + separator + markerPrefix + missing.join("\n") + "\n");
+  writeFileSync(gitignorePath, `${content}${separator}${GITIGNORE_MARKER}\n${missing.join("\n")}\n`);
   return "appended";
 }
 
@@ -201,6 +213,8 @@ function apply(): void {
     console.log("Created .gitignore with ritus managed block");
   } else if (gitignoreAction === "appended") {
     console.log("Appended ritus managed block to .gitignore");
+  } else if (gitignoreAction === "updated") {
+    console.log("Updated ritus managed block in .gitignore");
   }
 
   if (created.length === 0 && gitignoreAction === "present") {
