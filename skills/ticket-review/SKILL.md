@@ -71,6 +71,12 @@ open it at the returned path, confirm it's complete against `templates/review-do
 plain-text SIMPLE requirement there's no full document - use the inline analysis. The review document is the overview
 that shapes all subsequent tasks; it must exist and be approved before Step 5 generates any task files.
 
+**Calibration - flag gaps, not polish.** When confirming the document, only flag issues that would cause a flawed
+plan: a missing section, an internal contradiction, a requirement so ambiguous it could be built two different ways,
+or scope large enough to need decomposition. Minor wording, stylistic preferences, and "some sections are less
+detailed than others" are not gaps - treat the document as ready unless there is a serious gap that would mislead task
+generation.
+
 **Hard gate - present the review document (or, for SIMPLE, the inline analysis) to the user and wait for approval before proceeding.**
 
 The user must review and confirm:
@@ -215,8 +221,13 @@ Before presenting task files to the user, run this checklist yourself:
    vague conditions ("works correctly", "handles errors").
 3. **CONTEXT accuracy** - every file path in CONTEXT `files` exists (grep to confirm). No hallucinated paths.
 4. **Cross-task consistency** - do function names, type names, and file paths used across tasks match? A function
-   called `validateToken` in task 1 but `verifyToken` in task 3 is a bug.
-5. **No placeholders** - search for `TBD`, `TODO`, `[NEEDS CLARIFICATION]`, `implement later`. All must be resolved.
+   called `validateToken` in task 1 but `verifyToken` in task 3 is a bug. Check INTERFACES: each task's `Consumes`
+   block matches a sibling task's `Produces` block - same names, parameters, and return types.
+5. **No placeholders** - search for `TBD`, `TODO`, `[NEEDS CLARIFICATION]`, `implement later`, and hand-wave steps
+   like "add appropriate error handling", "handle edge cases", "similar to task N" (without repeating the code), or
+   "write tests for the above" (without the test code). All must be resolved with concrete content.
+6. **Spec-grade sections present** - every STANDARD/EPIC task states CONSTRAINTS (or "none"), INTERFACES
+   `Consumes`/`Produces` (or "none"), and NON-GOALS.
 
 If you find issues, fix them inline. No need to re-review - just fix and move on. If you find a requirement with no
 task, add the task.

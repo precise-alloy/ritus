@@ -6,7 +6,7 @@ argument-hint: Provide either the Azure DevOps/GitHub PR URL or describe the loc
 
 # PR Review
 
-**Core principle:** The burden of proof is on the code, not the reviewer. Default to "Request changes" unless you
+**Core principle:** The burden of proof is on the code, not the reviewer. Default to "Request Changes" unless you
 can prove correctness with evidence at `file:line`.
 
 ## Operating constraints
@@ -17,7 +17,7 @@ can prove correctness with evidence at `file:line`.
 - Adversarial mindset; **never apply fixes or modify source files**.
 - Never create or modify environment files (.env, .env.local, .env.*, .ritus/.env.local) - only the committed .ritus/.env.example scaffold is allowed; report missing setup to the user.
 - Use `git fetch origin` and `origin/<branch>` refs - never mutate local branches.
-- Default to "Request changes" - the burden of proof is on the code, not the reviewer.
+- Default to "Request Changes" - the burden of proof is on the code, not the reviewer.
 - **When dispatched you cannot reach the user.** Your inputs (review mode, requirement source, base branch) come from
   the dispatcher; for anything missing, an access failure, or an unclear requirement, **report BLOCKED** with the
   specific question rather than asking - the dispatcher relays it. (Invoked directly, you may ask the user.)
@@ -297,18 +297,25 @@ Present the review as:
     - The **attack vector** (how you tried to break it)
     - The **evidence** (file:line citation and reproduction scenario)
     - The **impact** (what goes wrong if this defect ships)
-5. **Issues Table**: Categorized by severity:
+5. **Issues Table**: tag each finding with a **severity** and one primary **`type`** (`type` per
+   `templates/finding-types.md`). Severity:
     - **Critical/Bug**: Will cause runtime errors, data loss, or security breach.
     - **High**: Doesn't meet spec requirements, risks data corruption, or has no test coverage for critical logic.
     - **Medium**: Potential issues under specific conditions that should be clarified or defended.
     - **Low**: Code quality, minor improvements, defensive hardening.
     - **Info**: Observations, compiler warnings, style.
+    - **`type`** (one primary per finding): `logic`, `security`, `requirement`, `test`, `convention` - see
+      `templates/finding-types.md` for definitions and each type's default disposition. Lint/format issues are not
+      findings; they belong to the linter/CI.
 6. **Acceptance Criteria Checklist**: Every criterion marked ✅ or ❌ with file:line proof.
 7. **Architectural Decisions**: If the review reveals design choices that should be recorded (new patterns introduced,
    significant tradeoffs made, constraints discovered), flag them for `docs/DECISIONS.md`.
-8. **Verdict**: Approve / Request changes / Needs clarification.
+8. **Verdict**: Approve / Request Changes / Needs Clarification. Any finding whose `type` carries a **Blocking**
+   disposition (per `templates/finding-types.md`) forces "Request Changes"; `Recommended` / `Optional` findings do
+   not block on their own - except a `Critical/Bug` or `High` severity finding, which forces "Request Changes"
+   regardless of its type disposition.
 
-> **Verdict bias**: Default to "Request changes" unless you can prove correctness for all critical paths. The burden of
+> **Verdict bias**: Default to "Request Changes" unless you can prove correctness for all critical paths. The burden of
 > proof is on the code, not the reviewer.
 
 ### 2.7 Offer Fixes and Unit Tests
@@ -348,7 +355,9 @@ After presenting the review:
 
 ## Handoff
 
-- **Report:** your verdict (Approve / Request Changes) with findings, each cited at `file:line`.
+- **Report:** your verdict (Approve / Request Changes / Needs Clarification) with findings, each cited at `file:line` and tagged with its
+  **severity** and **`type`** (`logic | security | requirement | test | convention`, per `templates/finding-types.md`) -
+  so the fix cycle gets a structured, per-finding payload.
 - **TODO update:** Approve → none (the plan continues to `invoke wrap-up`). Request Changes →
   `Fix - dispatch execute-task subagent`, then `Verify - dispatch verify-task subagent`, then
   `Re-review - dispatch pr-review subagent`.
