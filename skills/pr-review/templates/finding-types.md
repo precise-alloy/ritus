@@ -16,4 +16,4 @@ not raise them as findings; at most note once: "linter not configured / N lint e
 
 Disposition drives the verdict: any `Blocking` finding → "Request Changes". `Recommended` / `Optional` findings do
 not block on their own. Severity overrides disposition: a `Critical/Bug` or `High` severity finding forces "Request
-changes" regardless of its type's default disposition - a severe issue never gets a non-blocking escape hatch.
+Changes" regardless of its type's default disposition - a severe issue never gets a non-blocking escape hatch.
