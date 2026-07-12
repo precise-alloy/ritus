@@ -310,7 +310,7 @@ Present the review as:
 6. **Acceptance Criteria Checklist**: Every criterion marked ✅ or ❌ with file:line proof.
 7. **Architectural Decisions**: If the review reveals design choices that should be recorded (new patterns introduced,
    significant tradeoffs made, constraints discovered), flag them for `docs/DECISIONS.md`.
-8. **Verdict**: Approve / Request Changes / Needs clarification. Any finding whose `type` carries a **Blocking**
+8. **Verdict**: Approve / Request Changes / Needs Clarification. Any finding whose `type` carries a **Blocking**
    disposition (per `templates/finding-types.md`) forces "Request Changes"; `Recommended` / `Optional` findings do
    not block on their own - except a `Critical/Bug` or `High` severity finding, which forces "Request Changes"
    regardless of its type disposition.
