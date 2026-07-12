@@ -173,6 +173,8 @@ To generate a tailored `.ritus/.env.example` from the project's `team.yml` provi
 bun run "<plugin-root>/scripts/remote-api.ts" generate-env > .ritus/.env.example
 ```
 
+Run the `/sync` skill first (or `mkdir -p .ritus`) so the `.ritus/` directory exists before redirecting.
+
 Before fetching remote data, always run the sanctioned env check via Bun. Do not use `Test-Path`, `Get-Content`, `cat .ritus/.env.local`, or any other ad-hoc check.
 
 ```bash
@@ -185,7 +187,7 @@ Interpret the result:
 - Exit 1 with `envLocalExists: false` - report that `.ritus/.env.local` is missing. Ask the user to copy `.ritus/.env.example` to `.ritus/.env.local` and fill in the values. Do NOT create the file yourself.
 - Exit 1 with no providers configured - tell the user which keys are missing and ask them to fill those values, then re-run the skill.
 
-`check-env` also warns when `.ritus/.env.local` exists but is not git-ignored, so credentials stay out of commits. The `sync` skill ensures the `.ritus/` ignore entry is present in the project `.gitignore`.
+`check-env` also warns when `.ritus/.env.local` exists but is not git-ignored, so credentials stay out of commits. The `sync` skill maintains a managed `.gitignore` block that ignores `.ritus/.env.local` and `.ritus/attachments/`.
 
 Authentication or authorization failures (`401`, `403`, invalid credentials, PAT expired/revoked, permission-style `404`) are hard stops for remote analysis or review. Ask the user to provide valid access for the failing system before continuing.
 

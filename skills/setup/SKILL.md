@@ -362,7 +362,7 @@ platform offers:
 ## Pre-output - scaffold project files
 
 Before writing any profile data, **invoke the `sync` skill** to create all project files. This is a **blocking
-step** - do not skip it. The sync skill creates all template files (profiles, docs, scripts, .ritus/.env.example).
+step** - do not skip it. The sync skill creates all template files (profiles, docs, .ritus/.env.example).
 Existing user-edited files are never overwritten.
 
 ---

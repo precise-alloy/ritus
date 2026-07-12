@@ -579,7 +579,7 @@ async function runCheckEnv(): Promise<void> {
       }
     }
 
-    console.error(`Tip: run \`${getScriptCmd()} generate-env\` to generate a complete .ritus/.env.local template.`);
+    console.error(`Tip: ensure .ritus/ exists first (run the /sync skill or \`mkdir -p .ritus\`), then \`${getScriptCmd()} generate-env > .ritus/.env.local\`.`);
     process.exit(1);
   }
 

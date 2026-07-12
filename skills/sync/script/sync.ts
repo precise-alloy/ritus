@@ -57,7 +57,13 @@ const STRATEGIES: Record<Strategy, string[]> = {
 };
 
 const GITIGNORE_MARKER = "# --- ritus (managed) ---";
-const GITIGNORE_BLOCK = `${GITIGNORE_MARKER}\n.ritus/.env.local\n.ritus/attachments/\n`;
+const GITIGNORE_ENTRIES = [".ritus/.env.local", ".ritus/attachments/"];
+const GITIGNORE_BLOCK = `${GITIGNORE_MARKER}\n${GITIGNORE_ENTRIES.join("\n")}\n`;
+
+function missingGitignoreEntries(content: string): string[] {
+  const lines = new Set(content.split(/\r?\n/).map((l) => l.trim()));
+  return GITIGNORE_ENTRIES.filter((e) => !lines.has(e));
+}
 
 function ensureGitignore(root: string): "created" | "appended" | "present" {
   const gitignorePath = join(root, ".gitignore");
@@ -71,9 +77,11 @@ function ensureGitignore(root: string): "created" | "appended" | "present" {
     }
     throw err;
   }
-  if (content.includes(GITIGNORE_MARKER)) return "present";
+  const missing = missingGitignoreEntries(content);
+  if (missing.length === 0) return "present";
   const separator = content.length === 0 || content.endsWith("\n") ? "" : "\n";
-  writeFileSync(gitignorePath, content + separator + GITIGNORE_BLOCK);
+  const markerPrefix = content.includes(GITIGNORE_MARKER) ? "" : `${GITIGNORE_MARKER}\n`;
+  writeFileSync(gitignorePath, content + separator + markerPrefix + missing.join("\n") + "\n");
   return "appended";
 }
 
@@ -127,9 +135,13 @@ function check(): void {
   }
 
   const gitignorePath = join(projectRoot, ".gitignore");
-  const gitignoreNeedsBlock =
-    !existsSync(gitignorePath) ||
-    !readFileSync(gitignorePath, "utf-8").includes(GITIGNORE_MARKER);
+  let gitignoreNeedsBlock: boolean;
+  try {
+    gitignoreNeedsBlock = missingGitignoreEntries(readFileSync(gitignorePath, "utf-8")).length > 0;
+  } catch (err) {
+    if ((err as { code?: string }).code === "ENOENT") gitignoreNeedsBlock = true;
+    else throw err;
+  }
 
   const staleScriptsDir = join(projectRoot, ".ritus", "scripts");
   if (existsSync(staleScriptsDir)) {
