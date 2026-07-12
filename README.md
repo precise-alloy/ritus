@@ -237,7 +237,7 @@ marketplace.json                 ← Copilot marketplace manifest
     marketplace.json       ← Claude marketplace manifest
     plugin.json   ← Claude Code plugin manifest
 README.md                        ← this file
-.ritus/.env.example              ← remote API credentials template
+templates/.ritus/.env.example        ← remote API credentials template (scaffolded into target project as .ritus/.env.example)
 skills/
   start-ritus/SKILL.md     ← entry-point meta-skill: golden rules, dispatch instructions
   brainstorm/SKILL.md
