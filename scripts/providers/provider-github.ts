@@ -44,7 +44,7 @@ function getGitHubToken(env: EnvMapping): string {
       const ghToken = process.env.GH_TOKEN?.trim();
       if (ghToken) return ghToken;
     }
-    throw new Error(`Missing ${tokenEnvVar}. Populate it in .env.local before using this helper.`);
+    throw new Error(`Missing ${tokenEnvVar}. Populate it in .ritus/.env.local before using this helper.`);
   }
   return token;
 }
@@ -75,7 +75,7 @@ function resolveGitHubRef(target: string, env: EnvMapping, pathSegment: 'pull' |
   const repoUrl = process.env[repoUrlEnvVar]?.trim();
   if (!repoUrl) {
     throw new Error(
-      `GitHub ${pathSegment === 'pull' ? 'PR' : 'issue'} ref "#${number}" requires ${repoUrlEnvVar} in .env.local. ` +
+      `GitHub ${pathSegment === 'pull' ? 'PR' : 'issue'} ref "#${number}" requires ${repoUrlEnvVar} in .ritus/.env.local. ` +
         'Alternatively, pass the full URL.',
     );
   }
@@ -358,7 +358,7 @@ export const githubProvider: Provider = {
     const issueUrl = process.env.EXAMPLE_GITHUB_ISSUE_URL || 'https://github.com/owner/repo/issues/456';
     return [
       `${cmd} github pr ${prUrl}`,
-      `${cmd} github pr '#18'  # requires GITHUB_REPO_URL=https://github.com/owner/repo in .env.local`,
+      `${cmd} github pr '#18'  # requires GITHUB_REPO_URL=https://github.com/owner/repo in .ritus/.env.local`,
       `${cmd} github comments ${prUrl}`,
       `${cmd} github comments ${prUrl} 20`,
       `${cmd} github comments '#18'  # short ref`,

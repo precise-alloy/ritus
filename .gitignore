@@ -1,0 +1,3 @@
+# --- ritus (managed) ---
+/.ritus/.env.local
+/.ritus/attachments/

@@ -67,7 +67,7 @@ function parseAzureDevOpsPrUrl(prUrl: string, envMapping?: EnvMapping): AzureDev
     const project = process.env[projectEnvVar]?.trim();
     if (!org || !project) {
       throw new Error(
-        `Bare PR ID "${prUrl}" requires ${orgEnvVar} and ${projectEnvVar} in .env.local. ` +
+        `Bare PR ID "${prUrl}" requires ${orgEnvVar} and ${projectEnvVar} in .ritus/.env.local. ` +
           'Alternatively, pass the full PR URL.',
       );
     }
@@ -137,7 +137,7 @@ function parseAdoWorkItemUrl(urlOrId: string, envMapping?: EnvMapping): AdoWorkI
     const project = process.env[projectEnvVar]?.trim();
     if (!org || !project) {
       throw new Error(
-        `Bare work item ID "${urlOrId}" requires ${orgEnvVar} and ${projectEnvVar} in .env.local. ` +
+        `Bare work item ID "${urlOrId}" requires ${orgEnvVar} and ${projectEnvVar} in .ritus/.env.local. ` +
           'Alternatively, pass the full work item URL.',
       );
     }
