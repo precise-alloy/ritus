@@ -1,0 +1,19 @@
+{
+  "name": "ritus-ui",
+  "description": "Opt-in companion plugin for ritus adding frontend/UI capabilities - browser-driven visual verification via a bundled Playwright MCP",
+  "version": "0.1.0",
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "author": {
+    "name": "eshn"
+  },
+  "keywords": [
+    "AI",
+    "workflow",
+    "frontend",
+    "UI",
+    "visual verification",
+    "playwright",
+    "browser"
+  ]
+}

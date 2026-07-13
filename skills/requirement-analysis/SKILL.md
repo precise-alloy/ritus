@@ -132,6 +132,11 @@ If the requirements involve UI updates (new components, layout, styling, fronten
 
 1. Inspect frontend/UI paths from `docs/PROJECT_CONTEXT.md` `## Source layout`.
 2. Skip generated artifact paths listed there.
+3. Give the affected task an explicit `ui-preview` verification: a STEPS entry that runs `ui-preview` (see
+   `shared/ritus-ui.md`) to drive the change at the target breakpoints, and a DONE WHEN checklist item - "Renders and
+   behaves correctly at the target breakpoints (375px, 1280px), verified via `ui-preview` (or the definition-of-done
+   human browser gate when `ritus-ui` is unavailable)". execute-task and verify-task act on these when `ritus-ui` is
+   available.
 
 ### 3.4 Analyze attached images
 

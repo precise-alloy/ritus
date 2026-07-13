@@ -15,6 +15,9 @@
 - [ ] Compiles without errors
 - [ ] No files outside stated scope modified
 
+<!-- Frontend/UI change - keep this item; drop it otherwise: -->
+- [ ] Renders and behaves correctly at the target breakpoints (375px, 1280px), verified via `ui-preview` if it can be invoked.
+
 ## VERIFY
 
 Verified fresh by a verify-task subagent.
@@ -94,6 +97,10 @@ none | Add a new <resource> | Add a new endpoint | ...
 1. grep/find to confirm paths before editing
 2. ...
 
+<!-- Frontend/UI change - add an explicit verification step, for example:
+     N. Run `ui-preview` (see `shared/ritus-ui.md`) to drive the change at the target breakpoints and confirm it
+     renders and behaves as the visual DONE WHEN item below states. -->
+
 ## DONE WHEN
 
 <!-- Each command-checkable condition is re-run by verify-task against the expected result stated in VERIFY. -->
@@ -110,6 +117,9 @@ none | Add a new <resource> | Add a new endpoint | ...
 - [ ] If interface changed: skill file for affected module updated or rewritten
 - [ ] Standards validated: all applicable gates from `definition-of-done` skill checked
 - [ ] DOC UPDATE completed
+
+<!-- Frontend/UI change - keep this item; drop it otherwise: -->
+- [ ] Renders and behaves correctly at the target breakpoints (375px, 1280px), verified via `ui-preview` if it can be invoked.
 
 <!-- If QA mode is task: -->
 

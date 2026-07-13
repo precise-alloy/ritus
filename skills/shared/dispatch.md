@@ -116,6 +116,12 @@ re-dispatch it one step up the ladder; if it is already `most capable`, stop and
 | Worker skill | Model capability | Effort | Tools | Key constraints |
 |----------|------------------|--------|-------|-----------------|
 | `execute-task` | per triage | per triage | all | Implement STEPS exactly; do not redesign |
-| `verify-task` | cheap | medium | Read, Grep, Glob, Bash | Read-only except build/test/lint; never fix; never trust implementer claims |
-| `pr-review` | standard | high | Read, Grep, Glob, Bash, `web fetch` | Adversarial; never apply fixes; use `origin/` refs; default to "Request changes" |
+| `verify-task` | cheap | medium | Read, Grep, Glob, Bash; Playwright MCP browser tools when `ritus-ui` enabled | Read-only except build/test/lint; never fix; never trust implementer claims |
+| `pr-review` | standard | high | Read, Grep, Glob, Bash, `web fetch`; Playwright MCP browser tools when `ritus-ui` enabled | Adversarial; never apply fixes; use `origin/` refs; default to "Request changes" |
 | `requirement-analysis` | per triage | medium | Read, Grep, Glob, Bash, Write (review doc / exploration / DECISIONS only) | Read-only otherwise; non-interactive (defer questions to `[NEEDS CLARIFICATION]`); spawned by ticket-review |
+
+The Playwright MCP browser tools are granted to `verify-task` and `pr-review` only when the optional `ritus-ui`
+plugin is enabled - enablement is the presence of its skills and Playwright MCP tools in the session (see
+`ritus-ui.md` in `shared/`). Disabled sessions keep the narrow tool set (`verify-task`: `Read, Grep, Glob, Bash`;
+`pr-review`: those plus `web fetch`). Each worker keeps its existing constraints - `verify-task` stays read-only except
+build/test/lint, and `pr-review` reports findings and defaults to "Request changes".

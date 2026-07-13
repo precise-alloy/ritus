@@ -38,7 +38,7 @@ TODO:
 
 ```markdown
 - [ ] Load context and gather input
-- [ ] Adversarial review (Phases 1-5)
+- [ ] Adversarial review (Phases 1-6)
 - [ ] Report findings and state verdict
 - [ ] Hand off per `## Handoff` (Approve → none; Request Changes → main thread runs the fix cycle), then stop
 ```
@@ -284,6 +284,17 @@ For every changed method or code path, ask:
 - List every acceptance criterion and mark it ✅ proven-covered or ❌ not-covered/partially-covered.
 - Flag any behavior that is implemented but has **no corresponding test** - treat untested logic as suspect.
 - Identify any ticket requirement that is entirely missing from the diff.
+
+#### Phase 6 - Adversarial Visual Pass (Frontend/UI, when `ritus-ui` enabled)
+
+For Frontend/UI changes, load `ui-preview` (a skill from the optional `ritus-ui` plugin - invoke it by name; see
+`ritus-ui.md` in the `shared` skill directory for availability) and direct it adversarially - driving the changed
+routes across their loading, error, empty, and key interaction states to hunt for defects, capturing screenshot
+evidence and keeping the burden of proof on the code. Fold its visual defects into
+the findings and the verdict, each cited at `file:line` with its screenshot path. When `ritus-ui` is enabled and its
+browser capability is available, run this pass; when `ritus-ui` is disabled or the browser capability is unavailable,
+skip it with a warning and continue the review - mirroring the build/test/lint skip pattern - so the verdict rests on
+the remaining phases.
 
 ### 2.6 Summarize Findings
 

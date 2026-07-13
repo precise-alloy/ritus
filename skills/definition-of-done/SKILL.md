@@ -61,7 +61,12 @@ checklists are additive - check all that apply to the current task.
 - [ ] Form inputs have associated labels (no unlabeled inputs)
 - [ ] Loading, error, and empty states handled (not just the happy path)
 - [ ] No hardcoded pixel values where relative units are expected (rem/em/% vs px)
-- [ ] Browser verification required - add to DONE WHEN: `Verified in browser at 375px and 1280px (human)`
+- [ ] Browser verification at 375px and 1280px - satisfied automatically by `ui-preview` when `ritus-ui` is enabled
+  and its browser capability is available; otherwise add to DONE WHEN: `Verified in browser at 375px and 1280px
+  (human)` as the fallback.
+
+When `ritus-ui` is enabled, `a11y-audit` will later automate the accessibility-attribute and form-label checks above
+(wired separately); until then they remain human checks.
 
 ### Safety override changes (auth, billing, migrations, tenant isolation, infra config, shared contracts)
 

@@ -1,0 +1,13 @@
+# .ritus/ritus-ui.config.yml - how ritus-ui renders your app for the visual skills.
+# Copy this file to `.ritus/ritus-ui.config.yml` in your project root and fill in the values.
+
+# Command that starts your local dev server.
+dev_server: "npm run dev"
+
+# URL where the dev server serves the app.
+base_url: "http://localhost:3000"
+
+# Viewport widths (px) to render and verify at.
+breakpoints:
+  - 375 # mobile
+  - 1280 # desktop

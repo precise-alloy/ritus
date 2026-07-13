@@ -53,6 +53,10 @@ TODO:
 - [ ] If PATTERN set - read `docs/ARCHITECTURE.md` for the relevant checklist.
 - [ ] Implement STEPS - exactly as written. If a STEP is unclear or provably wrong: report BLOCKED.
 - [ ] Run build + tests - smoke test + unit tests per DONE WHEN.
+- [ ] Visual self-check - when your change touches Frontend/UI paths (per `docs/PROJECT_CONTEXT.md` `## Source
+  layout`), invoke `ui-preview` (see `ritus-ui.md` in `shared/`) to drive the change at the target breakpoints, check
+  the console, and confirm it renders and behaves as the task intends - its DONE WHEN and the `definition-of-done` UI
+  checklist; skip with a warning when `ritus-ui` is unavailable, mirroring the build/test skip.
 - [ ] Update docs - apply the DOC UPDATE section when the task has one, and append any finding worth carrying forward
   (reusable pattern, gotcha, decision) to `docs/tasks/{branch-slug}/exploration.md` (flagged format from
   `skills/ticket-review/templates/exploration.md`; create it if needed). A focused SIMPLE change with neither leaves

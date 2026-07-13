@@ -14,16 +14,17 @@ against the matrix before reporting done.
 
 ## Test type matrix
 
-| Change type                                | Unit                  | Integration       | Contract   | Migration  |
-|--------------------------------------------|-----------------------|-------------------|------------|------------|
-| New service method                         | required              | -                 | -          | -          |
-| New API endpoint                           | auth + validation     | happy path        | -          | -          |
-| New background worker / job                | dispatch logic        | queue behavior    | -          | -          |
-| New DB table / column                      | -                     | -                 | -          | required   |
-| Shared type / contract change              | all callers compile   | -                 | required   | -          |
-| Bug fix                                    | regression required   | -                 | -          | -          |
-| Auth / permission change                   | required              | required          | required   | -          |
-| External integration (API client, webhook) | required              | mocked external   | -          | -          |
+| Change type                                | Unit                  | Integration       | Contract   | Migration  | E2E        |
+|--------------------------------------------|-----------------------|-------------------|------------|------------|------------|
+| New service method                         | required              | -                 | -          | -          | -          |
+| New API endpoint                           | auth + validation     | happy path        | -          | -          | -          |
+| New background worker / job                | dispatch logic        | queue behavior    | -          | -          | -          |
+| New DB table / column                      | -                     | -                 | -          | required   | -          |
+| Shared type / contract change              | all callers compile   | -                 | required   | -          | -          |
+| Bug fix                                    | regression required   | -                 | -          | -          | -          |
+| Auth / permission change                   | required              | required          | required   | -          | -          |
+| External integration (API client, webhook) | required              | mocked external   | -          | -          | -          |
+| New user-facing UI flow / user journey     | -                     | -                 | -          | -          | ritus-ui   |
 
 ## Unit test rules
 
@@ -52,6 +53,16 @@ against the matrix before reporting done.
 - Bug fixes must include a test that would have caught the bug before the fix.
 - Skipping a required test must be explained in DONE WHEN with explicit justification.
 
+## E2E test rules
+
+- The end-to-end requirement for a new user-facing UI flow or user journey is gated on `ritus-ui`.
+- When `ritus-ui` is enabled and its Playwright capability is available, a new user-facing UI flow gets an
+  end-to-end test that drives the flow through the browser and asserts the observable outcome; `e2e-generator`
+  generates and runs it as a committed `*.spec.ts` at the project's e2e location (see Test location below).
+- When `ritus-ui` is disabled or the capability is unavailable, the e2e step is skipped with a warning and core
+  testing-policy stays exactly as before, mirroring the build/test/lint skip pattern; hand-authoring the spec then
+  remains optional.
+
 ## Test location
 
 | Type        | Location                                                          |
@@ -59,6 +70,7 @@ against the matrix before reporting done.
 | Unit        | Co-located `<file>.test.<ext>` or `__tests__/` adjacent to source |
 | Integration | `tests/integration/<module>/`                                     |
 | Migration   | `tests/migrations/`                                               |
+| E2E         | `*.spec.ts` at the project's e2e location (e.g. `tests/e2e/`)     |
 
 ## Project-specific test conventions
 

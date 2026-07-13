@@ -103,9 +103,18 @@ working tree, cheapest-first, to keep token cost bounded:
      stated expected output
 
    If any command is not configured in `docs/PROJECT_CONTEXT.md` (empty, placeholder, or `N/A`), skip it with a
-   warning in the output - do not hard-fail on missing build/test/lint configuration.
+   warning in the output - do not hard-fail on missing build/test/lint configuration, or on an unavailable
+   browser/MCP capability for the visual check in step 6.
 
-6. **QA file check:** if QA mode is active in `docs/PROJECT_CONTEXT.md`, verify QA file per
+6. **Visual verification:** when the change touches Frontend/UI paths (per `docs/PROJECT_CONTEXT.md` `## Source
+   layout`), invoke `ui-preview` (see `ritus-ui.md` in `shared/`) to render the route at the configured breakpoints,
+   check the console, and assess it against any visual DONE WHEN and the `definition-of-done` UI checklist - treating
+   a per-breakpoint mismatch or a console error as a failing condition. This is the automated path behind the
+   `definition-of-done` browser gate. When `ritus-ui` is disabled or its browser capability is unavailable, skip it
+   with a warning - mirroring the build/test/lint skip above - and fall back to the human browser verification the
+   gate records.
+
+7. **QA file check:** if QA mode is active in `docs/PROJECT_CONTEXT.md`, verify QA file per
    `qa-files.md` template rules.
 
 ## Phase 2: Adversarial Review (per-task)

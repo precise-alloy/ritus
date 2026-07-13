@@ -13,6 +13,12 @@
       "description": "AI-assisted development workflow - triage, task generation, execution, verification, and adversarial code review",
       "version": "2.0.7",
       "source": "./"
+    },
+    {
+      "name": "ritus-ui",
+      "description": "Opt-in companion plugin for ritus adding frontend/UI capabilities - browser-driven visual verification via a bundled Playwright MCP",
+      "version": "0.1.0",
+      "source": "./ritus-ui"
     }
   ]
 }
