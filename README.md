@@ -8,7 +8,7 @@
 
 </div>
 
-Pronounced: *REE-tus* `/ˈriː.tus/` - from Latin, meaning a prescribed rite or procedure.
+Ritus ([/ˈriː.tus/](https://ipa-reader.com/?text=ri%CB%90.tus)), pronounced: *REE-tus*  - from Latin, meaning a prescribed rite or procedure.
 
 A disciplined workflow for reliable AI-assisted development. Ritus uses skill-based architecture, on-demand loading,
 TODO-driven control flow, chain-based routing, and independent verification to work across Claude Code, GitHub Copilot,
