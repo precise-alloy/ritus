@@ -4,6 +4,28 @@ How the **main thread** turns a *driving TODO* into work. Load this before walki
 never load it - they stay pure capabilities and never dispatch, so this capability stays out of
 dispatched-subagent contexts.
 
+## Why dispatch, and when a change runs inline
+
+Dispatch protects two things - **independent verification** and a **lean orchestrator context**. A fresh subagent
+that did not author a change reviews it with clear eyes and catches what the author is blind to; keeping that work in
+subagents also keeps the main thread lean for the rest of the run. Implementation size is a separate matter - a
+small dispatched change earns the same independent verification as a large one.
+
+**The execution mode follows triage classification:**
+
+- **TRIVIAL** - the main thread applies the fully-specified single-file edit inline, then self-verifies with the
+  build/test/lint commands.
+- **SIMPLE and larger** - the main thread dispatches `execute-task` to implement and `verify-task` to verify, each in
+  a fresh subagent. Detailed STEPS (exact `from:`/`to:` blocks, exact commands, expected output) make the
+  implementation faster and more faithful and keep the **independence** reason for dispatch fully intact: a task whose
+  STEPS already carry the exact code is still dispatched, and the executor fits that plan to the current file (confirm
+  each `from:` still matches, apply the `to:`, run the commands, confirm the expected output).
+
+**Dispatched work keeps the author and the verifier in separate contexts:** for SIMPLE and larger changes,
+verification runs in a fresh `verify-task` (or, at ticket scope, `pr-review`) that did not author the change. A
+TRIVIAL fix is the deliberate exception - its blast radius is small enough to self-verify inline with the
+build/test/lint commands.
+
 ## The `## Handoff` convention
 
 Every workflow skill ends with a `## Handoff`: its **Report** and, for skills the main
@@ -53,6 +75,7 @@ bottom; for each **dispatch `<skill>` subagent** item:
 | Subagent returns | Main thread inserts next, right after the current item (idempotent) |
 |---|---|
 | `execute-task` (implemented) | `Verify - dispatch verify-task subagent` for that task |
+| `execute-task` → BLOCKED (a STEP is unclear or provably wrong) | apply a targeted correction to that task's STEPS that stays within the approved review doc, then re-dispatch `execute-task`; escalate to the user when the correction would change design or scope, or when the circuit breaker trips |
 | `verify-task` → PASS | nothing - the plan's next item runs |
 | `verify-task` → FAIL | `Fix - dispatch execute-task subagent`, then `Re-verify - dispatch verify-task subagent` |
 | `pr-review` → Approve | nothing - continue to `invoke wrap-up` |
@@ -65,8 +88,8 @@ from those findings (SIMPLE template in `skills/ticket-review/templates/task-fil
 finding + compile + scope) for the execute-task subagent.
 
 **Circuit breaker (cap the fix loop at 3 attempts):** if the same finding recurs across 2 consecutive fix cycles, or 3
-fix/re-verify cycles pass without reaching a clean state, stop and escalate to the user - the issue needs a design
-discussion, not another fix attempt.
+fix cycles (fix/re-verify or plan-fix/re-dispatch) pass without reaching a clean state, stop and escalate to the
+user - the issue needs a design discussion, not another fix attempt.
 
 ## Subagent configs (per-worker run config)
 
