@@ -115,12 +115,12 @@ re-dispatch it one step up the ladder; if it is already `most capable`, stop and
 
 **Routing source.** `execute-task` and `requirement-analysis` take their capability/effort from the routing table's
 **Implementation (per triage)** section; `verify-task` and `pr-review` from its
-**Review & verification (per worker)** section (the balanced defaults appear in the table cells below when a
-project has not set them). Main-thread inline skills are not routed - they run on the user-selected session model.
+**Review & verification (per worker)** section (when a project has not set them, each reviewer row's Key
+constraints give the balanced default). Main-thread inline skills are not routed - they run on the user-selected session model.
 
 | Worker skill | Model capability | Effort | Tools | Key constraints |
 |----------|------------------|--------|-------|-----------------|
 | `execute-task` | per triage | per triage | all | Implement STEPS exactly; do not redesign |
 | `verify-task` | per routing (review) | per routing (review) | Read, Grep, Glob, Bash | Defaults cheap/medium if unset; read-only except build/test/lint; never fix; never trust implementer claims |
 | `pr-review` | per routing (review) | per routing (review) | Read, Grep, Glob, Bash, `web fetch` | Defaults standard/high if unset; adversarial; never apply fixes; use `origin/` refs; default to "Request changes" |
-| `requirement-analysis` | per triage | medium | Read, Grep, Glob, Bash, Write (review doc / exploration / DECISIONS only) | Read-only otherwise; non-interactive (defer questions to `[NEEDS CLARIFICATION]`); spawned by ticket-review |
+| `requirement-analysis` | per triage | per triage | Read, Grep, Glob, Bash, Write (review doc / exploration / DECISIONS only) | Read-only otherwise; non-interactive (defer questions to `[NEEDS CLARIFICATION]`); spawned by ticket-review |
