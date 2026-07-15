@@ -117,6 +117,11 @@ Each value names a **model capability**, not a specific model - map it to the be
 **cheap** (fastest/lowest-cost; mechanical single-file work + verification), **standard** (default; multi-file
 integration and judgment), **most capable** (highest-capability; architecture and complex reasoning).
 
+The table has two sections per profile: **Implementation (per triage)** drives `execute-task` and
+`requirement-analysis` by triage level; **Review & verification (per worker)** drives the fixed-role `verify-task`
+and `pr-review`. Main-thread inline skills run on the user-selected session model - this table governs dispatched
+subagents only.
+
 {{MODEL_ROUTING}}
 
 ## Module map

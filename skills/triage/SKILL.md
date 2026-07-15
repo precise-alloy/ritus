@@ -79,8 +79,10 @@ Standards tokens are in addition to the budget above - load applicable standard 
 After classification, state:
 
 1. **Classification level** - TRIVIAL / SIMPLE / STANDARD / EPIC
-2. **Recommended model and effort** - read the model routing table from `docs/PROJECT_CONTEXT.md` `## Model routing` and
-   include the recommended model and effort level for this classification. When dispatching subagents, use these values.
+2. **Recommended model and effort** - read the **Implementation (per triage)** section of the model routing table in
+   `docs/PROJECT_CONTEXT.md` `## Model routing` and include the recommended model and effort for this classification.
+   These drive the per-triage workers (`execute-task`, `requirement-analysis`); the fixed-role reviewers
+   (`verify-task`, `pr-review`) read the table's **Review & verification (per worker)** section instead.
 
 ## Handoff
 

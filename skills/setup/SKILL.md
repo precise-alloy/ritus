@@ -151,8 +151,8 @@ Ask:
 Options:
 
 - `cost-first` - prefer the cheapest capable model, lowest cost
-- `balanced` - cheap model for simple tasks, standard model for complex (recommended)
-- `quality-first` - standard model for most work (cheap only for trivial edits), most capable for architecture decisions
+- `balanced` - cheap for simple tasks, most capable for complex/cross-module work (recommended)
+- `quality-first` - most capable for complex work, standard for simpler tasks (cheap only for trivial edits); beefiest review
 
 Default if skipped: `balanced`
 
@@ -327,35 +327,65 @@ platform offers:
 - **standard** - default model; multi-file integration, judgment, reviews.
 - **most capable** - highest-capability model; architecture / design decisions and complex reasoning.
 
+Each cost profile has **two sections**. **Implementation (per triage)** drives the workers whose capability scales
+with blast radius - `execute-task` and `requirement-analysis` read it by triage level. **Review & verification
+(per worker)** drives the fixed-role reviewers - `verify-task` and `pr-review` read their own row. Main-thread
+inline skills (triage, ticket-review, brainstorm, debug, wrap-up, comprehension, address-feedback) are not routed
+here - they run on the user-selected session model. The table governs dispatched subagents only.
+
 **cost-first:**
 
-| Triage                  | Model capability | Effort | Notes                                  |
-|-------------------------|------------------|--------|----------------------------------------|
-| TRIVIAL                 | cheap            | low    | Direct edits, single file              |
-| SIMPLE                  | cheap            | medium | 3-section task note                    |
-| STANDARD                | standard         | medium | Cross-module, design decision          |
-| EPIC                    | standard         | high   | Multi-session; cost-capped at standard |
-| Batch validate (pre-PR) | cheap            | low    | Diff + task review                     |
+Implementation (per triage):
+
+| Triage   | Model capability | Effort | Notes                                  |
+|----------|------------------|--------|----------------------------------------|
+| TRIVIAL  | cheap            | low    | Direct edits, single file              |
+| SIMPLE   | cheap            | medium | 3-section task note                    |
+| STANDARD | standard         | medium | Cross-module, design decision          |
+| EPIC     | standard         | high   | Multi-session; cost-capped at standard |
+
+Review & verification (per worker):
+
+| Worker      | Model capability | Effort | Notes                                   |
+|-------------|------------------|--------|-----------------------------------------|
+| verify-task | cheap            | low    | Mechanical; run build/test, quick check |
+| pr-review   | standard         | medium | Adversarial review; judgment floor kept |
 
 **balanced (default):**
 
-| Triage                  | Model capability | Effort | Notes                                                         |
-|-------------------------|------------------|--------|---------------------------------------------------------------|
-| TRIVIAL                 | cheap            | low    | Direct edits, single file                                     |
-| SIMPLE                  | cheap            | medium | 3-section task note                                           |
-| STANDARD                | standard         | high   | Cross-module, design decision                                 |
-| EPIC                    | standard         | high   | Multi-session; escalate to most capable for pure architecture |
-| Batch validate (pre-PR) | cheap            | medium | Diff + task review                                            |
+Implementation (per triage):
+
+| Triage   | Model capability | Effort | Notes                                                         |
+|----------|------------------|--------|---------------------------------------------------------------|
+| TRIVIAL  | cheap            | low    | Direct edits, single file                                     |
+| SIMPLE   | cheap            | medium | 3-section task note                                           |
+| STANDARD | most capable     | high   | Cross-module, design decision                                 |
+| EPIC     | most capable     | high   | Multi-session, architecture-heavy work                        |
+
+Review & verification (per worker):
+
+| Worker      | Model capability | Effort | Notes                            |
+|-------------|------------------|--------|----------------------------------|
+| verify-task | cheap            | medium | Mechanical; run build/test/lint  |
+| pr-review   | standard         | high   | Adversarial ticket-level review  |
 
 **quality-first:**
 
-| Triage                  | Model capability | Effort | Notes                           |
-|-------------------------|------------------|--------|---------------------------------|
-| TRIVIAL                 | cheap            | medium | Direct edits, single file       |
-| SIMPLE                  | standard         | medium | 3-section task note             |
-| STANDARD                | standard         | high   | Cross-module, design decision   |
-| EPIC                    | most capable     | xhigh  | Multi-session, new architecture |
-| Batch validate (pre-PR) | standard         | high   | Diff + task review              |
+Implementation (per triage):
+
+| Triage   | Model capability | Effort | Notes                           |
+|----------|------------------|--------|---------------------------------|
+| TRIVIAL  | cheap            | medium | Direct edits, single file       |
+| SIMPLE   | standard         | medium | 3-section task note             |
+| STANDARD | most capable     | high   | Cross-module, design decision   |
+| EPIC     | most capable     | xhigh  | Multi-session, new architecture |
+
+Review & verification (per worker):
+
+| Worker      | Model capability | Effort | Notes                             |
+|-------------|------------------|--------|-----------------------------------|
+| verify-task | standard         | high   | Beefier verifier; thorough checks |
+| pr-review   | most capable     | xhigh  | Max-intensity adversarial review  |
 
 ---
 
