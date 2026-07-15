@@ -81,8 +81,8 @@ After classification, state:
 1. **Classification level** - TRIVIAL / SIMPLE / STANDARD / EPIC
 2. **Recommended model and effort** - read the **Implementation (per triage)** section of the model routing table in
    `docs/PROJECT_CONTEXT.md` `## Model routing` and include the recommended model and effort for this classification.
-   These drive the per-triage workers (`execute-task`, `requirement-analysis`); the fixed-role reviewers
-   (`verify-task`, `pr-review`) read the table's **Review & verification (per worker)** section instead.
+   This drives `execute-task`; the fixed-role reviewers (`verify-task`, `pr-review`) read the table's
+   **Review & verification (per worker)** section, and `requirement-analysis` is pinned to **most capable**.
 
 ## Handoff
 

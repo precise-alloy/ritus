@@ -327,11 +327,12 @@ platform offers:
 - **standard** - default model; multi-file integration, judgment, reviews.
 - **most capable** - highest-capability model; architecture / design decisions and complex reasoning.
 
-Each cost profile has **two sections**. **Implementation (per triage)** drives the workers whose capability scales
-with blast radius - `execute-task` and `requirement-analysis` read it by triage level. **Review & verification
-(per worker)** drives the fixed-role reviewers - `verify-task` and `pr-review` read their own row. Main-thread
-inline skills (triage, ticket-review, brainstorm, debug, wrap-up, comprehension, address-feedback) are not routed
-here - they run on the user-selected session model. The table governs dispatched subagents only.
+Each cost profile has **two sections**. **Implementation (per triage)** drives `execute-task`, whose capability scales
+with blast radius, by triage level. **Review & verification (per worker)** drives the fixed-role reviewers -
+`verify-task` and `pr-review` read their own row. `requirement-analysis` is not in the table - it is pinned to
+**most capable** (planning is the highest-leverage phase). Main-thread inline skills (triage, ticket-review,
+brainstorm, debug, wrap-up, comprehension, address-feedback) are not routed here - they run on the user-selected
+session model. The table governs dispatched subagents only.
 
 **cost-first:**
 
