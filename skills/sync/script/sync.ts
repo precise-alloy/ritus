@@ -57,7 +57,7 @@ const STRATEGIES: Record<Strategy, string[]> = {
 };
 
 const GITIGNORE_MARKER = "# --- ritus (managed) ---";
-const GITIGNORE_ENTRIES = ["/.ritus/.env.local", "/.ritus/attachments/"];
+const GITIGNORE_ENTRIES = ["/.ritus/.env.local", "/.ritus/attachments/", "/.ritus/.env.example"];
 const GITIGNORE_BLOCK = `${GITIGNORE_MARKER}\n${GITIGNORE_ENTRIES.join("\n")}\n`;
 
 function missingGitignoreEntries(content: string): string[] {
