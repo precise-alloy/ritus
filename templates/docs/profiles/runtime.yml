@@ -6,4 +6,6 @@ schema_version: 2
 
 # Filled by setup
 ai_tools: ""
-model_routing: ""
+# model_routing: "session" = default (no routing; every dispatched subagent uses the session model).
+# Opt into cost routing by pasting a strategy table here instead.
+model_routing: "session"

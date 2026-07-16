@@ -105,19 +105,22 @@ never a vendor model ID. Map it to the best-matching model your platform offers:
 - **standard** - default model; multi-file integration, judgment, requirement analysis, adversarial review.
 - **most capable** - highest-capability model; architecture / design decisions and complex reasoning.
 
-**Model selection rule (select by capability; pin a concrete model at dispatch):** choose the *lowest* capability
-(`cheap → standard → most capable`) that can do the job. At dispatch time, map that capability to the concrete model
-your platform provides and name it explicitly - never let a subagent silently inherit the session's model. Scale the
-reviewer's capability to the diff's size and risk. If a subagent returns BLOCKED for insufficient reasoning power,
-re-dispatch it one step up the ladder; if it is already `most capable`, stop and escalate to the user (see the
-`BLOCKED` row in the outcome table). Tool names below denote capabilities - map them to your platform's equivalents
+**Model selection rule (session by default; pin only when routing is configured):** by default every dispatched
+subagent runs on the user's session model - this is the explicit default, not silent inheritance. When the project
+opts into routing (`model_routing` names a profile, not `session`), resolve each worker's capability from the routing
+table: choose the *lowest* capability (`cheap → standard → most capable`) that can do the job, map it to a concrete
+model at dispatch and name it explicitly, and apply the `requirement-analysis` most-capable pin. Under routing, scale
+the reviewer's capability to the diff's size and risk; if a subagent returns BLOCKED for insufficient reasoning power,
+re-dispatch it one step up the ladder (if already `most capable`, stop and escalate to the user - see the `BLOCKED`
+row in the outcome table). Tool names below denote capabilities - map them to your platform's equivalents
 (e.g. `web fetch` = your URL-reading tool).
 
-**Routing source.** `execute-task` takes its capability/effort from the routing table's **Implementation (per triage)**
-section; `verify-task` and `pr-review` from its **Review & verification (per worker)** section (when a project has not
-set them, each reviewer row's Key constraints give the balanced default). `requirement-analysis` is pinned to
-**most capable** - planning is the highest-leverage phase, so it runs at top capability regardless of triage level.
-Main-thread inline skills are not routed - they run on the user-selected session model.
+**Routing source.** By default (`model_routing: session`) every dispatched subagent runs on the session model; the
+capability/effort columns below apply only when the project opts into a routing profile. Under routing: `execute-task`
+takes its capability/effort from the routing table's **Implementation (per triage)** section; `verify-task` and
+`pr-review` from its **Review & verification (per worker)** section (when a project has not set them, each reviewer
+row's Key constraints give the balanced default); `requirement-analysis` is pinned to **most capable** - planning is
+the highest-leverage phase. Main-thread inline skills are never routed - they run on the user-selected session model.
 
 | Worker skill | Model capability | Effort | Tools | Key constraints |
 |----------|------------------|--------|-------|-----------------|
