@@ -161,11 +161,14 @@ Options: `No (session)` / `Yes`
   - `balanced` - cheap for simple tasks, most capable for complex/cross-module work (recommended)
   - `quality-first` - most capable for complex work, standard for simpler tasks (cheap only for trivial edits); beefiest review
 
-Default if skipped: `session` (no routing).
+  If the strategy sub-question is skipped, default to `balanced` (the recommended strategy) - not `session`.
+
+Default if skipped: the **gate** defaults to `No` → `{{MODEL_BUDGET}}` = `session` (no routing).
 
 Record as: `{{MODEL_BUDGET}}`
 
-Drives: whether `docs/profiles/runtime.yml` `model_routing` is `session` (no routing) or a routing table.
+Drives: the `model_routing` value in `docs/profiles/runtime.yml` - the strategy name `session` (no routing) or
+`cost-first` / `balanced` / `quality-first`.
 
 ---
 
@@ -443,17 +446,19 @@ Fill these fields:
 
 - `ai_tools` - auto-detect from platform: `Claude Code` if `CLAUDE_PLUGIN_ROOT` is set, `GitHub Copilot` if
   `PLUGIN_ROOT` is set, otherwise ask the user
-- `model_routing` - if `{{MODEL_BUDGET}}` is `session`, set `model_routing: session`; otherwise paste the chosen
-  strategy's table from § Model routing table above
+- `model_routing` - set to `{{MODEL_BUDGET}}` verbatim: the strategy name `session` (default), `cost-first`,
+  `balanced`, or `quality-first`. Store the name only - never paste a table (a multi-line table is invalid as a YAML
+  scalar; the table is rendered into `PROJECT_CONTEXT.md` at Step 4).
 
 ### Step 4: Render `docs/PROJECT_CONTEXT.md` from all `.yml` files
 
 Read all three profile files (project.yml, team.yml, runtime.yml) and render `docs/PROJECT_CONTEXT.md` using the template structure.
 
-**Rendering `{{MODEL_ROUTING}}`:** if `model_routing` is `session`, render the single line
-`No routing - all dispatched subagents run on the user-selected session model.`; otherwise substitute the routing
-table verbatim. (`model_routing: session` stays the machine sentinel that `dispatch` / `triage` key on; this
-transform only produces the human-readable note in `PROJECT_CONTEXT.md`.)
+**Rendering `{{MODEL_ROUTING}}`:** read the `model_routing` strategy name and render accordingly - if `session`,
+render the single line `No routing - all dispatched subagents run on the user-selected session model.`; otherwise
+render the matching strategy's two-section table from § Model routing table above (`cost-first` / `balanced` /
+`quality-first`). `model_routing` always stores just the name (the machine sentinel `dispatch` / `triage` key on);
+this step renders the human-readable note or table into `PROJECT_CONTEXT.md`.
 
 ### Step 5: Fill `docs/ARCHITECTURE.md` header
 

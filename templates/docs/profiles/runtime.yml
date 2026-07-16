@@ -6,6 +6,7 @@ schema_version: 2
 
 # Filled by setup
 ai_tools: ""
-# model_routing: "session" = default (no routing; every dispatched subagent uses the session model).
-# Opt into cost routing by pasting a strategy table here instead.
+# model_routing: strategy name - "session" (default; no routing, every dispatched subagent uses the session model)
+# or a cost strategy: "cost-first" / "balanced" / "quality-first". Store the name only; the routing table is
+# rendered into docs/PROJECT_CONTEXT.md at setup time (never paste a table here - it is invalid as a YAML scalar).
 model_routing: "session"
