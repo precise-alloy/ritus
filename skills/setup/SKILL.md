@@ -142,23 +142,33 @@ Drives: PR review diff base, team conventions in `docs/PROJECT_CONTEXT.md`.
 
 ---
 
-### Q8 - Model cost preference
+### Q8 - Model routing
 
 Ask:
 
-> "What is the **model cost preference** for this project?"
+> "Do you want **model routing** to optimize cost? Dispatched subagents would run on cheaper models for routine work.
+> **(default: No - every dispatched subagent uses your session model)**"
 
-Options:
+Options: `No (session)` / `Yes`
 
-- `cost-first` - prefer the cheapest capable model, lowest cost
-- `balanced` - cheap for simple tasks, most capable for complex/cross-module work (recommended)
-- `quality-first` - most capable for complex work, standard for simpler tasks (cheap only for trivial edits); beefiest review
+- **No (default)** → record `{{MODEL_BUDGET}}` = `session`; skip the sub-question. All dispatched subagents run on
+  the main-thread session model.
+- **Yes** → ask the strategy sub-question and record the answer as `{{MODEL_BUDGET}}`:
 
-Default if skipped: `balanced`
+  > "Which **cost strategy**?"
+
+  - `cost-first` - prefer the cheapest capable model, lowest cost
+  - `balanced` - cheap for simple tasks, most capable for complex/cross-module work (recommended)
+  - `quality-first` - most capable for complex work, standard for simpler tasks (cheap only for trivial edits); beefiest review
+
+  If the strategy sub-question is skipped, default to `balanced` (the recommended strategy) - not `session`.
+
+Default if skipped: the **gate** defaults to `No` → `{{MODEL_BUDGET}}` = `session` (no routing).
 
 Record as: `{{MODEL_BUDGET}}`
 
-Drives: model routing table in `docs/profiles/runtime.yml`.
+Drives: the `model_routing` value in `docs/profiles/runtime.yml` - the strategy name `session` (no routing) or
+`cost-first` / `balanced` / `quality-first`.
 
 ---
 
@@ -320,6 +330,10 @@ first and GitHub Issues (#) second, the branch format uses `PROJ-123` style as t
 
 ### Model routing table → `{{MODEL_ROUTING}}`
 
+**Routing is opt-in.** When `{{MODEL_BUDGET}}` is `session` (the default), `{{MODEL_ROUTING}}` renders a single line -
+"No routing - all dispatched subagents run on the user-selected session model." - and none of the tables below apply.
+The tables apply only when the user opted into a cost strategy (`cost-first` / `balanced` / `quality-first`).
+
 Routing names a **model capability**, not a vendor model ID - map each to the best-matching model the target
 platform offers:
 
@@ -432,11 +446,19 @@ Fill these fields:
 
 - `ai_tools` - auto-detect from platform: `Claude Code` if `CLAUDE_PLUGIN_ROOT` is set, `GitHub Copilot` if
   `PLUGIN_ROOT` is set, otherwise ask the user
-- `model_routing` - paste the correct table from § Model routing table above
+- `model_routing` - set to `{{MODEL_BUDGET}}` verbatim: the strategy name `session` (default), `cost-first`,
+  `balanced`, or `quality-first`. Store the name only - never paste a table (a multi-line table is invalid as a YAML
+  scalar; the table is rendered into `PROJECT_CONTEXT.md` at Step 4).
 
 ### Step 4: Render `docs/PROJECT_CONTEXT.md` from all `.yml` files
 
 Read all three profile files (project.yml, team.yml, runtime.yml) and render `docs/PROJECT_CONTEXT.md` using the template structure.
+
+**Rendering `{{MODEL_ROUTING}}`:** read the `model_routing` strategy name and render accordingly - if `session`,
+render the single line `No routing - all dispatched subagents run on the user-selected session model.`; otherwise
+render the matching strategy's two-section table from § Model routing table above (`cost-first` / `balanced` /
+`quality-first`). `model_routing` always stores just the name (the machine sentinel `dispatch` / `triage` key on);
+this step renders the human-readable note or table into `PROJECT_CONTEXT.md`.
 
 ### Step 5: Fill `docs/ARCHITECTURE.md` header
 

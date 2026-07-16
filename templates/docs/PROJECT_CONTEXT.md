@@ -113,14 +113,18 @@ Traceability policy: `{{TRACEABILITY_POLICY}}`
 
 ## Model routing
 
+**Model routing is opt-in.** By default (`model_routing: session`) every dispatched subagent runs on the user-selected
+session model - the same rule as the main-thread inline skills. A project opts into cost routing by choosing a
+strategy at setup; only then do the sections below apply.
+
 Each value names a **model capability**, not a specific model - map it to the best-matching model your platform offers:
 **cheap** (fastest/lowest-cost; mechanical single-file work + verification), **standard** (default; multi-file
 integration and judgment), **most capable** (highest-capability; architecture and complex reasoning).
 
-The table has two sections per profile: **Implementation (per triage)** drives `execute-task` by triage level;
-**Review & verification (per worker)** drives the fixed-role `verify-task` and `pr-review`. `requirement-analysis` is
-pinned to **most capable** (planning is the highest-leverage phase), not table-routed. Main-thread inline skills run
-on the user-selected session model - this table governs dispatched subagents only.
+When routing is enabled, the table has two sections per profile: **Implementation (per triage)** drives `execute-task`
+by triage level; **Review & verification (per worker)** drives the fixed-role `verify-task` and `pr-review`;
+`requirement-analysis` is pinned to **most capable** (planning is the highest-leverage phase). Main-thread inline
+skills always run on the user-selected session model.
 
 {{MODEL_ROUTING}}
 
