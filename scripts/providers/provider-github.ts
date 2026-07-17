@@ -1,5 +1,5 @@
 import type { EnvMapping, Provider } from './types.ts';
-import { requestJson, requestJsonWithHeaders, safeDecode } from './http.ts';
+import { requestJson, requestJsonWithHeaders, requestGraphQL, safeDecode } from './http.ts';
 import { sanitizeGitHubPr, sanitizeGitHubPrComment, sanitizeGitHubIssueComment, sanitizeGitHubIssue } from './sanitize.ts';
 
 const GITHUB_PAGE_SIZE = 100;
@@ -21,6 +21,21 @@ function getApiBaseUrl(env: EnvMapping): string {
     if (url) return url.replace(/\/+$/, '');
   }
   return 'https://api.github.com';
+}
+
+function getGraphQLUrl(env: EnvMapping): string {
+  if (env.api_base_url) {
+    const raw = process.env[env.api_base_url]?.trim();
+    if (raw) {
+      try {
+        const parsed = new URL(raw);
+        return `${parsed.protocol}//${parsed.hostname}/api/graphql`;
+      } catch {
+        /* fall through to default */
+      }
+    }
+  }
+  return 'https://api.github.com/graphql';
 }
 
 function getExpectedHostname(env: EnvMapping): string {
@@ -240,6 +255,63 @@ async function fetchGitHubLatestIssueComments(baseUrl: string, headers: Record<s
   return items.slice(-limit);
 }
 
+type GitHubReviewThreadsResponse = {
+  repository?: {
+    pullRequest?: {
+      reviewThreads?: {
+        pageInfo?: { hasNextPage?: boolean; endCursor?: string | null };
+        nodes?: Array<{
+          isResolved?: boolean;
+          comments?: { nodes?: Array<{ databaseId?: number | null }> };
+        }>;
+      };
+    };
+  };
+};
+
+const UNRESOLVED_REVIEW_THREADS_QUERY = `query($owner: String!, $repo: String!, $number: Int!, $cursor: String) {
+  repository(owner: $owner, name: $repo) {
+    pullRequest(number: $number) {
+      reviewThreads(first: 100, after: $cursor) {
+        pageInfo { hasNextPage endCursor }
+        nodes {
+          isResolved
+          comments(first: 100) {
+            nodes { databaseId }
+          }
+        }
+      }
+    }
+  }
+}`;
+
+async function fetchUnresolvedReviewCommentIds(parsed: GitHubPullRequestRef, env: EnvMapping): Promise<Set<number>> {
+  const url = getGraphQLUrl(env);
+  const headers = gitHubHeaders(env);
+  const ids = new Set<number>();
+  let cursor: string | null = null;
+  for (let page = 1; page <= 200; page++) {
+    const data = (await requestGraphQL(url, headers, UNRESOLVED_REVIEW_THREADS_QUERY, {
+      owner: parsed.owner,
+      repo: parsed.repo,
+      number: Number(parsed.pullNumber),
+      cursor,
+    })) as GitHubReviewThreadsResponse;
+    const threads = data?.repository?.pullRequest?.reviewThreads;
+    if (!threads) break;
+    for (const thread of threads.nodes ?? []) {
+      if (thread?.isResolved === false) {
+        for (const comment of thread.comments?.nodes ?? []) {
+          if (typeof comment?.databaseId === 'number') ids.add(comment.databaseId);
+        }
+      }
+    }
+    if (!threads.pageInfo?.hasNextPage) break;
+    cursor = threads.pageInfo.endCursor ?? null;
+  }
+  return ids;
+}
+
 async function getGitHubPrComments(target: string, extra?: string, envMapping?: EnvMapping): Promise<unknown> {
   const env = envMapping ?? GITHUB_DEFAULT_ENV;
   const resolvedTarget = resolveGitHubRef(target, env, 'pull');
@@ -248,11 +320,20 @@ async function getGitHubPrComments(target: string, extra?: string, envMapping?: 
   const parsed = parseGitHubPrUrl(resolvedTarget, hostname);
   const headers = gitHubHeaders(env);
   const repoBase = `${apiBase}/repos/${encodeURIComponent(parsed.owner)}/${encodeURIComponent(parsed.repo)}`;
-  const limit = parseLimit(extra);
+  const unresolvedOnly = extra?.trim().toLowerCase() === 'unresolved';
+  const limit = unresolvedOnly ? undefined : parseLimit(extra);
 
   const reviewUrl = `${repoBase}/pulls/${encodeURIComponent(parsed.pullNumber)}/comments?sort=created&direction=desc`;
   let reviewComments = await fetchAllGitHubPages(reviewUrl, headers, limit);
   reviewComments.reverse();
+
+  if (unresolvedOnly) {
+    const unresolvedIds = await fetchUnresolvedReviewCommentIds(parsed, env);
+    reviewComments = reviewComments.filter((comment) => {
+      const id = (comment as { id?: unknown }).id;
+      return typeof id === 'number' && unresolvedIds.has(id);
+    });
+  }
 
   const issueUrl = `${repoBase}/issues/${encodeURIComponent(parsed.pullNumber)}/comments?sort=created&direction=asc`;
   let issueComments = limit
@@ -262,6 +343,7 @@ async function getGitHubPrComments(target: string, extra?: string, envMapping?: 
   return {
     request: parsed,
     ...(limit ? { limit } : {}),
+    ...(unresolvedOnly ? { unresolvedOnly: true } : {}),
     reviewComments: {
       returned: reviewComments.length,
       comments: reviewComments.map(sanitizeGitHubPrComment),
@@ -349,7 +431,7 @@ export const githubProvider: Provider = {
   },
   usageLines: (cmd) => [
     `${cmd} github pr <pull-request-url|#number>`,
-    `${cmd} github comments <pull-request-url|#number> [count]`,
+    `${cmd} github comments <pull-request-url|#number> [count|unresolved]`,
     `${cmd} github issue <issue-url|#number>`,
     `${cmd} github issue-comments <issue-url|#number> [count]`,
   ],
@@ -361,6 +443,7 @@ export const githubProvider: Provider = {
       `${cmd} github pr '#18'  # requires GITHUB_REPO_URL=https://github.com/owner/repo in .ritus/.env.local`,
       `${cmd} github comments ${prUrl}`,
       `${cmd} github comments ${prUrl} 20`,
+      `${cmd} github comments ${prUrl} unresolved  # only comments in unresolved review threads`,
       `${cmd} github comments '#18'  # short ref`,
       `${cmd} github issue ${issueUrl}`,
       `${cmd} github issue '#1'  # short ref`,

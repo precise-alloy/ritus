@@ -109,7 +109,7 @@ export function isRedirectStatus(status: number): boolean {
   return status === 301 || status === 302 || status === 303 || status === 307 || status === 308;
 }
 
-async function requestWithRetry(url: string, headers: RequestHeaders, redirect: 'follow' | 'manual' = 'follow'): Promise<Response> {
+async function requestWithRetry(url: string, headers: RequestHeaders, redirect: 'follow' | 'manual' = 'follow', method: 'GET' | 'POST' = 'GET', body?: string): Promise<Response> {
   let lastError: HttpError | null = null;
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
@@ -119,8 +119,9 @@ async function requestWithRetry(url: string, headers: RequestHeaders, redirect: 
     let response: Response;
     try {
       response = await fetch(url, {
-        method: 'GET',
+        method,
         headers,
+        body,
         signal: controller.signal,
         redirect,
       });
@@ -174,6 +175,38 @@ export async function requestJson(url: string, headers: RequestHeaders): Promise
 export async function requestJsonWithHeaders(url: string, headers: RequestHeaders): Promise<{ body: unknown; headers: Headers }> {
   const response = await requestWithRetry(url, headers);
   return { body: parseJson(await response.text()), headers: response.headers };
+}
+
+export async function requestGraphQL(
+  endpoint: string,
+  headers: RequestHeaders,
+  query: string,
+  variables: Record<string, unknown>,
+): Promise<unknown> {
+  const response = await requestWithRetry(
+    endpoint,
+    { ...headers, 'Content-Type': 'application/json' },
+    'follow',
+    'POST',
+    JSON.stringify({ query, variables }),
+  );
+  const parsed = parseJson(await response.text());
+  if (parsed && typeof parsed === 'object' && 'errors' in parsed) {
+    const errors = (parsed as { errors: unknown }).errors;
+    if (Array.isArray(errors) && errors.length > 0) {
+      const detail = errors
+        .map((e) => (e && typeof e === 'object' && 'message' in e ? String((e as { message: unknown }).message) : JSON.stringify(e)))
+        .join(' | ');
+      const error: HttpError = new Error(`GraphQL request to ${endpoint} failed: ${detail}`);
+      error.statusCode = 200;
+      error.responseBody = parsed;
+      throw error;
+    }
+  }
+  if (parsed && typeof parsed === 'object' && 'data' in parsed) {
+    return (parsed as { data: unknown }).data;
+  }
+  return parsed;
 }
 
 /** Wraps decodeURIComponent so invalid percent-encoding (e.g. a literal '%') returns the raw value instead of throwing. */
