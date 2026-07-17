@@ -188,14 +188,19 @@ function apply(): void {
 
     if (!existsSync(templatePath)) continue;
 
-    if (!existsSync(projectPath)) {
-      mkdirSync(dirname(projectPath), { recursive: true });
-      writeFileSync(projectPath, readFileSync(templatePath, "utf-8"));
+    mkdirSync(dirname(projectPath), { recursive: true });
+    try {
+      // Atomic create-or-fail avoids a check-then-write race: the "wx" flag
+      // makes writeFileSync throw EEXIST instead of overwriting an existing file.
+      writeFileSync(projectPath, readFileSync(templatePath, "utf-8"), { flag: "wx" });
       created.push(file);
-      continue;
+    } catch (err) {
+      if ((err as { code?: string }).code === "EEXIST") {
+        skipped.push({ file, reason: getStrategy(file) + " - already exists" });
+      } else {
+        throw err;
+      }
     }
-
-    skipped.push({ file, reason: getStrategy(file) + " - already exists" });
   }
 
   if (created.length > 0) {

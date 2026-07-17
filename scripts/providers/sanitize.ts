@@ -48,6 +48,21 @@ function hasHtmlTags(v: unknown): boolean {
   return typeof v === 'string' && /<[a-z][\s\S]*>/i.test(v);
 }
 
+// Applies a replacement repeatedly until the string stops changing, so that a
+// match reintroduced by an earlier replacement (e.g. "<scr<script>ipt>") cannot
+// survive the sanitization pass. maxIterations caps the loop so a pathological
+// input cannot spin unbounded (O(N^2) DoS guard).
+function replaceUntilStable(input: string, pattern: RegExp, replacement: string, maxIterations = 100): string {
+  let out = input;
+  let prev: string;
+  let iterations = 0;
+  do {
+    prev = out;
+    out = out.replace(pattern, replacement);
+  } while (out !== prev && ++iterations < maxIterations);
+  return out;
+}
+
 // ---------------------------------------------------------------------------
 // ADF-to-text converter
 // ---------------------------------------------------------------------------
@@ -170,10 +185,9 @@ export function htmlToText(html: unknown): string {
     text = text.replace(/<li[^>]*>/gi, '\n- ');
     text = text.replace(/<\/(?:h[1-6])>/gi, '\n');
     text = text.replace(/<h[1-6][^>]*>/gi, '\n');
-    text = text.replace(/<[^>]*>/g, '');
+    text = replaceUntilStable(text, /<[^>]*>/g, '');
   }
 
-  text = text.replace(/&amp;/g, '&');
   text = text.replace(/&lt;/g, '<');
   text = text.replace(/&gt;/g, '>');
   text = text.replace(/&quot;/g, '"');
@@ -187,9 +201,12 @@ export function htmlToText(html: unknown): string {
     const cp = parseInt(hex, 16);
     return cp >= 0 && cp <= 0x10ffff ? String.fromCodePoint(cp) : '';
   });
+  // Decode the ampersand entity last so an already-decoded value cannot be
+  // interpreted as another entity (prevents double-unescaping, e.g. "&amp;lt;").
+  text = text.replace(/&amp;/g, '&');
 
   // Guard against entity-decoding reintroducing tag-shaped sequences (e.g. "&lt;script&gt;").
-  text = text.replace(/<\/?[a-z][^>]*>/gi, '');
+  text = replaceUntilStable(text, /<\/?[a-z][^>]*>/gi, '');
 
   text = text.replace(/\n{3,}/g, '\n\n');
   return text.trim();
