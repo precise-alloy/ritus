@@ -50,14 +50,16 @@ function hasHtmlTags(v: unknown): boolean {
 
 // Applies a replacement repeatedly until the string stops changing, so that a
 // match reintroduced by an earlier replacement (e.g. "<scr<script>ipt>") cannot
-// survive the sanitization pass.
-function replaceUntilStable(input: string, pattern: RegExp, replacement: string): string {
+// survive the sanitization pass. maxIterations caps the loop so a pathological
+// input cannot spin unbounded (O(N^2) DoS guard).
+function replaceUntilStable(input: string, pattern: RegExp, replacement: string, maxIterations = 100): string {
   let out = input;
   let prev: string;
+  let iterations = 0;
   do {
     prev = out;
     out = out.replace(pattern, replacement);
-  } while (out !== prev);
+  } while (out !== prev && ++iterations < maxIterations);
   return out;
 }
 

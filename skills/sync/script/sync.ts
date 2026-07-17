@@ -188,6 +188,13 @@ function apply(): void {
 
     if (!existsSync(templatePath)) continue;
 
+    // Fast path: skip existing targets before reading the template so we avoid
+    // an unnecessary readFileSync. The "wx" write below still guards the race.
+    if (existsSync(projectPath)) {
+      skipped.push({ file, reason: getStrategy(file) + " - already exists" });
+      continue;
+    }
+
     mkdirSync(dirname(projectPath), { recursive: true });
     try {
       // Atomic create-or-fail avoids a check-then-write race: the "wx" flag
