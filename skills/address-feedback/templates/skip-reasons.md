@@ -1,8 +1,9 @@
 # Skip Reasons
 
 address-feedback classifies every PR comment before acting on it. A comment is **kept (actionable)** only when it
-survives all four challenge tests below; otherwise it is skipped under exactly one category. Each category carries a
-definition and a disposition, orthogonal to the comment's author or tone.
+passes all four challenge tests below AND matches no auto-skip category (`noise` or `resolved`); otherwise it is
+skipped under exactly one category. A `resolved` thread that still passes the four tests is auto-skipped, not kept.
+Each category carries a definition and a disposition, orthogonal to the comment's author or tone.
 
 ## Keep bar - the four challenge tests
 
@@ -35,4 +36,4 @@ Keep a comment only when it passes ALL four. Failing any one test skips it under
 ## Tie-break
 
 When more than one category fits, the most defensible skip wins:
-`incorrect` > `out-of-scope` > `subjective` > `speculative` > `question`.
+`resolved` > `noise` > `incorrect` > `out-of-scope` > `subjective` > `speculative` > `question`.

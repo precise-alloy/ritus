@@ -27,7 +27,7 @@ TODO:
 - [ ] Ask user about pr-review re-check
 - [ ] If user wants re-check, dispatch pr-review subagent (apply its verdict per dispatch.md)
 - [ ] If pr-review approves: invoke wrap-up
-- [ ] Report the fixes + suggested commit message - the user reviews the diff and commits
+- [ ] Report the fixes + suggested commit message + the challenged-skip report (reasons + ready-to-paste replies) - the user reviews the diff and commits
 ```
 
 Mark each item as completed. If any step fails, stop and report - do not skip.
@@ -77,15 +77,20 @@ Do not continue with stale or partial data.
 ## Step 3: Filter to Actionable Comments
 
 Not all PR comments warrant a code change - and the burden of proof is on the comment. Apply the adversarial keep
-bar from `skip-reasons.md` in this skill's `templates` directory: keep a comment only when it passes all four
-challenge tests (Concrete, Correct, In scope, Grounded). When a comment fails any test, skip it under exactly one
-category from `skip-reasons.md`, and default to skip whenever a comment leaves any test in doubt.
+bar from `skip-reasons.md` in this skill's `templates` directory in order: first auto-skip any comment matching a
+`noise` or `resolved` category, then keep a comment only when it passes all four challenge tests (Concrete, Correct,
+In scope, Grounded). When a remaining comment fails any test, skip it under exactly one challenged-skip category from
+`skip-reasons.md`, and default to skip whenever a comment leaves any test in doubt.
 
 For each comment, record a verdict:
 
 ```text
-{ filePath, line, commentBody, author, verdict: 'keep' | 'auto-skip' | 'challenged-skip', category, reason, suggestedReply }
+{ filePath, line, commentBody, author, verdict: 'keep' | 'auto-skip' | 'challenged-skip', category?, reason?, suggestedReply? }
 ```
+
+The optional fields follow the verdict: `keep` sets no `category`, `reason`, or `suggestedReply`; `auto-skip` sets
+`category` to `noise` or `resolved` with no `reason` or `suggestedReply`; `challenged-skip` sets `category` to one of
+`incorrect`, `out-of-scope`, `subjective`, `speculative`, or `question` and requires both `reason` and `suggestedReply`.
 
 - **keep** - passes all four challenge tests; feeds a fix step.
 - **auto-skip** - `noise` or `resolved`; report as a collapsed count only.
