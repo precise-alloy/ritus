@@ -29,7 +29,7 @@ function getGraphQLUrl(env: EnvMapping): string {
     if (raw) {
       try {
         const parsed = new URL(raw);
-        return `${parsed.protocol}//${parsed.hostname}/api/graphql`;
+        return `${parsed.protocol}//${parsed.host}/api/graphql`;
       } catch {
         /* fall through to default */
       }
