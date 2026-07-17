@@ -20,7 +20,7 @@ TODO:
 
 ```markdown
 - [ ] Fetch and filter PR comments
-- [ ] Present filtered list to user for approval
+- [ ] Classify comments against the keep bar, then present keep + challenged-skip lists for approval (veto allowed)
 - [ ] Generate fix task file (round N)
 - [ ] Load `dispatch.md`, then implement fix - dispatch execute-task subagent
 - [ ] Verify fix - dispatch verify-task subagent
@@ -28,7 +28,6 @@ TODO:
 - [ ] If user wants re-check, dispatch pr-review subagent (apply its verdict per dispatch.md)
 - [ ] If pr-review approves: invoke wrap-up
 - [ ] Report the fixes + suggested commit message - the user reviews the diff and commits
-- [ ] Present questions to user (if any)
 ```
 
 Mark each item as completed. If any step fails, stop and report - do not skip.
@@ -77,46 +76,44 @@ Do not continue with stale or partial data.
 
 ## Step 3: Filter to Actionable Comments
 
-Not all PR comments need code changes. Classify each comment:
+Not all PR comments warrant a code change - and the burden of proof is on the comment. Apply the adversarial keep
+bar from `skip-reasons.md` in this skill's `templates` directory: keep a comment only when it passes all four
+challenge tests (Concrete, Correct, In scope, Grounded). When a comment fails any test, skip it under exactly one
+category from `skip-reasons.md`, and default to skip whenever a comment leaves any test in doubt.
 
-### Keep (actionable)
-
-- Comments requesting specific code changes ("change X to Y", "add null check", "rename this", "use X instead")
-- Comments pointing out bugs or issues ("this will crash if...", "missing error handling", "race condition here")
-- Comments asking for additions ("add tests for...", "need documentation for...", "missing validation")
-
-### Skip (not actionable)
-
-- Comments that are not valid change requests. Analyze the comment to determine whether it requests code changes. If it does not, skip it and report to the user.
-- Resolved/closed threads (ADO: `status !== 'active'`)
-- Reply threads where the last message is from the PR author (likely already addressed)
-- Approvals, praise, acknowledgments ("LGTM", "looks good", "nice work", "+1")
-- Bot-generated comments (CI output, lint reports, coverage reports)
-- System/status comments (ADO: `commentType === 'system'`)
-
-### Flag as questions (present to user later)
-
-- Questions that don't request changes ("why did you choose X?", "have you considered...?")
-- Comments requesting design discussion rather than code changes
-
-For each kept comment, extract:
+For each comment, record a verdict:
 
 ```text
-{ filePath, line, commentBody, author, type: 'change' | 'addition' | 'question' }
+{ filePath, line, commentBody, author, verdict: 'keep' | 'auto-skip' | 'challenged-skip', category, reason, suggestedReply }
 ```
 
-Present the filtered summary to the user:
+- **keep** - passes all four challenge tests; feeds a fix step.
+- **auto-skip** - `noise` or `resolved`; report as a collapsed count only.
+- **challenged-skip** - `incorrect`, `out-of-scope`, `subjective`, `speculative`, or `question`. Write a `reason`
+  (cite `file:line` for `incorrect`) and a `suggestedReply` the developer can paste onto the PR. State both
+  plainly and professionally - the developer posts them verbatim.
+
+Present both lists to the user at one gate:
 
 ```text
-Found N actionable comments (M skipped, K questions flagged for later).
-Actionable:
+Found N actionable comments. K challenged-skips (reason + reply each). M auto-skipped (noise/resolved).
+
+Actionable (will be fixed):
 1. [src/index.ts:42] @reviewer1: "Add null check before accessing .name"
-2. [src/utils.ts:15] @reviewer2: "Rename this to parseConfig for clarity"
 ...
-Proceed with fixes?
+
+Challenged-skips (judged non-actionable - veto any to move it back to Actionable):
+1. [src/utils.ts:15] @reviewer2 - subjective: a style preference with no backing convention.
+   Suggested reply: "Thanks - this is a style preference and the current form matches the surrounding code, so I'll keep it as is."
+2. [src/api.ts:8] @reviewer3 - out-of-scope: valid, but unrelated to this PR's change.
+   Suggested reply: "Good catch - this sits outside this PR's scope, so I've opened a follow-up to track it."
+...
+
+Proceed with the actionable fixes?
 ```
 
-**Hard gate - wait for user approval before proceeding.**
+**Hard gate - wait for user approval before proceeding.** When the user vetoes a challenged-skip, move it into the
+actionable list before generating the fix task.
 
 ## Step 4: Detect Round Number
 
@@ -189,19 +186,6 @@ fix(review): address PR review feedback (round N)
 - <one-line summary per fix>
 ```
 
-## Step 7: Handle Questions
-
-If Step 3 flagged comments as questions, present them to the user alongside the reported fixes:
-
-```text
-These comments appear to be questions, not change requests:
-
-1. @reviewer1 on src/api/handler.ts:30: "Why did you choose to use a Map here instead of a plain object?"
-2. @reviewer2 (general): "Have you considered adding rate limiting to this endpoint?"
-
-You may want to reply to these directly on the PR.
-```
-
 ## Hard rules
 
 - If a comment references a file that doesn't exist, flag it and skip
@@ -210,7 +194,7 @@ You may want to reply to these directly on the PR.
 
 ## Handoff
 
-- **Report:** the round-N fixes + a suggested commit message, ready for the user to review and commit locally.
+- **Report:** the round-N fixes + a suggested commit message + the challenged-skip report (each skip's reason and ready-to-paste reply), ready for the user to review and commit locally.
 - **TODO update:** if the pr-review re-check runs, its verdict is applied per `dispatch.md` (Approve → `invoke wrap-up`;
   Request Changes → a Fix → Verify → Re-review cycle first). If the re-check is skipped, wrap-up does not run (it
   requires a pr-review approval) and the round ends with the fixes ready for the user to commit.
