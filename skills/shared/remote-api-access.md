@@ -92,7 +92,7 @@ bun run "<plugin-root>/scripts/remote-api.ts" ado changelog <WORK_ITEM_URL_OR_ID
 
 # GitHub
 bun run "<plugin-root>/scripts/remote-api.ts" github pr <PR_URL_OR_#NUMBER>              # PR metadata
-bun run "<plugin-root>/scripts/remote-api.ts" github comments <PR_URL_OR_#NUMBER> [count]  # PR review comments
+bun run "<plugin-root>/scripts/remote-api.ts" github comments <PR_URL_OR_#NUMBER> [count|unresolved]  # PR comments; 'unresolved' filters reviewComments to unresolved threads (issueComments are always included)
 bun run "<plugin-root>/scripts/remote-api.ts" github issue <ISSUE_URL_OR_#NUMBER>          # issue details
 bun run "<plugin-root>/scripts/remote-api.ts" github issue-comments <ISSUE_URL_OR_#NUMBER> [count]  # issue comments
 ```

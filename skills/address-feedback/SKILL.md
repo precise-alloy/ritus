@@ -56,6 +56,8 @@ For review comments (GitHub only):
 
 ```bash
 bun run "<plugin-root>/scripts/remote-api.ts" comments "<PR_URL>" [count]
+# GitHub only: return only comments in unresolved review threads
+bun run "<plugin-root>/scripts/remote-api.ts" comments "<PR_URL>" unresolved
 ```
 
 If auto-detection fails, fall back to explicit provider syntax (e.g., `github pr`, `ado pr`).
@@ -75,7 +77,10 @@ Do not continue with stale or partial data.
 - Each thread contains `comments[]` with `author.displayName`, `content`, `commentType`
 
 **Resolve state:** ADO carries resolve state as per-thread `status` on each thread. GitHub review and issue comment
-payloads carry no per-comment resolved flag, so GitHub resolve state is not available from the fetched comments.
+payloads carry no per-comment resolved flag, so resolve state cannot be read from an individual fetched comment. On
+GitHub, fetch with `comments "<PR_URL>" unresolved` to return only review comments in unresolved threads (resolution
+sourced from the review-thread state), excluding resolved threads upfront; `issueComments` are always returned, since
+conversation comments have no thread resolution.
 
 ## Step 3: Filter to Actionable Comments
 
@@ -86,8 +91,9 @@ In scope, Grounded). When a remaining comment fails any test, skip it under exac
 `skip-reasons.md`, and default to skip whenever a comment leaves any test in doubt.
 
 Provider data feeds the `resolved` auto-skip only where it is available: on ADO, classify `resolved` from thread
-`status`. GitHub comments carry no resolve state in the fetched payload, so they are classified by the other
-categories and the keep bar, and the classifier relies on no per-comment resolved field that GitHub does not provide.
+`status`. On GitHub, exclude resolved threads at fetch time with `comments "<PR_URL>" unresolved` so the `resolved`
+category is satisfied upfront; the fetched payload still carries no per-comment resolved flag, so classify the
+returned comments by the other categories and the keep bar.
 
 For each comment, record a verdict:
 
