@@ -29,6 +29,10 @@ function getGraphQLUrl(env: EnvMapping): string {
     if (raw) {
       try {
         const parsed = new URL(raw);
+        // github.com's API host uses /graphql; GitHub Enterprise uses <host>/api/graphql.
+        if (parsed.host === 'api.github.com') {
+          return 'https://api.github.com/graphql';
+        }
         return `${parsed.protocol}//${parsed.host}/api/graphql`;
       } catch {
         /* fall through to default */
@@ -298,7 +302,11 @@ async function fetchUnresolvedReviewCommentIds(parsed: GitHubPullRequestRef, env
       cursor,
     })) as GitHubReviewThreadsResponse;
     const threads = data?.repository?.pullRequest?.reviewThreads;
-    if (!threads) break;
+    if (!threads) {
+      throw new Error(
+        `Unexpected GraphQL response: reviewThreads missing for ${parsed.owner}/${parsed.repo}#${parsed.pullNumber} (page ${page}).`,
+      );
+    }
     for (const thread of threads.nodes ?? []) {
       if (thread?.isResolved === false) {
         for (const comment of thread.comments?.nodes ?? []) {

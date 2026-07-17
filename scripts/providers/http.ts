@@ -198,7 +198,7 @@ export async function requestGraphQL(
         .map((e) => (e && typeof e === 'object' && 'message' in e ? String((e as { message: unknown }).message) : JSON.stringify(e)))
         .join(' | ');
       const error: HttpError = new Error(`GraphQL request to ${endpoint} failed: ${detail}`);
-      error.statusCode = 200;
+      error.statusCode = response.status;
       error.responseBody = parsed;
       throw error;
     }
