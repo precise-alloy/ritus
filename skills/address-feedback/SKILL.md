@@ -74,6 +74,9 @@ Do not continue with stale or partial data.
 - Each thread has `status`, `threadContext.filePath`, `threadContext.rightFileStart`, `threadContext.rightFileEnd`
 - Each thread contains `comments[]` with `author.displayName`, `content`, `commentType`
 
+**Resolve state:** ADO carries resolve state as per-thread `status` on each thread. GitHub review and issue comment
+payloads carry no per-comment resolved flag, so GitHub resolve state is not available from the fetched comments.
+
 ## Step 3: Filter to Actionable Comments
 
 Not all PR comments warrant a code change - and the burden of proof is on the comment. Apply the adversarial keep
@@ -82,11 +85,18 @@ bar from `skip-reasons.md` in this skill's `templates` directory in order: first
 In scope, Grounded). When a remaining comment fails any test, skip it under exactly one challenged-skip category from
 `skip-reasons.md`, and default to skip whenever a comment leaves any test in doubt.
 
+Provider data feeds the `resolved` auto-skip only where it is available: on ADO, classify `resolved` from thread
+`status`. GitHub comments carry no resolve state in the fetched payload, so they are classified by the other
+categories and the keep bar, and the classifier relies on no per-comment resolved field that GitHub does not provide.
+
 For each comment, record a verdict:
 
 ```text
-{ filePath, line, commentBody, author, verdict: 'keep' | 'auto-skip' | 'challenged-skip', category?, reason?, suggestedReply? }
+{ filePath?, line?, commentBody, author, verdict: 'keep' | 'auto-skip' | 'challenged-skip', category?, reason?, suggestedReply? }
 ```
+
+`filePath` and `line` are absent for general PR conversation comments (GitHub `issueComments`), which have no file
+location, so the classifier represents them without inventing coordinates.
 
 The optional fields follow the verdict: `keep` sets no `category`, `reason`, or `suggestedReply`; `auto-skip` sets
 `category` to `noise` or `resolved` with no `reason` or `suggestedReply`; `challenged-skip` sets `category` to one of
