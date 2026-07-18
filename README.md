@@ -155,7 +155,7 @@ using the single contract in `skills/shared/dispatch.md`.
 | `setup`                | Setup interview - write YAML profiles, render docs/PROJECT_CONTEXT.md                  |
 | `sync`                 | Scaffold or check project files - create missing docs, profiles, scripts               |
 | `repo-scan`            | Detect stack, auth, build commands from existing codebase                              |
-| `migrate-docs`         | Migrate pre-existing docs/notes into the ritus document standard - runs after setup/repo-scan |
+| `migrate-docs`         | Migrate pre-existing docs/notes into the ritus document standard                       |
 
 ### Standard skills (loaded alongside workflow skills when applicable)
 
@@ -251,6 +251,7 @@ skills/
   pr-review/SKILL.md
   address-feedback/SKILL.md
   wrap-up/SKILL.md
+  comprehension/SKILL.md
   shared/
     dispatch.md              ← TODO dispatch contract (spawn-then-invoke, run configs, Handoff convention)
     remote-api-access.md     ← remote API rules (shared by ticket-review + pr-review + address-feedback)

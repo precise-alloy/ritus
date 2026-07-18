@@ -1,6 +1,6 @@
 ---
 name: migrate-docs
-description: Use when adopting ritus in a project that already has notes - migrate pre-existing Markdown docs and notes into the ritus document standard. TRIGGER - invoke when the user says "migrate docs", "import workflow files", "migrate my notes", or points at existing docs to bring into ritus. Runs after setup and repo-scan.
+description: Use when adopting ritus in a project that already has notes - migrate pre-existing Markdown docs and notes into the ritus document standard. TRIGGER - invoke when the user says "migrate docs", "import workflow files", "migrate my notes", or points at existing docs to bring into ritus. Use after setup and repo-scan.
 argument-hint: Provide the source file, directory, or list of files to migrate (defaults to scanning the project for stray notes)
 ---
 
@@ -18,8 +18,10 @@ design notes) and wants them in the ritus document standard. Triggers: `migrate 
 
 Run this **after `setup` -> `repo-scan`** - it is the last onboarding step. setup writes the profiles and repo-scan
 fills what it detects from the codebase; migrate-docs then brings the human-written notes in on top. Sequencing it last
-means the detected facts already exist, so migrated notes append cleanly instead of colliding with them. If the ritus
-docs do not exist yet (no `docs/` structure), tell the user to run `setup` (or `sync`) first, then return here.
+means the detected facts already exist, so migrated notes append cleanly instead of colliding with them. Running
+`setup` -> `repo-scan` first is recommended (so the detected facts already exist), but not required: if the ritus
+docs do not exist yet (no `docs/` structure), Step 5 scaffolds the target files via `sync` before writing, so
+migrate-docs proceeds without an early return.
 
 When starting migrate-docs, create this TODO - **every item below, verbatim** - and mark items done as you go:
 
@@ -56,8 +58,11 @@ keeps categorization sharp and leaves owner-generated files untouched.
 ## Step 1 - gather sources
 
 Accept a file, a directory, or a list of files from the user's argument. If none is given, scan the project root and
-`docs/` for stray Markdown / notes that are not already part of the ritus standard. Read only Markdown and plain-text
-sources; list any other format (YAML, JSON) as unmapped - v1 does not parse them.
+`docs/` for stray Markdown / notes that are not already part of the ritus standard. Limit the scan to likely note
+files (`*.md`, `*.markdown`, `*.txt`, and AI-memory files like `CLAUDE.md`) and skip large or generated directories
+(`node_modules`, `vendor`, `dist`, `build`, `.git`) so the scan stays fast and never ingests third-party or generated
+docs. Read only Markdown and plain-text sources; list any other format (YAML, JSON) as unmapped - v1 does not parse
+them.
 
 This step is **read-only**. Write nothing until the confirmation gate in Step 4. Reading everything before proposing a
 plan lets the user see the whole picture and correct the mapping in one pass.
@@ -101,7 +106,8 @@ Let the user correct any mapping. Proceed only after the user approves.
 After approval:
 
 1. Ensure the 7 target files exist by running the `sync` scaffold in apply mode (a no-op when they already exist).
-   Find the sync script per the `sync` skill. Scaffolding first guarantees a well-formed target to write into.
+   Find the sync script per the `sync` skill. Scaffolding first guarantees a well-formed target to write into, and
+   covers a project that has no docs/ structure yet.
 2. Write each approved section into its target. A target's **kind decides how, and takes precedence over whether the
    file already has content**:
    - **Prose targets** (`docs/ARCHITECTURE.md`, `docs/CODE_CONVENTIONS.md`, `docs/TEST_CONVENTIONS.md`,
