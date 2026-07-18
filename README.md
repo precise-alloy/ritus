@@ -115,7 +115,7 @@ missing project files. Run the setup again to create any new files. Existing use
 
 | Component | What it contains           |
 |-----------|----------------------------|
-| 20 skills | Workflow + standard skills |
+| 21 skills | Workflow + standard skills |
 
 **By setup / repo-scan (user-owned in target project):**
 
@@ -155,6 +155,7 @@ using the single contract in `skills/shared/dispatch.md`.
 | `setup`                | Setup interview - write YAML profiles, render docs/PROJECT_CONTEXT.md                  |
 | `sync`                 | Scaffold or check project files - create missing docs, profiles, scripts               |
 | `repo-scan`            | Detect stack, auth, build commands from existing codebase                              |
+| `migrate-docs`         | Migrate pre-existing docs/notes into the ritus document standard                       |
 
 ### Standard skills (loaded alongside workflow skills when applicable)
 
@@ -250,6 +251,7 @@ skills/
   pr-review/SKILL.md
   address-feedback/SKILL.md
   wrap-up/SKILL.md
+  comprehension/SKILL.md
   shared/
     dispatch.md              ← TODO dispatch contract (spawn-then-invoke, run configs, Handoff convention)
     remote-api-access.md     ← remote API rules (shared by ticket-review + pr-review + address-feedback)
@@ -258,6 +260,7 @@ skills/
   sync/SKILL.md
     script/sync.ts               ← project file scaffolding script
   repo-scan/SKILL.md
+  migrate-docs/SKILL.md
   code-conventions/SKILL.md
   testing-policy/SKILL.md
   tdd/SKILL.md
