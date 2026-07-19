@@ -1,6 +1,6 @@
 import type { EnvMapping, Provider, RequestHeaders } from './types.ts';
 import { basicAuth, requestJson, resolveEnv, safeDecode } from './http.ts';
-import { sanitizeAdoWorkItem, sanitizeAdoComment, sanitizeAdoUpdate, sanitizeAdoPr } from './sanitize.ts';
+import { sanitizeAdoWorkItem, sanitizeAdoComment, sanitizeAdoUpdate, sanitizeAdoPr, sanitizeAdoPrThread } from './sanitize.ts';
 
 const ADO_API_VERSION = '7.0';
 const ADO_COMMENTS_API_VERSION = '7.0-preview.4';
@@ -199,6 +199,32 @@ async function getAdoPr(target: string, extra?: string, envMapping?: EnvMapping)
   };
 }
 
+async function getAdoPrThreads(target: string, extra?: string, envMapping?: EnvMapping): Promise<unknown> {
+  const env = envMapping ?? ADO_DEFAULT_ENV;
+  const parsed = parseAzureDevOpsPrUrl(target, env);
+  const limit = parseLimit(extra);
+  // Reuse adoPrUrl so a bare PR id (parsed.repository === undefined) uses the repo-less
+  // /_apis/git/pullrequests/{id} form instead of emitting a literal "undefined" (Bug 1).
+  // The ADO "Pull Request Threads - List" endpoint is NOT server-paginated: it has no
+  // $top/$skip and returns every thread in one response with a `count` field (DECISION-055),
+  // so we issue a single request and report `count` as the total (Bug 2).
+  const url = `${adoPrUrl(parsed)}/threads?api-version=${ADO_API_VERSION}`;
+
+  const result = (await requestJson(url, adoHeaders(env))) as { count?: number; value?: unknown[] };
+  const allThreads = (result?.value ?? []).map(sanitizeAdoPrThread);
+  const threads = takeLatest(allThreads, limit, 'publishedDate');
+
+  return {
+    request: parsed,
+    ...(limit ? { limit } : {}),
+    threads: {
+      total: result?.count ?? allThreads.length,
+      returned: threads.length,
+      threads,
+    },
+  };
+}
+
 function parseLimit(extra?: string): number | undefined {
   if (!extra) return undefined;
   const n = parseInt(extra, 10);
@@ -305,6 +331,7 @@ export const adoProvider: Provider = {
   defaultEnvMapping: ADO_DEFAULT_ENV,
   actions: {
     'pr': getAdoPr,
+    'pr-threads': getAdoPrThreads,
     'issue': getAdoWorkItem,
     'comments': getAdoWorkItemComments,
     'changelog': getAdoWorkItemUpdates,
@@ -312,7 +339,7 @@ export const adoProvider: Provider = {
   canHandleTarget(action: string, target: string): boolean {
     if (!Object.hasOwn(this.actions, action)) return false;
 
-    if (action === 'pr') {
+    if (action === 'pr' || action === 'pr-threads') {
       if (/^\d+$/.test(target)) return true;
       try {
         const url = new URL(target);
@@ -337,6 +364,7 @@ export const adoProvider: Provider = {
   },
   usageLines: (cmd) => [
     `${cmd} ado pr <pull-request-url-or-id>`,
+    `${cmd} ado pr-threads <pull-request-url-or-id> [count]`,
     `${cmd} ado issue <work-item-url-or-id> [fields]`,
     `${cmd} ado comments <work-item-url-or-id> [count]`,
     `${cmd} ado changelog <work-item-url-or-id>`,
@@ -346,6 +374,7 @@ export const adoProvider: Provider = {
     const wiUrl = process.env.EXAMPLE_ADO_WORK_ITEM_URL || 'https://dev.azure.com/your-org/your-project/_workitems/edit/12345';
     return [
       `${cmd} ado pr ${prUrl}`,
+      `${cmd} ado pr-threads ${prUrl}`,
       `${cmd} ado issue ${wiUrl}`,
       `${cmd} ado issue ${wiUrl} System.Title,System.State,System.Description`,
       `${cmd} ado comments ${wiUrl}`,

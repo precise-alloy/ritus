@@ -659,3 +659,72 @@ export function sanitizeAdoPr(raw: unknown): unknown {
 
   return stripNullish(pr);
 }
+
+function cleanAdoPrThreadComment(raw: unknown): unknown {
+  if (!isObject(raw)) return raw;
+  const c = raw as AnyObject;
+  return stripNullish({
+    author: flattenAdoIdentity(c.author),
+    content: c.content,
+    commentType: c.commentType,
+    publishedDate: c.publishedDate,
+  });
+}
+
+// Pick the chronologically latest parseable ISO date string from a list.
+// Uses Date.parse (not a lexicographic string sort) so mixed/offset timestamps
+// compare correctly, and ignores values that do not parse (Bug 3).
+function latestParsableDate(values: unknown[]): string | undefined {
+  let best: string | undefined;
+  let bestMs = Number.NEGATIVE_INFINITY;
+  for (const value of values) {
+    if (typeof value !== 'string' || value.length === 0) continue;
+    const ms = Date.parse(value);
+    if (Number.isNaN(ms)) continue;
+    if (ms > bestMs) {
+      bestMs = ms;
+      best = value;
+    }
+  }
+  return best;
+}
+
+export function sanitizeAdoPrThread(raw: unknown): unknown {
+  if (!isObject(raw)) return raw;
+  const thread = raw as AnyObject;
+
+  const cleaned: AnyObject = {
+    id: thread.id,
+    status: thread.status,
+  };
+
+  if (isObject(thread.threadContext)) {
+    const ctx = thread.threadContext as AnyObject;
+    cleaned.threadContext = stripNullish({
+      filePath: ctx.filePath,
+      rightFileStart: ctx.rightFileStart,
+      rightFileEnd: ctx.rightFileEnd,
+    });
+  }
+
+  if (Array.isArray(thread.comments)) {
+    cleaned.comments = (thread.comments as unknown[]).map(cleanAdoPrThreadComment);
+  }
+
+  // Roll up a thread-level publishedDate for recency ordering by takeLatest.
+  // Prefer the latest parseable comment date (Bug 3); when no comment carries a
+  // usable date (system threads, votes, status changes), fall back to the thread's
+  // own lastUpdatedDate, then publishedDate, so every thread has a stable sort key (Bug 4).
+  const commentDates = Array.isArray(thread.comments)
+    ? (thread.comments as unknown[]).filter(isObject).map(c => (c as AnyObject).publishedDate)
+    : [];
+  const rolledUpDate =
+    latestParsableDate(commentDates) ??
+    (typeof thread.lastUpdatedDate === 'string' ? thread.lastUpdatedDate : undefined) ??
+    (typeof thread.publishedDate === 'string' ? thread.publishedDate : undefined);
+  if (rolledUpDate !== undefined) {
+    cleaned.publishedDate = rolledUpDate;
+  }
+
+  return stripNullish(cleaned);
+}

@@ -60,6 +60,13 @@ bun run "<plugin-root>/scripts/remote-api.ts" comments "<PR_URL>" [count]
 bun run "<plugin-root>/scripts/remote-api.ts" comments "<PR_URL>" unresolved
 ```
 
+For ADO PR review threads (Azure DevOps only - for ADO, `comments` returns work-item
+comments, not PR review threads):
+
+```bash
+bun run "<plugin-root>/scripts/remote-api.ts" ado pr-threads "<PR_URL>" [count]
+```
+
 If auto-detection fails, fall back to explicit provider syntax (e.g., `github pr`, `ado pr`).
 
 If the provider returns `401`, `403`, or a permission-style `404`, stop and ask the user to verify remote access.
