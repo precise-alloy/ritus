@@ -671,19 +671,30 @@ function cleanAdoPrThreadComment(raw: unknown): unknown {
   });
 }
 
-// Pick the chronologically latest parseable ISO date string from a list.
-// Uses Date.parse (not a lexicographic string sort) so mixed/offset timestamps
-// compare correctly, and ignores values that do not parse (Bug 3).
+// Normalize an ISO date string to canonical UTC (Z) form so later lexicographic
+// ordering (takeLatest) matches chronological order. Returns undefined when the
+// value is not a non-empty parseable date string.
+function normalizeUtcDate(value: unknown): string | undefined {
+  if (typeof value !== 'string' || value.length === 0) return undefined;
+  const ms = Date.parse(value);
+  if (Number.isNaN(ms)) return undefined;
+  return new Date(ms).toISOString();
+}
+
+// Pick the chronologically latest parseable date from a list, normalized to
+// canonical UTC (Z) form. Uses Date.parse (not a lexicographic string sort) so
+// mixed/offset timestamps compare correctly, and ignores values that do not
+// parse (Bug 3).
 function latestParsableDate(values: unknown[]): string | undefined {
   let best: string | undefined;
   let bestMs = Number.NEGATIVE_INFINITY;
   for (const value of values) {
-    if (typeof value !== 'string' || value.length === 0) continue;
-    const ms = Date.parse(value);
-    if (Number.isNaN(ms)) continue;
+    const normalized = normalizeUtcDate(value);
+    if (normalized === undefined) continue;
+    const ms = Date.parse(normalized);
     if (ms > bestMs) {
       bestMs = ms;
-      best = value;
+      best = normalized;
     }
   }
   return best;
@@ -711,15 +722,19 @@ export function sanitizeAdoPrThread(raw: unknown): unknown {
     cleaned.comments = (thread.comments as unknown[]).map(cleanAdoPrThreadComment);
   }
 
-  // Roll up a thread-level publishedDate for recency ordering by takeLatest.
-  // Prefer the latest parseable comment date (Bug 3); when no comment carries a
-  // usable date (system threads, votes, status changes), fall back to the thread's
-  // own lastUpdatedDate, then publishedDate, so every thread has a stable sort key (Bug 4).
+  // Roll up a thread-level publishedDate for recency ordering by takeLatest, which
+  // sorts these values lexicographically - so every tier is normalized to canonical
+  // UTC (Z) form. Prefer the latest parseable comment date (Bug 3); when no comment
+  // carries a usable date (system threads, votes, status changes), fall back to the
+  // thread's own lastUpdatedDate, then publishedDate, normalized the same way, keeping
+  // a raw string only as a last resort so every thread still has a stable sort key (Bug 4).
   const commentDates = Array.isArray(thread.comments)
     ? (thread.comments as unknown[]).filter(isObject).map(c => (c as AnyObject).publishedDate)
     : [];
   const rolledUpDate =
     latestParsableDate(commentDates) ??
+    normalizeUtcDate(thread.lastUpdatedDate) ??
+    normalizeUtcDate(thread.publishedDate) ??
     (typeof thread.lastUpdatedDate === 'string' ? thread.lastUpdatedDate : undefined) ??
     (typeof thread.publishedDate === 'string' ? thread.publishedDate : undefined);
   if (rolledUpDate !== undefined) {
