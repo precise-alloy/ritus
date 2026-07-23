@@ -91,7 +91,7 @@ Report done only after:
 1. All applicable hard gates above checked
 2. Every DONE WHEN item addressed - implemented and self-checked with the build/test/lint you ran (independent
    verification of each condition is the verify-task gate, not self-verification)
-3. DOC UPDATE completed per doc trigger matrix in `ticket-review` skill
+3. DOC UPDATE completed per doc trigger matrix in `task-generation` skill
 4. Output block in execute-task format produced
 
 ## Handoff

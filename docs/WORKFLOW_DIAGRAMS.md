@@ -31,7 +31,7 @@ flowchart TD
     Report -->|"Done"| TrivialDone(["🧑 human commits"])
     Report -->|"Follow-up changes"| InputType
 
-    Class -->|SIMPLE| GT["ticket-review\n(STANDARD/EPIC → requirement-analysis 🤖)"]
+    Class -->|SIMPLE| GT["ticket-review\n(STANDARD/EPIC → requirement-analysis 🤖\n+ task-generation 🤖)"]
     Class -->|STANDARD| GT
     Class -->|EPIC| GT
 
@@ -231,8 +231,14 @@ flowchart LR
         RA["requirement-analysis skill 🤖\nread-heavy analysis, drafts review doc"]
     end
 
+    subgraph "Fresh Subagent - per triage"
+        TG["task-generation skill 🤖\ngenerates task files + execution plan"]
+    end
+
     B -- "STANDARD/EPIC: dispatch analysis" --> RA
     RA -- "review doc + findings" --> B
+    B -- "STANDARD/EPIC: dispatch generation" --> TG
+    TG -- "task files + execution plan" --> B
     B -- "dispatch per task" --> C
     C -- "dispatch per task" --> V
     V -- "PASS / FAIL" --> B

@@ -115,7 +115,7 @@ missing project files. Run the setup again to create any new files. Existing use
 
 | Component | What it contains           |
 |-----------|----------------------------|
-| 21 skills | Workflow + standard skills |
+| 22 skills | Workflow + standard skills |
 
 **By setup / repo-scan (user-owned in target project):**
 
@@ -145,6 +145,7 @@ using the single contract in `skills/shared/dispatch.md`.
 | `triage`               | Classify changes by blast radius, contract impact, validation clarity                  |
 | `ticket-review`        | Analyze requirements (plain text or ticket) → produce task files                       |
 | `requirement-analysis` | Read-heavy analysis + draft review doc (dispatched by ticket-review for STANDARD/EPIC) |
+| `task-generation`      | Generate task files + execution plan from the approved review doc (dispatched by ticket-review for STANDARD/EPIC) |
 | `execute-task`         | Implement a task file - load context, implement steps, report                          |
 | `verify-task`          | Independent per-task verification (dispatched as fresh cheap model subagent)            |
 | `pr-review`            | Adversarial review at ticket/PR level (dispatched as fresh standard model subagent)     |
@@ -192,7 +193,7 @@ The TODO is the single control surface. Each skill ends with a `## Handoff` that
 - **Orchestrators** (`ticket-review`, `address-feedback`, `debug`) create/own the driving TODO and apply TODO updates from worker verdicts.
 - **Routing** (`start-ritus`, `brainstorm`, `triage`) direct to the next skill (typically `invoke <skill>`).
 - **Workers** (`execute-task`, `verify-task`, `pr-review`) run as dispatched subagents and only report a verdict + follow-up.
-- **Intra-skill worker** (`requirement-analysis`) is dispatched by `ticket-review` (not a driving-TODO item).
+- **Intra-skill workers** (`requirement-analysis`, `task-generation`) are dispatched by `ticket-review` (not driving-TODO items) - analysis before the review gate, generation after the completeness gate.
 - The **main thread** owns and walks the TODO top to bottom - dispatching each `dispatch <skill> subagent` item as
   a fresh, independent subagent and running each `invoke <skill>` item inline.
 
@@ -244,8 +245,10 @@ skills/
   brainstorm/SKILL.md
   triage/SKILL.md
   ticket-review/SKILL.md
-    templates/               ← review doc, task file, QA, EPIC memory templates
+    templates/               ← review doc + exploration templates
   requirement-analysis/SKILL.md  ← read-heavy analysis worker (dispatched by ticket-review)
+  task-generation/SKILL.md       ← task-file generation worker (dispatched by ticket-review)
+    templates/               ← task file, QA, EPIC memory templates
   execute-task/SKILL.md
   verify-task/SKILL.md
   pr-review/SKILL.md

@@ -69,7 +69,7 @@ environment setup, and error handling.
 - [ ] Skill files updated if public interface changed (per skill maintenance rules in context)
 - [ ] Load `testing-policy` skill - required test types present
 - [ ] Load `security` skill - gates pass (if auth/billing/tenant touched)
-- [ ] QA file verified per `qa-files.md` rules (if QA mode active)
+- [ ] QA file verified per `skills/task-generation/templates/qa-files.md` rules (if QA mode active)
 - [ ] Adversarial pass completed - at least one fault-injection scenario attempted per changed method
 - [ ] Every acceptance criterion mapped to a specific `file:line` or marked missing
 - [ ] Blast radius analysis - all upstream callers of changed interfaces verified

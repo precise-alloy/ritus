@@ -39,8 +39,10 @@ update.)
   **Dispatch rule** below - a worker can't mutate the TODO it doesn't own. Happy path: nothing to append.
 - **Routing** (`brainstorm`, `triage`, `wrap-up`) set the next step as `invoke <skill>` (`wrap-up` → `invoke comprehension`).
 - **Terminal** (`comprehension`) has no update.
-- **Intra-skill worker** (`requirement-analysis`) is spawned by another skill (ticket-review), not from the driving
-  TODO; it reports its result to that skill and has no driving-TODO update (see **Subagent configs**).
+- **Intra-skill workers** (`requirement-analysis`, `task-generation`) are spawned by another skill (ticket-review),
+  not from the driving TODO; each reports its result to that skill and has no driving-TODO update (see
+  **Subagent configs**). `requirement-analysis` runs in ticket-review's analysis step; `task-generation` runs after
+  its completeness gate.
 
 A TODO item is executed by the main thread as one of:
 
@@ -84,7 +86,7 @@ bottom; for each **dispatch `<skill>` subagent** item:
 
 This table is the main thread's authority; each worker's own `## Handoff` names the same outcome so it also holds
 when the worker is invoked standalone. When a `Fix` item follows pr-review findings, first create a SIMPLE fix task
-from those findings (SIMPLE template in `skills/ticket-review/templates/task-files.md`; one DONE WHEN checkbox per
+from those findings (SIMPLE template in `skills/task-generation/templates/task-files.md`; one DONE WHEN checkbox per
 finding + compile + scope) for the execute-task subagent.
 
 **Circuit breaker (cap the fix loop at 3 attempts):** if the same finding recurs across 2 consecutive fix cycles, or 3
@@ -94,9 +96,10 @@ user - the issue needs a design discussion, not another fix attempt.
 ## Subagent configs (per-worker run config)
 
 The worker skills the main thread spawns. Main-thread skills (`brainstorm`, `triage`, `ticket-review`,
-`address-feedback`, `debug`, `wrap-up`, `comprehension`) run inline and are not spawned - except that `ticket-review` itself spawns
-`requirement-analysis` during its analysis step (an intra-skill dispatch: the worker reports its analysis back to
-ticket-review and is not a driving-TODO item, so it has no outcome-table row).
+`address-feedback`, `debug`, `wrap-up`, `comprehension`) run inline and are not spawned - except that `ticket-review` itself spawns two intra-skill workers:
+`requirement-analysis` during its analysis step and `task-generation` after its completeness gate (each is an
+intra-skill dispatch: the worker reports back to ticket-review and is not a driving-TODO item, so neither has an
+outcome-table row).
 
 **Model capability, not model names.** Each worker names one of `cheap`, `standard`, or `most capable` -
 never a vendor model ID. Map it to the best-matching model your platform offers:
@@ -130,3 +133,4 @@ the highest-leverage phase. Main-thread inline skills are never routed - they ru
 | `verify-task` | per routing (review) | per routing (review) | Read, Grep, Glob, Bash | Defaults cheap/medium if unset; read-only except build/test/lint; never fix; never trust implementer claims |
 | `pr-review` | per routing (review) | per routing (review) | Read, Grep, Glob, Bash, `web fetch` | Defaults standard/high if unset; adversarial; never apply fixes; use `origin/` refs; default to "Request changes" |
 | `requirement-analysis` | most capable | high | Read, Grep, Glob, Bash, Write (review doc / exploration / DECISIONS only) | Best-effort planning (top capability regardless of triage); read-only otherwise; non-interactive (defer questions to `[NEEDS CLARIFICATION]`); spawned by ticket-review |
+| `task-generation` | standard | medium | Read, Grep, Glob, Bash, Write (task files / QA files / EPIC memory only) | Converts the approved review doc into task files + execution plan; non-interactive; findings-not-dumps; session model by default (no most-capable pin); spawned by ticket-review after its completeness gate |

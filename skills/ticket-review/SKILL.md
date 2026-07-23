@@ -22,7 +22,7 @@ TODO:
 - [ ] Analyze requirement - STANDARD/EPIC: dispatch requirement-analysis subagent; SIMPLE: inline
 - [ ] Review document ready (confirm/finalize) + user review gate
 - [ ] Completeness gate
-- [ ] Generate task files + self-review
+- [ ] Generate task files - SIMPLE: inline; STANDARD/EPIC: dispatch task-generation subagent
 - [ ] Using `dispatch.md`, create the execution TODO, and dispatch
 ```
 
@@ -105,132 +105,39 @@ If any check fails, resolve it before generating task files. Ask the user if nee
 
 ## Step 5: Generate Task Files
 
-Convert the analyzed requirements into task files + execution plan.
+**SIMPLE (plain-text requirement)** - write the 3-section task note inline (TASK + DONE WHEN + VERIFY) using
+`skills/task-generation/templates/task-files.md`. No subagent.
 
-Read `templates/task-files.md` in this skill's directory for SIMPLE and STANDARD/EPIC templates.
+**STANDARD / EPIC** - after the completeness gate (Step 4) passes, **dispatch a `task-generation` subagent** (load
+`dispatch.md` in the `shared` skill directory for the run config), handing over:
 
-### Classification
+- the approved review-document path;
+- the exploration-log path (`docs/tasks/{branch-slug}/exploration.md`);
+- the branch slug - current git branch with `/` → `-` (e.g. `feat/PROJ-42-auth` → `feat-PROJ-42-auth`);
+- the classification (STANDARD/EPIC, including any EPIC upgrade from Step 2);
+- the QA mode (from `docs/PROJECT_CONTEXT.md`; off when absent).
 
-Use the classification level assigned by triage - including any EPIC upgrade applied in Step 2 from the
-`requirement-analysis` classification signal (multi-session work, multiple modules, or new architecture patterns
-surfaced during analysis). Map to task file format:
-
-| Level        | Task file format                     |
-|--------------|--------------------------------------|
-| **SIMPLE**   | 3-section: TASK + DONE WHEN + VERIFY |
-| **STANDARD** | Full task file                       |
-| **EPIC**     | Full task file + memory file         |
-
-### Granularity rule
-
-One task = one logical change.
-Merge when: same module, no inter-dependency, no shell needed.
-Split when: different executor needed, true sequential dependency.
-
-### Naming convention
-
-See docs/PROJECT_CONTEXT.md `## Team conventions` for tasks/ path convention.
+It generates the task files under `docs/tasks/{branch-slug}/` (plus QA files and an EPIC memory file when applicable),
+runs the self-review, drafts the execution plan, and returns the task-file paths + execution plan + coverage summary -
+keeping template reads, generated task text, path-verification greps, and cross-task consistency off the main thread,
+which owns the task-file approval gate and dispatch below.
 
 **Branch slug rule:** take current git branch name, replace `/` with `-`.
 Example: `feat/PROJ-42-auth-refresh` → slug `feat-PROJ-42-auth-refresh`
 
-**Hard rules:**
-
-- One task file per logical change - never bundle unrelated changes
-- Task files live in `docs/tasks/` - never in project source directories
-- Do not touch another branch's task directory
-
-### QA files
-
-Read `templates/qa-files.md` in this skill's directory for QA file formats and rules.
-
-### EPIC memory file
-
-For EPIC work, read `templates/epic-memory.md` in this skill's directory for the memory file template.
-
-## Doc trigger matrix
-
-**Meta-rule:** Update docs only when the change affects how future humans or agents understand, navigate, or safely
-modify the system.
-
-| Change type                   | `docs/CUTOFF.md` | `docs/ARCHITECTURE.md` | `docs/DECISIONS.md` | `docs/LESSONS.md`      | `.qa.md`        |
-|-------------------------------|------------------|------------------------|---------------------|------------------------|-----------------|
-| Bug fix                       | ❌                | ❌                      | ❌                   | ✅ if dangerous pattern | ✅ if QA mode on |
-| New endpoint                  | ✅                | ❌                      | ❌                   | ❌                      | ✅ if QA mode on |
-| New module                    | ✅                | ✅                      | optional            | ❌                      | ✅ if QA mode on |
-| New arch pattern / decision   | ❌                | ✅                      | ✅                   | ❌                      | ✅ if QA mode on |
-| Config / env change           | ✅                | ❌                      | optional            | ❌                      | ❌               |
-| Refactor (no contract change) | ❌                | ❌                      | ❌                   | ❌                      | ✅ if QA mode on |
-| Auth / error / build changed  | ❌                | ❌                      | ✅                   | ❌                      | ❌               |
-
-## Execution plan
-
-Always output this block in chat after task files are created. Group tasks by dependency:
-
-- **Parallel group**: tasks with no overlapping writable files. Can run simultaneously.
-- **Sequential**: tasks that depend on a previous group's output or share writable files.
-
-Determine grouping by checking overlap across CONTEXT files, DOC UPDATE paths, and related test files. If two tasks
-share any writable file, they must be sequential. SIMPLE tasks (no CONTEXT section) always go in a sequential group.
-
-```markdown
-## Execution plan
-
-### Group 1 (parallel):
-
-- docs/tasks/<slug>/001-name.md
-- docs/tasks/<slug>/002-name.md
-
-### Group 2 (after group 1):
-
-- docs/tasks/<slug>/003-name.md
-
-### Batch commit message:
-
-type(scope): overall subject
-
-- task 1 summary
-- task 2 summary
-
-Breaking: none
-Migration: none
-```
+**Hard rules (the subagent enforces; you confirm on return):** one task file per logical change; task files live in
+`docs/tasks/{branch-slug}/`, never in source dirs; never touch another branch's task directory.
 
 ## Hard rules
 
 - Triage before generating task files - no exceptions
-- SIMPLE: 3-section task note (TASK + DONE WHEN + VERIFY)
+- SIMPLE: 3-section task note (TASK + DONE WHEN + VERIFY), written inline
 - Safety override (changes touching auth, billing, migrations, tenant isolation, infra, or shared contracts) is non-negotiable - always upgrade to STANDARD
-- No executor field in task files
-- STANDARD/EPIC: output file paths + execution plan in chat
-- No negative instructions in STEPS
+- STANDARD/EPIC: `task-generation` writes the task files; the main thread presents the returned file paths + execution plan in chat
 - No full repo scan
-- GOAL = expected outcome only, no implementation details
 - `Last Reviewed` datetime (UTC) is mandatory in every review file
-- If anything is unclear, flag it with `[NEEDS CLARIFICATION]` - do not assume. All markers must be resolved
-  before task generation
+- If anything is unclear, flag it with `[NEEDS CLARIFICATION]` - do not assume. All markers must be resolved before task generation
 - Security and compliance concerns must always be raised explicitly
-
-## Self-review
-
-Before presenting task files to the user, run this checklist yourself:
-
-1. **Requirement coverage** - skim each acceptance criterion from the requirement source. Can you point to a task that
-   implements it? List any gaps.
-2. **DONE WHEN completeness** - every task has at least one diff-checkable and one command-checkable condition. No
-   vague conditions ("works correctly", "handles errors").
-3. **CONTEXT accuracy** - every file path in CONTEXT `files` exists (grep to confirm). No hallucinated paths.
-4. **Cross-task consistency** - do function names, type names, and file paths used across tasks match? A function
-   called `validateToken` in task 1 but `verifyToken` in task 3 is a bug. Check INTERFACES: each task's `Consumes`
-   block matches a sibling task's `Produces` block - same names, parameters, and return types.
-5. **No placeholders** - search for `TBD`, `TODO`, `[NEEDS CLARIFICATION]`, `implement later`, and hand-wave steps
-   like "add appropriate error handling", "handle edge cases", "similar to task N" (without repeating the code), or
-   "write tests for the above" (without the test code). All must be resolved with concrete content.
-6. **Spec-grade sections present** - every STANDARD/EPIC task states CONSTRAINTS (or "none"), INTERFACES
-   `Consumes`/`Produces` (or "none"), and NON-GOALS.
-
-If you find issues, fix them inline. No need to re-review - just fix and move on. If you find a requirement with no
-task, add the task.
 
 ## Handoff
 
@@ -243,8 +150,8 @@ task, add the task.
 effort), which you need to spawn the subagents below. If you took the plain-text SIMPLE path (inline analysis, no
 subagent), load it now.
 
-After self-review, **present the task files and execution plan to the user for review.** Do not dispatch subagents
-until the user approves. The user may adjust task scope, reorder priorities, or request changes.
+After `task-generation` returns, **present the returned task files and execution plan to the user for review.** Do not
+dispatch subagents until the user approves. The user may adjust task scope, reorder priorities, or request changes.
 
 Once the user approves:
 
