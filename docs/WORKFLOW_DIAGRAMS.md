@@ -31,7 +31,7 @@ flowchart TD
     Report -->|"Done"| TrivialDone(["🧑 human commits"])
     Report -->|"Follow-up changes"| InputType
 
-    Class -->|SIMPLE| GT["ticket-review\n(STANDARD/EPIC → requirement-analysis 🤖\n+ task-generation 🤖)"]
+    Class -->|SIMPLE| GT["ticket-review\nSIMPLE: inline\nSTANDARD/EPIC: requirement-analysis 🤖\n+ task-generation 🤖"]
     Class -->|STANDARD| GT
     Class -->|EPIC| GT
 
