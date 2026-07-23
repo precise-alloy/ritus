@@ -105,7 +105,7 @@ If any check fails, resolve it before generating task files. Ask the user if nee
 
 ## Step 5: Generate Task Files
 
-**SIMPLE (plain-text requirement)** - write the 3-section task note inline (TASK + DONE WHEN + VERIFY) using
+**SIMPLE (plain-text requirement)** - create a single SIMPLE task file under `docs/tasks/{branch-slug}/` (per naming conventions in `docs/PROJECT_CONTEXT.md`) using the SIMPLE template in
 `skills/task-generation/templates/task-files.md`. No subagent.
 
 **STANDARD / EPIC** - after the completeness gate (Step 4) passes, **dispatch a `task-generation` subagent** (load
