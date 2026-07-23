@@ -14,8 +14,8 @@ non-interactively AFTER human approval - never redesign the requirement or re-op
 
 Dispatched as a fresh subagent by `ticket-review` for STANDARD/EPIC changes after its completeness gate, to keep the
 template reads, the generated task text, the path-verification greps, and the cross-task consistency checks off the
-main thread. Not invoked directly by the user. For SIMPLE changes `ticket-review` writes the 3-section note inline
-instead of dispatching you.
+main thread. Not invoked directly by the user. For SIMPLE changes `ticket-review` writes a single SIMPLE task file
+(3 sections) itself (no subagent) instead of dispatching you.
 
 When starting task-generation, create this TODO - **every item below, verbatim** (never a single item named after the skill) - and mark items done as you complete them:
 
