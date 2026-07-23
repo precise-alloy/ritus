@@ -150,7 +150,7 @@ Example: `feat/PROJ-42-auth-refresh` → slug `feat-PROJ-42-auth-refresh`
 effort), which you need to spawn the subagents below. If you took the plain-text SIMPLE path (inline analysis, no
 subagent), load it now.
 
-After `task-generation` returns, **present the returned task files and execution plan to the user for review.** Do not
+After generating task files (SIMPLE: the single SIMPLE task file; STANDARD/EPIC: after `task-generation` returns), **present the task files and execution plan to the user for review.** Do not
 dispatch subagents until the user approves. The user may adjust task scope, reorder priorities, or request changes.
 
 Once the user approves:
