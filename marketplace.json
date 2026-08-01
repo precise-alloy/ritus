@@ -18,7 +18,12 @@
       "name": "ritus-frontend",
       "description": "Objective, re-runnable browser visual verification via Playwright MCP - runs standalone or alongside ritus",
       "version": "0.1.0",
-      "source": "https://github.com/precise-alloy/ritus-frontend/tree/feat/ritus-frontend-plugin"
+      "source": {
+        "source": "github",
+        "repo": "precise-alloy",
+        "ref": "feat/ritus-frontend-plugin",
+        "path": "./"
+      }
     }
   ]
 }
