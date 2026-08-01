@@ -34,7 +34,7 @@ A skill never executes its own update. (Companion standards also end with a `## 
 update.)
 
 - **Orchestrators** (`ticket-review`, `address-feedback`, `debug`) generate the run's TODO items up front.
-- **Workers** (`execute-task`, `verify-task`, `pr-review`) run as dispatched subagents: they **report a verdict** and
+- **Workers** (`execute-task`, `verify-task`, `e2e-plan`, `visual-verify`, `pr-review`) run as dispatched subagents: they **report a verdict** and
   name their follow-up (a fix cycle), which the **main thread applies** on their behalf per the outcome table in
   **Dispatch rule** below - a worker can't mutate the TODO it doesn't own. Happy path: nothing to append.
 - **Routing** (`brainstorm`, `triage`, `wrap-up`) set the next step as `invoke <skill>` (`wrap-up` → `invoke comprehension`).
@@ -80,6 +80,9 @@ bottom; for each **dispatch `<skill>` subagent** item:
 | `execute-task` → BLOCKED (a STEP is unclear or provably wrong) | apply a targeted correction to that task's STEPS that stays within the approved review doc, then re-dispatch `execute-task`; escalate to the user when the correction would change design or scope, or when the circuit breaker trips |
 | `verify-task` → PASS | nothing - the plan's next item runs |
 | `verify-task` → FAIL | `Fix - dispatch execute-task subagent`, then `Re-verify - dispatch verify-task subagent` |
+| `e2e-plan` → spec written / no UI work | present any generated `{ticket-id}-e2e-spec.md` for user review, then proceed to implementation; `visual-verify` runs before pr-review only if the spec exists |
+| `visual-verify` → PASS | nothing - continue to `pr-review` |
+| `visual-verify` → FAIL | create a SIMPLE fix task from the failing assertion, then `Fix - dispatch execute-task subagent`, `Verify - dispatch verify-task subagent`, then `Re-run - dispatch visual-verify subagent` (circuit breaker applies) |
 | `pr-review` → Approve | nothing - continue to `invoke wrap-up` |
 | `pr-review` → Request Changes | `Fix - dispatch execute-task subagent`, then `Verify - dispatch verify-task subagent`, then `Re-review - dispatch pr-review subagent` |
 | any worker → `BLOCKED` (insufficient reasoning power) | re-dispatch one step up the `cheap → standard → most capable` ladder; if already `most capable`, stop and escalate to the user (terminal - do not loop) |
@@ -130,7 +133,17 @@ the highest-leverage phase. Main-thread inline skills are never routed - they ru
 | Worker skill | Model capability | Effort | Tools | Key constraints |
 |----------|------------------|--------|-------|-----------------|
 | `execute-task` | per triage | per triage | all | Implement STEPS exactly; do not redesign |
-| `verify-task` | per routing (review) | per routing (review) | Read, Grep, Glob, Bash | Defaults cheap/medium if unset; read-only except build/test/lint; never fix; never trust implementer claims |
-| `pr-review` | per routing (review) | per routing (review) | Read, Grep, Glob, Bash, `web fetch` | Defaults standard/high if unset; adversarial; never apply fixes; use `origin/` refs; default to "Request changes" |
+| `verify-task` | per routing (review) | per routing (review) | Read, Grep, Glob, Bash | Defaults cheap/medium if unset; read-only except build/test/lint; never fix; never trust implementer claims; no browser tools - visual checks are a separate `visual-verify` worker |
+| `pr-review` | per routing (review) | per routing (review) | Read, Grep, Glob, Bash, `web fetch` | Defaults standard/high if unset; adversarial; never apply fixes; use `origin/` refs; default to "Request changes"; no browser tools - the `visual-verify` integration gate runs as a separate worker before pr-review |
+| `visual-verify` | per routing (review) | per routing (review) | Read, Grep, Glob, Bash, browser_navigate, browser_snapshot, browser_take_screenshot, browser_console_messages, browser_resize, browser_wait_for, browser_click, browser_type, browser_fill_form, browser_hover, browser_select_option, browser_press_key, browser_verify_element_visible, browser_verify_text_visible, browser_verify_value, browser_verify_list_visible | Defaults standard/medium if unset; the ONLY worker with browser tools; dispatched once per ticket before pr-review as an integration gate; allow-list MUST NOT include browser_run_code_unsafe or browser_evaluate (RCE-equivalent, default-on); receives the base URL from the main thread; reports PASS/FAIL/BLOCKED |
+| `e2e-plan` | per routing (review) | per routing (review) | Read, Grep, Glob, Bash, Write (`docs/tasks/{slug}/{ticket-id}-e2e-spec.md` only) | Companion (`ritus-frontend`); dispatched after task-generation for UI tickets; derives the per-ticket e2e/visual spec from the approved acceptance criteria (never a new requirement); no browser tools; non-interactive; session model by default |
 | `requirement-analysis` | most capable | high | Read, Grep, Glob, Bash, Write (review doc / exploration / DECISIONS only) | Best-effort planning (top capability regardless of triage); read-only otherwise; non-interactive (defer questions to `[NEEDS CLARIFICATION]`); spawned by ticket-review |
 | `task-generation` | standard | medium | Read, Grep, Glob, Bash, Write (task files / QA files / EPIC memory only) | Converts the approved review doc into task files + execution plan; non-interactive; findings-not-dumps; session model by default (no most-capable pin); spawned by ticket-review after its completeness gate |
+
+**Visual-verify base URL (runtime input).** Before dispatching the ticket-scope `visual-verify` integration pass, the
+main thread resolves the target **base URL once per run** - the dev-server port is a runtime fact (it may differ when
+the default port was busy) - and passes it to the `visual-verify` worker as an input, defaulting to an optional stable
+base URL in `.ritus/.env.local` when present. The e2e spec's `route` values stay port-independent. `visual-verify` is
+non-interactive: it never asks the user and never guesses the port - it reports BLOCKED when no base URL is provided.
+See the `visual-verify` skill. This ticket-scoped integration pass belongs to the `ticket-review` flow; UI fixes routed
+through `debug` or `address-feedback` instead rely on the definition-of-done browser-verification gate.

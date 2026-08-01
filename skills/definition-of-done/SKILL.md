@@ -61,7 +61,7 @@ checklists are additive - check all that apply to the current task.
 - [ ] Form inputs have associated labels (no unlabeled inputs)
 - [ ] Loading, error, and empty states handled (not just the happy path)
 - [ ] No hardcoded pixel values where relative units are expected (rem/em/% vs px)
-- [ ] Browser verification required - add to DONE WHEN: `Verified in browser at 375px and 1280px (human)`
+- [ ] Visual checkpoints verified by the `visual-verify` gate (ritus-frontend companion)
 
 ### Safety override changes (auth, billing, migrations, tenant isolation, infra config, shared contracts)
 
@@ -97,4 +97,3 @@ Report done only after:
 ## Handoff
 
 - **Report:** the standard applied to the parent skill's work.
-

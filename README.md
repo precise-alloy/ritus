@@ -14,7 +14,6 @@ A disciplined workflow for reliable AI-assisted development. Ritus uses skill-ba
 TODO-driven control flow, chain-based routing, and independent verification to work across Claude Code, GitHub Copilot,
 and any language or stack.
 
-
 ---
 
 ## Formula
@@ -57,6 +56,20 @@ AI Agent Workflow = Primary rules + Core workflow + Project profile + Runtime co
 /plugin marketplace browse precise-alloy-marketplace
 /plugin install ritus@precise-alloy-marketplace
 ```
+
+### Companion: ritus-frontend (optional)
+
+`ritus-frontend` adds autonomous browser visual verification for UI work. It ships a non-invocable `visual-verify`
+skill backed by the Playwright MCP server - a standalone worker dispatched once per ticket that drives a real browser
+and asserts UI state at your project's configured breakpoints - no human "looks-right" step. Install it alongside Ritus (the
+`precise-alloy-marketplace` was already added when you installed Ritus):
+
+Repo: [ritus-frontend](https://github.com/precise-alloy/ritus-frontend)
+
+Breakpoints come from `docs/PROJECT_CONTEXT.md` (detected during repo-scan, stored in `docs/profiles/project.yml`).
+When the companion is not installed or breakpoints are unconfigured, the visual-verify gate is skipped and UI tasks
+fall back to the definition-of-done browser-verification gate - which permits deferral only for logic-only or
+config-only changes, so visual work is flagged as unverified rather than passed on trust.
 
 After plugin install, tell your AI agent:
 

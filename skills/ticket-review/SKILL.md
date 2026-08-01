@@ -23,6 +23,7 @@ TODO:
 - [ ] Review document ready (confirm/finalize) + user review gate
 - [ ] Completeness gate
 - [ ] Generate task files - SIMPLE: inline; STANDARD/EPIC: dispatch task-generation subagent
+- [ ] Generate e2e-plan - dispatch e2e-plan subagent (only if the `ritus-frontend` companion is installed - i.e. its `e2e-plan`/`visual-verify` skills are available)
 - [ ] Using `dispatch.md`, create the execution TODO, and dispatch
 ```
 
@@ -168,15 +169,18 @@ TODO:
 - [ ] Implement task 002: <name> - dispatch execute-task subagent
 - [ ] Verify task 002 - dispatch verify-task subagent
   ...
+- [ ] Run visual verify integration pass - dispatch visual-verify subagent [include only if that e2e spec exists]
 - [ ] Run pr-review for full ticket - dispatch pr-review subagent
 - [ ] If pr-review approves: invoke wrap-up
 ```
 
 For parallel groups, list all tasks in the group together. Mark each item as subagents complete. If verify-task
-returns FAIL, add fix items inline before marking the original task done. If the final pr-review returns Request
-Changes (not Approve), the main thread runs the fix cycle from `dispatch.md`'s outcome table - create a SIMPLE fix
-task from the findings, then execute-task → verify-task → re-review, capped by the circuit breaker; wrap-up runs only
-after an Approve.
+returns FAIL, add fix items inline before marking the original task done. Dispatch the ticket-scope `visual-verify`
+integration pass only after all tasks verify; if it returns FAIL, run the same fix cycle (SIMPLE fix task →
+execute-task → verify-task → re-run visual-verify) before pr-review, capped by the circuit breaker. If the final
+pr-review returns Request Changes (not Approve), the main thread runs the fix cycle from `dispatch.md`'s outcome
+table - create a SIMPLE fix task from the findings, then execute-task → verify-task → re-review, capped by the
+circuit breaker; wrap-up runs only after an Approve.
 
 Then walk this driving TODO per the dispatch rule:
 

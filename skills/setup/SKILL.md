@@ -180,6 +180,7 @@ Ask:
 > (Jira · Azure DevOps · GitHub Issues · none)"
 
 Accept one or more ticket systems. For each, capture:
+
 - **type**: `jira` / `github` / `ado`
 
 Record primary format as: `{{TICKET_FORMAT}}` (scalar, backward compat - use the first ticket system's format, e.g. `PROJ-123` or `#123`; set to `none` if no systems).
@@ -216,12 +217,14 @@ The first instance uses default env var names. For additional instances, ask:
 > (Shared credentials like tokens/PATs can reuse the same env var - only instance-specific settings like base URLs need unique names.)
 
 Example with two Jira instances (same Atlassian account, different projects):
+
 ```
 {{TICKET_PROVIDERS}} = [
   {type: jira, name: primary, key_prefixes: ["AMPS"]},
   {type: jira, name: maintenance, key_prefixes: ["AMP"], env: {base_url: JIRA_AMP_BASE_URL}}
 ]
 ```
+
 The primary instance uses default env vars (`JIRA_BASE_URL`, `JIRA_PAT`, `JIRA_EMAIL`). The maintenance instance
 overrides only `base_url` - `pat` and `email` fall through to the defaults (same Atlassian account).
 
@@ -459,6 +462,10 @@ render the single line `No routing - all dispatched subagents run on the user-se
 render the matching strategy's two-section table from § Model routing table above (`cost-first` / `balanced` /
 `quality-first`). `model_routing` always stores just the name (the machine sentinel `dispatch` / `triage` key on);
 this step renders the human-readable note or table into `PROJECT_CONTEXT.md`.
+
+**Rendering `{{BREAKPOINTS}}`:** read `stack.breakpoints` from `project.yml`; render the list joined by a comma
+and space (e.g. `640px, 1024px, 1280px`) into the § Responsive breakpoints section. If the list is empty or unset,
+render `❓` — never guess `375px`/`1280px`.
 
 ### Step 5: Fill `docs/ARCHITECTURE.md` header
 

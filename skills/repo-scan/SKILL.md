@@ -51,12 +51,40 @@ stack:
   test_framework: <detected>
   frontend_framework: <detected>
   css_approach: <detected>
+  breakpoints: <detected list, or ❓>
   database: <detected>
   orm: <detected>
   deployment_target: <detected>
 ```
 
 Mark each found value. Mark each not found `❓` with a note of what to ask.
+
+---
+
+## Step 1b - detect responsive breakpoints
+
+Detect the project's responsive breakpoints from its stylesheet. Check, in order, whichever sources exist:
+
+| Source | Where to look | Extract |
+| --- | --- | --- |
+| CSS / SCSS media queries | grep stylesheets for `@media (min-width` / `@media (max-width` | the distinct pixel/rem widths |
+| Tailwind | `theme.screens` (and `theme.extend.screens`) in `tailwind.config.*` | each screen's width value |
+| SCSS variables / maps | `$breakpoint`-prefixed vars or a `$breakpoints` map (e.g. `map.get`) | each mapped width |
+
+Example greps:
+
+```sh
+grep -rEno "@media[^{]*\((min|max)-width:[^)]*\)" src 2>/dev/null | sort -u
+grep -rEn "screens\s*:" tailwind.config.* 2>/dev/null
+grep -rEn "\$breakpoint|\$breakpoints" src 2>/dev/null
+```
+
+Collect the distinct widths into the `stack.breakpoints` field as an ordered list of strings
+(e.g. `["640px", "1024px", "1280px"]`).
+
+No-guess rule: if none of the sources yield a breakpoint (CSS-in-JS with no stylesheet, unusual media-query syntax,
+or no responsive styles), record `breakpoints: ❓` with a note to ask the human. Never assume `375px`/`1280px` or
+any default — record `❓` so the value is never guessed downstream.
 
 ---
 

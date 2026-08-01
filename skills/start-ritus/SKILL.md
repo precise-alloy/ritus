@@ -4,7 +4,7 @@ description: Use when starting any conversation - establishes skill routing and 
 argument-hint: Provide the user's request so the router can choose the next applicable skill
 ---
 
-> **Subagent guard:** If you were dispatched as a subagent to run a worker skill per `skills/shared/dispatch.md` (verify-task, pr-review, execute-task, requirement-analysis, or task-generation), skip this skill entirely.
+> **Subagent guard:** If you were dispatched as a subagent to run a worker skill per `skills/shared/dispatch.md` (verify-task, pr-review, execute-task, visual-verify, e2e-plan, requirement-analysis, or task-generation), skip this skill entirely.
 > Run only the skill you were dispatched to execute.
 >
 > **Mandatory skill check:** Before responding to any task - including clarifying questions - check whether an available skill applies. If a skill covers your task, you **must** invoke it via your platform's skill mechanism. Do not skip this check. This is not optional.

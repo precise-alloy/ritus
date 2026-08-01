@@ -16,6 +16,9 @@ stack:
   test_framework: ""
   frontend_framework: ""
   css_approach: ""
+  # Responsive breakpoints detected by repo-scan (list of viewport widths, e.g. ["640px", "1024px"]).
+  # Leave [] (or ❓ after a scan that found none) — never guess 375/1280.
+  breakpoints: []
   database: ""
   orm: ""
   deployment_target: ""

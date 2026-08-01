@@ -23,6 +23,14 @@
 | Frontend/UI        | `{{FRONTEND_PATHS}}`           |
 | Generated/ignored  | `{{GENERATED_ARTIFACT_PATHS}}` |
 
+## Responsive breakpoints
+
+| Field       | Value             |
+|-------------|-------------------|
+| Breakpoints | `{{BREAKPOINTS}}` |
+
+<!-- Rendered from docs/profiles/project.yml stack.breakpoints. `❓` when none detected — never assume 375/1280. -->
+
 ## Build commands
 
 | Command             | What      |
