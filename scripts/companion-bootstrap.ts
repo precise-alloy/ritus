@@ -18,7 +18,6 @@ type CompanionManifest = {
 };
 
 type LoadedCompanion = {
-  path: string;
   manifest: CompanionManifest;
 };
 
@@ -49,6 +48,14 @@ function isFile(path: string): boolean {
     return statSync(path).isFile();
   } catch {
     return false;
+  }
+}
+
+function readDirSafe(dir: string) {
+  try {
+    return readdirSync(dir, { withFileTypes: true });
+  } catch {
+    return [];
   }
 }
 
@@ -90,14 +97,14 @@ function addPluginSiblings(paths: Set<string>, pluginRoot: string | undefined): 
   for (const marketplaceRoot of marketplaceRoots) {
     if (!isDirectory(marketplaceRoot) || paths.size >= MAX_MANIFESTS) continue;
 
-    for (const plugin of readdirSync(marketplaceRoot, { withFileTypes: true })) {
+    for (const plugin of readDirSafe(marketplaceRoot)) {
       if (paths.size >= MAX_MANIFESTS) return;
       if (!plugin.isDirectory() || SKIP_DIRS.has(plugin.name)) continue;
 
       const pluginDir = join(marketplaceRoot, plugin.name);
       addManifestInDir(paths, pluginDir);
 
-      for (const child of readdirSync(pluginDir, { withFileTypes: true })) {
+      for (const child of readDirSafe(pluginDir)) {
         if (paths.size >= MAX_MANIFESTS) return;
         if (!child.isDirectory() || SKIP_DIRS.has(child.name)) continue;
         addManifestInDir(paths, join(pluginDir, child.name));
@@ -126,7 +133,6 @@ function discoverManifestPaths(hookInput: HookInput): string[] {
 
   // Project/workspace: the manifest must live at the repo root — no deep scan.
   addManifestInDir(paths, projectRoot);
-  addManifestInDir(paths, cwd);
 
   // Installed companion plugins: this plugin's dir plus sibling plugin dirs.
   addManifestInDir(paths, pluginRoot);
@@ -162,7 +168,7 @@ function loadCompanions(paths: string[]): LoadedCompanion[] {
   for (const path of paths) {
     try {
       const manifest = validateManifest(JSON.parse(readFileSync(path, "utf-8")));
-      if (manifest) companions.push({ path, manifest });
+      if (manifest) companions.push({ manifest });
     } catch {
       continue;
     }
@@ -193,7 +199,7 @@ function formatRegistry(companions: LoadedCompanion[]): string {
 
   lines.push(
     "Active companion manifests:",
-    ...companions.map((companion) => `- ${companion.manifest.name}: ${companion.path}`),
+    ...companions.map((companion) => `- ${companion.manifest.name}`),
     "</EXTREMELY_IMPORTANT>",
   );
 

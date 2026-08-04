@@ -16,8 +16,9 @@ You never patch a core skill or `dispatch.md` per companion — you write a mani
    returned to the agent as `additionalContext`.
 4. The agent treats the registry as active workflow guidance for that session.
 
-> Requirements: [Bun](https://bun.sh) must be on `PATH`, and the registry only refreshes on a
-> **new** session (the hook runs at session start).
+> Requirements: [Bun](https://bun.sh) must be on `PATH`. The registry refreshes on each configured
+> `SessionStart` lifecycle event (`startup`, `resume`, `clear`, `compact`, `fork`) — i.e. at session
+> start and again after compaction.
 
 ## Manifest format
 
@@ -38,7 +39,7 @@ Create a file named `ritus-companion.json`:
 | Field                   | Type   | Required | Description                                                       |
 |-------------------------|--------|----------|-------------------------------------------------------------------|
 | `name`                  | string | yes      | Short companion name; used as the registry heading.               |
-| `integrations`          | array  | yes      | One entry per skill you want to wire into the workflow.           |
+| `integrations`          | array (nonempty) | yes | One entry per skill you want to wire into the workflow (at least one entry). |
 | `integrations[].skill`  | string | yes      | The skill's name — identifies the integration.                    |
 | `integrations[].prompt` | string | yes      | A short instruction, injected verbatim (the where / when / what). |
 

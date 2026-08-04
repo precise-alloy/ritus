@@ -19,7 +19,7 @@
       "source": {
         "source": "github",
         "repo": "precise-alloy/ritus-frontend",
-        "ref": "feat/ritus-frontend-plugin",
+        "ref": "main",
         "path": "./"
       }
     }
