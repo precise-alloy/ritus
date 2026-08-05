@@ -185,6 +185,8 @@ function formatRegistry(companions: LoadedCompanion[]): string {
     "",
     "You have Ritus companion workflow extensions active for this session. They are part of how this workflow runs — keep them in force for the whole session (this registry is re-stated after compaction).",
     "",
+    "First, persist this so a long context or compaction can't drop it: if you have a memory or notes tool, save the entries below to your memory (session scope, e.g. a `ritus-companions` note), and re-read that memory whenever you plan or update the workflow TODO. Do not rely on this message staying in context.",
+    "",
     "Each entry names a workflow point (for example \"after task-generation\", \"before pr-review\", or \"while execute-task runs\"). When you build or update the workflow TODO list, ensure a TODO exists for each entry at its point — add it if missing, never duplicate — and apply it there without waiting to be reminded. Honor this registry instead of editing core Ritus workflow files.",
     "",
   ];
