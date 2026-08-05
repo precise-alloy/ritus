@@ -183,11 +183,11 @@ function formatRegistry(companions: LoadedCompanion[]): string {
     "<EXTREMELY_IMPORTANT>",
     "## Ritus Companion Registry",
     "",
-    "You have Ritus companion workflow extensions active for this session. They are part of how this workflow runs — keep them in force for the whole session (this registry is re-stated after compaction).",
+    "These are companion extensions to the Ritus workflow. They apply only when this session actually runs a Ritus skill (triage, ticket-review, task-generation, execute-task, verify-task, pr-review, wrap-up, or another Ritus skill). If this session is not using the Ritus workflow, ignore this registry.",
     "",
-    "First, persist this so a long context or compaction can't drop it: if you have a memory or notes tool, save the entries below to your memory (session scope, e.g. a `ritus-companions` note), and re-read that memory whenever you plan or update the workflow TODO. Do not rely on this message staying in context.",
+    "The first time you run a Ritus skill this session, persist these entries: if you have a memory or notes tool, save them to a companion memory file (session scope, e.g. a `ritus-companions` note) so a long context or compaction can't drop them, then re-read that memory whenever you plan or update the workflow TODO.",
     "",
-    "Each entry names a workflow point (for example \"after task-generation\", \"before pr-review\", or \"while execute-task runs\"). When you build or update the workflow TODO list, ensure a TODO exists for each entry at its point — add it if missing, never duplicate — and apply it there without waiting to be reminded. Honor this registry instead of editing core Ritus workflow files.",
+    "Each entry names a workflow point (for example \"after task-generation\", \"before pr-review\", or \"while execute-task runs\"). When you build or update the workflow TODO list, ensure a TODO exists for each entry at its point — add it if missing, never duplicate — and apply it there. Honor this registry instead of editing core Ritus workflow files.",
     "",
   ];
 
@@ -211,7 +211,6 @@ function formatRegistry(companions: LoadedCompanion[]): string {
 function main(): void {
   const hookInput = readHookInput();
   const companions = loadCompanions(discoverManifestPaths(hookInput));
-
   if (companions.length === 0) return;
 
   const context = formatRegistry(companions);
