@@ -2,8 +2,9 @@
 
 Companion plugins and skills extend the Ritus workflow **without editing any core Ritus files**.
 You ship a small `ritus-companion.json` manifest; at the start of every session a Ritus hook
-discovers it and injects your instructions into the agent's context as a **Ritus Companion
-Registry**. The agent then applies those instructions at the workflow points you describe.
+discovers it and injects a compact **Ritus Companion Registry** into the agent's context - one line
+per companion, pointing at the manifest on disk. When the agent builds the workflow TODO it reads
+each manifest and applies your instructions at the workflow points you describe.
 
 Core rule: **Ritus core owns the workflow; companion manifests own their registrations.**
 You never patch a core skill or `dispatch.md` per companion — you write a manifest.
@@ -12,9 +13,10 @@ You never patch a core skill or `dispatch.md` per companion — you write a mani
 
 1. On `SessionStart`, Ritus runs `scripts/companion-bootstrap.ts` (wired through `hooks/hooks.json`).
 2. The hook discovers every `ritus-companion.json` it can find (see [Discovery](#discovery)).
-3. Each manifest's `integrations` are collected into one **Ritus Companion Registry** section and
-   returned to the agent as `additionalContext`.
-4. The agent treats the registry as active workflow guidance for that session.
+3. The hook returns one **Ritus Companion Registry** section as `additionalContext`: one line per
+   companion with its manifest path - your prompts stay on disk, out of session-start context.
+4. When the agent builds or updates the workflow TODO, it reads each manifest and applies the
+   integrations at their workflow points (see "Companion weaving" in `skills/shared/dispatch.md`).
 
 > Requirements: [Bun](https://bun.sh) must be on `PATH`. The registry refreshes on each configured
 > `SessionStart` lifecycle event (`startup`, `resume`, `clear`, `compact`, `fork`) — i.e. at session
@@ -41,9 +43,9 @@ Create a file named `ritus-companion.json`:
 | `name`                  | string | yes      | Short companion name; used as the registry heading.               |
 | `integrations`          | array (nonempty) | yes | One entry per skill you want to wire into the workflow (at least one entry). |
 | `integrations[].skill`  | string | yes      | The skill's name — identifies the integration.                    |
-| `integrations[].prompt` | string | yes      | A short instruction, injected verbatim (the where / when / what). |
+| `integrations[].prompt` | string | yes      | A short instruction, read verbatim from the manifest when the agent builds the workflow TODO (the where / when / what). |
 
-Each `prompt` is **injected verbatim** — keep it short. Two common shapes:
+Each `prompt` is **read verbatim** from your manifest when the TODO is built - keep it short. Two common shapes:
 
 - **Add a step** at a boundary —
   `When <condition>, <before/after a step>: dispatch the <skill> subagent.`
@@ -91,14 +93,14 @@ The `ritus-frontend` companion wires browser verification into the workflow:
 }
 ```
 
-It renders as:
+Its registry entry renders as:
 
 ```text
-### ritus-frontend
-
-- `e2e-plan`: When a task changes frontend files, after task-generation: dispatch the e2e-plan subagent.
-- `visual-verify`: When a task changes frontend files, before pr-review: dispatch the visual-verify subagent; block on failure.
+- ritus-frontend (2 integrations): <plugin-root>/ritus-companion.json
 ```
+
+The agent reads the manifest itself when it builds the workflow TODO, so the full prompts reach
+context only in sessions that actually run the Ritus workflow.
 
 ## Example: adding knowledge to a worker skill
 
@@ -127,14 +129,10 @@ adding a separate step. Use `load` (one skill reading another as a standard) rat
 }
 ```
 
-It renders as:
+Its registry entry:
 
 ```text
-### acme-standards
-
-- `api-conventions`: While execute-task runs on API or endpoint code, load the api-conventions skill and follow its rules.
-- `security-review`: During pr-review, load the security-review skill and apply its checklist before giving a verdict.
-- `coverage-standards`: While verify-task runs, load the coverage-standards skill and hold the change to its coverage bar.
+- acme-standards (3 integrations): <plugin-root>/ritus-companion.json
 ```
 
 Use this shape when the companion is a **standard** (conventions, checklist, or domain knowledge)
@@ -143,8 +141,8 @@ and apply the skill when that worker step runs.
 
 ## Verifying
 
-Start a new session and confirm a `## Ritus Companion Registry` section appears in context.
-On the CLIs you can inspect the hook output directly:
+Start a new session and confirm a `## Ritus Companion Registry` section appears in context, listing
+one line per companion with its manifest path. On the CLIs you can inspect the hook output directly:
 
 - **Claude:** `claude -p ping --output-format stream-json --include-hook-events --verbose` →
   look for the `SessionStart` `hook_response`.

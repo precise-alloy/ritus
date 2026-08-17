@@ -56,6 +56,20 @@ downstream steps already queued - so a `Re-verify` runs before a `pr-review` tha
 The update is idempotent: if an equivalent item is already queued in that position it's a no-op; if it's missing
 (standalone invocation or an incomplete plan) it fills the gap.
 
+## Companion weaving
+
+The session context can carry a **Ritus Companion Registry**: one line per companion, naming its manifest path on
+disk. Companions extend the run without touching core workflow files - each manifest owns its own registrations.
+
+- When you build or update the driving TODO, first read every manifest the registry lists.
+- For each integration in those manifests, ensure a TODO item exists at the workflow point its `prompt` names
+  (for example "after task-generation" or "before pr-review") - add it if missing, never duplicate.
+- Apply the integration at that point: `dispatch <skill> subagent` items follow the Dispatch rule below; `load`
+  items attach the companion skill as a standard while the named worker runs.
+- Map a companion outcome onto the outcome table below: a blocking FAIL is handled like a `verify-task` FAIL; an
+  advisory report is recorded and the run continues.
+- An empty or absent registry leaves the pipeline identical to a run without companions.
+
 ## Dispatch rule (spawn-then-invoke)
 
 The main thread (the session talking to the user) is the only dispatcher. Walk the active driving TODO top to

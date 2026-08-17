@@ -19,6 +19,7 @@ type CompanionManifest = {
 
 type LoadedCompanion = {
   manifest: CompanionManifest;
+  path: string;
 };
 
 const MAX_MANIFESTS = 25;
@@ -168,7 +169,7 @@ function loadCompanions(paths: string[]): LoadedCompanion[] {
   for (const path of paths) {
     try {
       const manifest = validateManifest(JSON.parse(readFileSync(path, "utf-8")));
-      if (manifest) companions.push({ manifest });
+      if (manifest) companions.push({ manifest, path });
     } catch {
       continue;
     }
@@ -183,27 +184,19 @@ function formatRegistry(companions: LoadedCompanion[]): string {
     "<EXTREMELY_IMPORTANT>",
     "## Ritus Companion Registry",
     "",
-    "These are companion extensions to the Ritus workflow. They apply only when this session actually runs a Ritus skill (triage, ticket-review, task-generation, execute-task, verify-task, pr-review, wrap-up, or another Ritus skill). If this session is not using the Ritus workflow, ignore this registry.",
+    "These are companion extensions to the Ritus workflow. They apply only while this session is executing that workflow - that is, after you invoke a Ritus skill (start-ritus, triage, ticket-review, task-generation, execute-task, verify-task, pr-review, wrap-up, comprehension, brainstorm, debug, address-feedback). Editing Ritus's own source files or discussing Ritus does not count. Until you invoke a Ritus skill, ignore this registry and leave the manifests below unread.",
     "",
-    "The first time you run a Ritus skill this session, persist these entries: if you have a memory or notes tool, save them to a companion memory file (session scope, e.g. a `ritus-companions` note) so a long context or compaction can't drop them, then re-read that memory whenever you plan or update the workflow TODO.",
+    "Each line names a companion manifest on disk. Before you build or update the workflow TODO list, read each manifest below and ensure a TODO exists for every integration at the workflow point it names - add it if missing, never duplicate. Honor these manifests instead of editing core Ritus workflow files.",
     "",
-    "Each entry names a workflow point (for example \"after task-generation\", \"before pr-review\", or \"while execute-task runs\"). When you build or update the workflow TODO list, ensure a TODO exists for each entry at its point — add it if missing, never duplicate — and apply it there. Honor this registry instead of editing core Ritus workflow files.",
+    "Once you invoke a Ritus skill this session, persist this registry: if you have a memory or notes tool, save the companion names and manifest paths to a companion memory file (session scope, e.g. a `ritus-companions` note) so a long context or compaction can't drop them, then re-read that memory whenever you plan or update the workflow TODO.",
     "",
-  ];
-
-  for (const companion of companions) {
-    lines.push(`### ${companion.manifest.name}`, "");
-    for (const integration of companion.manifest.integrations) {
-      lines.push(`- \`${integration.skill}\`: ${integration.prompt}`);
-    }
-    lines.push("");
-  }
-
-  lines.push(
-    "Active companion manifests:",
-    ...companions.map((companion) => `- ${companion.manifest.name}`),
+    ...companions.map(({ manifest, path }) => {
+      const count = manifest.integrations.length;
+      const noun = count === 1 ? "integration" : "integrations";
+      return `- ${manifest.name} (${count} ${noun}): ${path}`;
+    }),
     "</EXTREMELY_IMPORTANT>",
-  );
+  ];
 
   return lines.join("\n");
 }
