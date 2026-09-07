@@ -28,9 +28,10 @@ Wrote code before the test? Delete it. Start over. This is not optional.
 
 ### Red - write a failing test
 
-1. Write the simplest test that describes the expected behavior.
-2. Run it. It MUST fail.
-3. If it passes, the test is wrong - it's not testing anything new. Rewrite it.
+- Establish the expected result independently before implementation, then write the simplest test for that behavior.
+- Run it and confirm the failure demonstrates the missing behavior.
+- If it passes, revise it to exercise an unmet requirement.
+- Write required unit coverage before integration tests.
 
 Load `testing-policy` for what type of test to write and project-specific conventions (framework, naming, mocking
 strategy). If a framework-specific testing skill is installed, load it for concrete patterns and examples.
@@ -58,17 +59,6 @@ Add the next test for the next behavior. One test per red-green-refactor cycle, 
 3. Fix the bug - the test turns green.
 4. This test is now a permanent regression guard.
 
-## Anti-patterns
-
-| Trap | Reality |
-|---|---|
-| "I'll write the tests after" | You'll write tests that confirm your code, not tests that verify behavior |
-| "This test can't fail" | Then it's not testing anything. Make it test a specific behavior. |
-| "I need to implement first to know what to test" | You need to know the BEHAVIOR first. That's the test. |
-| "Let me write all the tests upfront" | Write ONE test. Make it pass. Then the next. |
-| "The test is too simple" | Simple tests catch real bugs. Complex tests catch complex bugs and create complex maintenance. |
-| "I'll test the integration, not the unit" | Test the unit first. Integration tests don't pinpoint failures. |
-
 ## Hard rules
 
 1. Every new function/method has at least one test written BEFORE the implementation.
@@ -80,4 +70,3 @@ Add the next test for the next behavior. One test per red-green-refactor cycle, 
 ## Handoff
 
 - **Report:** the standard applied to the parent skill's work.
-

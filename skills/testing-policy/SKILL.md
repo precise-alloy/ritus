@@ -25,11 +25,12 @@ against the matrix before reporting done.
 | Auth / permission change                   | required              | required          | required   | -          |
 | External integration (API client, webhook) | required              | mocked external   | -          | -          |
 
-## Unit test rules
+## Test quality
 
-- Mock all external calls: DB, external APIs, message queues, HTTP clients.
-- Never hit real infrastructure in unit tests.
-- Test: happy path, validation errors, boundary conditions, auth failures.
+- Use expectations from specifications, worked examples, or independently validated references. When a test repeats
+  the production calculation, replace that expectation with an independently established result.
+- In unit tests, mock external DB/API/queue/HTTP calls and cover happy paths, validation errors, boundaries, and
+  auth failures.
 
 ## Integration test rules
 
@@ -62,11 +63,8 @@ against the matrix before reporting done.
 
 ## Project-specific test conventions
 
-Read `docs/TEST_CONVENTIONS.md` for this project's test conventions: framework, naming, mocking strategy, fixtures,
-and async patterns. That file is filled by repo-scan and maintained by the team.
-
-If a framework-specific testing skill is installed for your stack (e.g., Flutter integration testing, React test
-patterns), load it alongside this skill for concrete patterns, APIs, and code examples.
+Read `docs/TEST_CONVENTIONS.md` for framework, naming, mocking, fixture, and async conventions. Load an installed
+framework-specific testing skill when relevant.
 
 ## Running tests
 

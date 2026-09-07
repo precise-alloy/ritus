@@ -6,14 +6,19 @@ argument-hint: Provide the task file path, changed files, implementation summary
 
 # Verify Task
 
-**Core principle:** Never trust the implementer - verify from the diff and command output only. A clean context
-prevents bias; that's why this runs in a fresh subagent.
+Verify the task contract independently from the current repository and your own command evidence.
 
-## When to use
+## Preconditions and inputs
 
-After each task is implemented by `execute-task`.
+- Work in a fresh reviewer context separate from implementation, read-only except build/test/lint commands.
+  Report BLOCKED if reviewer independence or required inputs are missing.
+- Required inputs: task-file path and implementation report. Read the branch's exploration log when present.
+- Treat the report and exploration notes as leads; establish every conclusion from the repository and command
+  output. Return failures for correction with the evidence and gaps.
 
-When starting verify-task, create this TODO - **every item below, verbatim** (never a single item named after the skill) - and mark items done as you complete them:
+## Process
+
+Create this TODO verbatim and mark each item done as it completes:
 
 TODO:
 
@@ -23,128 +28,82 @@ TODO:
 - [ ] Report verdict (PASS/FAIL with evidence)
 ```
 
-## Operating constraints
-
-- Read-only except build/test/lint commands.
-- Never fix issues - report findings only.
-- Never trust implementer claims - verify from the diff and command output only.
-- Report BLOCKED if inputs are missing.
-
-## Hard gate
-
-**You must be a fresh reviewer that did not implement the change under review.** If you implemented it, you are
-disqualified - verification must run in a clean context to prevent bias. (The orchestrator guarantees this by
-spawning verify-task as a fresh subagent; this gate is the safety net.)
-
-On FAIL, report the gaps and stop - verify-task never fixes issues and never re-runs itself.
-
-## Inputs
-
-1. Task file path (e.g., `docs/tasks/feat-auth/001-add-login.md`)
-2. The implementer's report (files-changed list + summary) - a hint for where to look, not ground truth.
-3. `docs/tasks/{branch-slug}/exploration.md` if it exists - prior findings and flagged risks from the analysis and
-   implementation subagents. Treat it like the implementer's report: a map of where to look and what was already
-   flagged, **not** ground truth. Use it to aim your adversarial review (a `[LESSONS]` or security note is a lead to
-   probe harder), but confirm every DONE WHEN condition and Phase 2 check from the diff and command output - an
-   "already investigated" note is never a substitute for verifying it yourself.
-
 ## Establishing the change surface
 
-The implementer leaves work **uncommitted and unstaged** in the working tree - never diff against a base branch
-or the index (`--cached`), both of which would show nothing or stale content. Derive the change surface from the
-working tree, cheapest-first, to keep token cost bounded:
-
-1. **File list + churn (always, tiny):** run `git status --short` and `git diff --stat HEAD`. The `git status
-   --short` output is the ground truth for the scope check and catches files the implementer's report omitted.
-   Untracked new files appear only here - read them directly, since `git diff HEAD` does not include them.
-2. **Content (scoped, on demand):** pull `git diff HEAD -- <file>` only for files tied to a DONE WHEN condition or
-   flagged during adversarial review. Fetch the full `git diff HEAD` only when total churn (from `--stat`) is small
-   enough to be cheap. Never load a large unified diff wholesale.
+Use `git status --short` and `git diff --stat HEAD` to establish the complete working-tree change list, including
+files omitted from the implementation report. Read untracked files directly. Inspect `git diff HEAD -- <file>`
+for acceptance conditions and review leads; use the full diff only when its total churn is small.
 
 ## Phase 1: DONE WHEN Verification
 
-1. **Read the task file** - extract DONE WHEN conditions, CONTEXT files, CONSTRAINTS, INTERFACES, NON-GOALS, and the
-   DOC UPDATE section. (A debug fix arrives as the investigation case file: its `Regression Test` is the DONE WHEN and
-   its `Proposed Fix` is the STEPS.)
+- Read DONE WHEN, VERIFY, and all available scope/contract sections. For investigation files, `Regression Test`
+  supplies DONE WHEN and `Proposed Fix` supplies STEPS.
+- Prove every DONE WHEN condition with `file:line` evidence or the required command result. Mark an unprovable
+  condition FAIL with its gap.
 
-2. **Check every DONE WHEN condition:**
-   - **Diff-checkable** conditions (file exists, field added, logic changed): verify from the scoped working-tree
-     diff (see *Establishing the change surface*), cite `file:line`.
-   - **Command-checkable** conditions (compiles, tests pass, no lint errors): verify by running commands in step 5.
-   - If a condition cannot be verified by either method, mark it FAIL with explanation.
+### Scope and constraints
 
-3. **Scope check** - compare the `git status --short` file list (not the implementer's report) against the allowed scope:
-   - For STANDARD/EPIC tasks: allowed scope = source files listed in CONTEXT `files` + files listed in DOC UPDATE
-     + test files co-located with or covering changed source files. CONTEXT `docs` entries are read-only
-     references - modifications to them are scope violations. Flag modifications outside this scope as violations.
-     Any change touching something listed under NON-GOALS is a violation; confirm each CONSTRAINTS line holds in the diff.
-   - For SIMPLE tasks (no CONTEXT section): check that changes are limited to what the TASK description implies.
-   - `docs/tasks/{branch-slug}/exploration.md` (append-only) is always allowed regardless of task type.
+Compare the full status list against the task:
 
-4. **Standards gates - load and check applicable standard skills:**
+- STANDARD/EPIC permits CONTEXT `files`, DOC UPDATE paths, and co-located or covering tests. CONTEXT `docs` are
+  read-only references.
+- SIMPLE permits the changes implied by TASK and their tests.
+- The branch's `docs/tasks/{branch-slug}/exploration.md` permits append-only findings.
 
-   <!-- Keep in sync with execute-task/SKILL.md -->
+Flag every out-of-scope change, NON-GOALS implementation, or unsatisfied CONSTRAINTS line.
 
-   | Task touches | Load skill |
-   |---|---|
-   | Any code change | `code-conventions` |
-   | New service / endpoint / worker / bug fix | `testing-policy` |
-   | New business logic, new API endpoint, or bug fix | `tdd` (verify tests exist and cover the new/changed behavior) |
-   | Auth / billing / migration / tenant isolation / infra config / shared contracts | `security` |
-   | Any STANDARD or EPIC task | `definition-of-done` |
+### Standards
 
-   Run each loaded standard's checklist against the diff.
+Load each applicable standard and apply its checklist to the diff:
 
-5. **Run verification commands:**
-   - Run configured build/test/lint from `docs/PROJECT_CONTEXT.md`, then task `VERIFY` commands in order. Require
-     project exit 0 and every task-specific expected output/status.
-   - Reuse results you produced in this run only for identical commands with confirmed matching working directory,
-     environment, and unchanged state. Apply every condition's expectations to reused evidence.
-   - Execute explicit repeats and stateful sequences; rerun when equivalence is uncertain.
-   - Report unconfigured project commands (empty, placeholder, `N/A`) as skipped with a warning.
+<!-- Keep in sync with execute-task/SKILL.md -->
 
-6. **QA file check:** if QA mode is active in `docs/PROJECT_CONTEXT.md`, verify QA file per
-   `skills/task-generation/templates/qa-files.md` template rules.
+| Task touches | Load skill |
+|---|---|
+| Any code change | `code-conventions` |
+| New service / endpoint / worker / bug fix | `testing-policy` |
+| New business logic, new API endpoint, or bug fix | `tdd` (verify tests exist and cover the new/changed behavior) |
+| Auth / billing / migration / tenant isolation / infra config / shared contracts | `security` |
+| Any STANDARD or EPIC task | `definition-of-done` |
+
+### Commands and QA
+
+- Run configured build/test/lint from `docs/PROJECT_CONTEXT.md`, then task `VERIFY` commands in order. Require
+  project exit 0 and every task-specific expected output/status; a mismatch is FAIL.
+- Reuse results you produced in this run only for identical commands with confirmed matching working directory,
+  environment, and unchanged state. Apply every condition's expectations to reused evidence.
+- Execute explicit repeats and stateful sequences; rerun when equivalence is uncertain.
+- Report unconfigured project commands (empty, placeholder, `N/A`) as skipped with a warning.
+- When QA mode is active, verify the QA file against `skills/task-generation/templates/qa-files.md`.
 
 ## Phase 2: Adversarial Review (per-task)
 
-After DONE WHEN passes, apply these adversarial checks against the diff. This is a lighter version focused on the
-single task's changes, not the full ticket-level review (which is `pr-review`'s job).
+After Phase 1 passes, examine the task's changed paths. Every Phase 2 finding makes the verdict FAIL.
 
 ### 2.1 Fault Injection (mental fuzzing)
 
-For every changed method or code path, ask:
-
-- **Null / empty inputs**: What happens if any parameter, collection, or config value is null, empty, or whitespace?
-- **Boundary values**: What about zero, negative, max-int, empty arrays, single-element lists?
-- **External failures**: What if an API call, DB query, or file read throws? Is there a silent swallow?
+Probe each changed method/path with null, empty, and whitespace inputs; zero, negative, maximum, and collection
+boundaries; and failed API, database, or file operations. Identify incorrect results and swallowed failures.
 
 ### 2.2 Implicit Contract Changes
 
-- Did the change alter a return type, add a nullable field, or change method signatures?
-- Are there callers that weren't updated?
-- Did removed or renamed symbols leave dead references?
-- Do the task's INTERFACES `Produces` signatures exist in the final repository state (the resulting API/tree) with the
-  exact names, parameters, and return types promised to downstream tasks - using the diff as supporting evidence, since
-  a signature may pre-exist, be generated, or be preserved while its implementation changes? (Confirm the diff uses the
-  `Consumes` names as given; whether a `Consumes` signature agrees with the sibling task's `Produces` is a
-  task-generation self-review check, not verified here.)
+Trace changed return types, nullability, signatures, and removed/renamed symbols through their callers. Flag broken
+callers and dead references. Confirm INTERFACES `Produces` names, parameters, and return types in the resulting
+API/tree, including pre-existing or generated signatures; confirm `Consumes` is used as specified.
 
 ### 2.3 Regression Risk
 
-- Does the change touch shared code paths used by other features?
-- Could the change break existing tests not in the task's scope?
-- Are there integration points that depend on the old behavior?
+Inspect shared paths, existing tests beyond the task's scope, and integration points that depend on prior behavior.
 
 ### 2.4 Security Quick Check
 
-Only if the task touches auth, data handling, or user input:
-
-- Can user-controlled input reach SQL, HTML, or command execution without sanitization?
-- Does the change accidentally expose data to unauthorized users?
-- Do error messages leak internals?
+For auth, data handling, or user-input changes, examine trust boundaries for injection, unauthorized access,
+and leaked internals in errors.
 
 ## Output
+
+Return PASS only with evidence for every condition, applicable standard, configured command, and adversarial check.
+Return FAIL with gaps when an obligation fails, then hand off for correction.
 
 ### PASS
 
@@ -185,13 +144,6 @@ Phase 2 findings:
 - Regression risk - <shared path at file:line affected>
 - Security - <issue at file:line>
 ```
-
-## Hard rules
-
-- Never PASS without running all configured build, test, and lint commands and confirming exit code 0.
-- Never PASS based on the implementer's claims - verify from the diff and command output.
-- Report evidence for every PASS condition - "looks correct" is not evidence.
-- Phase 2 findings are FAIL conditions - they must be fixed before PASS.
 
 ## Handoff
 
