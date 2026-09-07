@@ -96,14 +96,12 @@ working tree, cheapest-first, to keep token cost bounded:
    Run each loaded standard's checklist against the diff.
 
 5. **Run verification commands:**
-   - Build: run the build command from `docs/PROJECT_CONTEXT.md` → must pass
-   - Test: run the test command from `docs/PROJECT_CONTEXT.md` → must pass
-   - Lint: run the lint command from `docs/PROJECT_CONTEXT.md` → must pass
-   - Task VERIFY: run the concrete commands in the task's VERIFY block (build/test/smoke) → each must produce its
-     stated expected output
-
-   If any command is not configured in `docs/PROJECT_CONTEXT.md` (empty, placeholder, or `N/A`), skip it with a
-   warning in the output - do not hard-fail on missing build/test/lint configuration.
+   - Run configured build/test/lint from `docs/PROJECT_CONTEXT.md`, then task `VERIFY` commands in order. Require
+     project exit 0 and every task-specific expected output/status.
+   - Reuse results you produced in this run only for identical commands with confirmed matching working directory,
+     environment, and unchanged state. Apply every condition's expectations to reused evidence.
+   - Execute explicit repeats and stateful sequences; rerun when equivalence is uncertain.
+   - Report unconfigured project commands (empty, placeholder, `N/A`) as skipped with a warning.
 
 6. **QA file check:** if QA mode is active in `docs/PROJECT_CONTEXT.md`, verify QA file per
    `skills/task-generation/templates/qa-files.md` template rules.

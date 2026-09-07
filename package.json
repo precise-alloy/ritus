@@ -1,6 +1,6 @@
 {
   "name": "ritus",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "AI-assisted development workflow plugin with skills and sync tooling.",
   "repository": {
     "url": "https://github.com/precise-alloy/ritus"

@@ -103,24 +103,21 @@ modify the system.
 
 ## Step 5: Self-review
 
-Before presenting task files to the user, run this checklist yourself:
+Check the generated task files before reporting:
 
-1. **Requirement coverage** - skim each acceptance criterion from the requirement source. Can you point to a task that
-   implements it? List any gaps.
-2. **DONE WHEN completeness** - every task has at least one diff-checkable and one command-checkable condition. No
-   vague conditions ("works correctly", "handles errors").
-3. **CONTEXT accuracy** - every file path in CONTEXT `files` exists (grep to confirm). No hallucinated paths.
-4. **Cross-task consistency** - do function names, type names, and file paths used across tasks match? A function
-   called `validateToken` in task 1 but `verifyToken` in task 3 is a bug. Check INTERFACES: each task's `Consumes`
-   block matches a sibling task's `Produces` block - same names, parameters, and return types.
-5. **No placeholders** - search for `TBD`, `TODO`, `[NEEDS CLARIFICATION]`, `implement later`, and hand-wave steps
-   like "add appropriate error handling", "handle edge cases", "similar to task N" (without repeating the code), or
-   "write tests for the above" (without the test code). All must be resolved with concrete content.
-6. **Spec-grade sections present** - every STANDARD/EPIC task states CONSTRAINTS (or "none"), INTERFACES
-   `Consumes`/`Produces` (or "none"), and NON-GOALS.
+- **Requirement coverage** - map each criterion to tasks and each task/step to an approved requirement, constraint,
+  or necessary prerequisite, including required validation and documentation.
+- **DONE WHEN completeness** - each task has at least one diff-checkable and one command-checkable condition
+  with specific expected outcomes.
+- **CONTEXT accuracy** - confirm every CONTEXT `files` path exists.
+- **Cross-task consistency** - align function names, type names, and file paths across tasks. Match each INTERFACES
+  `Consumes` block to its sibling `Produces` block in names, parameters, and return types.
+- **Concrete steps** - replace `TBD`, `TODO`, `[NEEDS CLARIFICATION]`, and deferred or vague instructions with concrete
+  code and commands. Include the implementation and test code needed by each task, including referenced steps.
+- **Spec-grade sections present** - every STANDARD/EPIC task states CONSTRAINTS (or "none"), INTERFACES
+  `Consumes`/`Produces` (or "none"), and NON-GOALS.
 
-If you find issues, fix them inline. No need to re-review - just fix and move on. If you find a requirement with no
-task, add the task.
+Resolve all findings inline, adding missing required tasks and removing unsupported work.
 
 ## Step 6: Execution plan
 

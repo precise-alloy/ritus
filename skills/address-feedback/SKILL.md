@@ -151,18 +151,15 @@ Check `docs/tasks/{branch-slug}/` for existing `fix-review-round-*.md` files:
 - `fix-review-round-1.md` exists → round 2
 - Pattern: `fix-review-round-{N}.md`
 
-If previous rounds exist, compare comment timestamps against the previous round's task file creation time.
-Exclude comments that predate the previous round - they were already addressed. Only include new comments
-from the current review cycle.
+Continue with the approved actionable list from Step 3, including unresolved comments from earlier rounds.
 
 ## Step 5: Generate Fix Task File
 
-Create a task file at `docs/tasks/{branch-slug}/fix-review-round-{N}.md`.
+Write `docs/tasks/{branch-slug}/fix-review-round-{N}.md`. Group approved comments sharing a confirmed cause and compatible
+caller contracts into one shared correction. Name actual fix/test paths in STEPS; give each comment its own DONE WHEN
+condition with its reference and expected behavior.
 
-Use the **SIMPLE format** (TASK + DONE WHEN + VERIFY) when there are 5 or fewer actionable comments.
-Use the **STANDARD format** (with CONTEXT section) when there are more than 5.
-
-### SIMPLE format (5 or fewer comments)
+### SIMPLE format (5 or fewer actionable comments)
 
 ```markdown
 ## TASK
@@ -187,9 +184,9 @@ Address PR review feedback (round N): <count> comments from <PR_URL>
 Verified fresh by a verify-task subagent.
 ```
 
-### STANDARD format (more than 5 comments)
+### STANDARD format (more than 5 actionable comments)
 
-Add a CONTEXT section listing all referenced files before STEPS:
+List the actual fix and test files in CONTEXT before STEPS:
 
 ```markdown
 ## CONTEXT

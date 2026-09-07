@@ -16,8 +16,8 @@ done. If the user asks about conventions directly, invoke this skill standalone.
 
 ### Comments
 
-Write a comment only when WHY is non-obvious: hidden constraint, subtle invariant, specific bug workaround.
-Never explain what the code does. Never reference the task, PR, or callers.
+Explain non-obvious constraints, invariants, or bug workarounds. For deliberate simplifications, state the known
+operating limit and an observable trigger for revisiting the design.
 
 ### Abstraction limits
 

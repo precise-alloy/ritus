@@ -287,51 +287,43 @@ For every changed method or code path, ask:
 
 ### 2.6 Summarize Findings
 
-Present the review as:
+Present one report:
 
-1. **Review Overview**: PR title/author/branch info when available, or local branch/worktree scope when reviewing pre-PR
-   changes, plus files changed.
-2. **Ticket Context**: Brief summary of what the ticket(s) require.
-3. **Changes Summary**: What each file change does.
-4. **Adversarial Findings**: For each finding, state:
-    - The **attack vector** (how you tried to break it)
-    - The **evidence** (file:line citation and reproduction scenario)
-    - The **impact** (what goes wrong if this defect ships)
-5. **Issues Table**: tag each finding with a **severity** and one primary **`type`** (`type` per
-   `templates/finding-types.md`). Severity:
-    - **Critical/Bug**: Will cause runtime errors, data loss, or security breach.
-    - **High**: Doesn't meet spec requirements, risks data corruption, or has no test coverage for critical logic.
-    - **Medium**: Potential issues under specific conditions that should be clarified or defended.
-    - **Low**: Code quality, minor improvements, defensive hardening.
-    - **Info**: Observations, compiler warnings, style.
-    - **`type`** (one primary per finding): `logic`, `security`, `requirement`, `test`, `convention` - see
-      `templates/finding-types.md` for definitions and each type's default disposition. Lint/format issues are not
-      findings; they belong to the linter/CI.
-6. **Acceptance Criteria Checklist**: Every criterion marked ✅ or ❌ with file:line proof.
-7. **Architectural Decisions**: If the review reveals design choices that should be recorded (new patterns introduced,
-   significant tradeoffs made, constraints discovered), flag them for `docs/DECISIONS.md`.
-8. **Verdict**: Approve / Request Changes / Needs clarification. Any finding whose `type` carries a **Blocking**
-   disposition (per `templates/finding-types.md`) forces "Request Changes"; `Recommended` / `Optional` findings do
-   not block on their own - except a `Critical/Bug` or `High` severity finding, which forces "Request Changes"
-   regardless of its type disposition.
+- **Scope and requirement:** review target, PR metadata when available, files changed with brief summaries, and
+  required behavior.
+- **Issues Table:** one row per finding with severity, primary `type`, `file:line`, attack/reproduction scenario,
+  impact, and concrete fix.
+- **Acceptance Criteria Checklist:** every criterion marked covered, partial, or missing with `file:line` evidence.
+- **Architectural Decisions:** non-obvious choices, tradeoffs, or constraints worth recording in `docs/DECISIONS.md`.
+- **Verdict:** Approve / Request Changes / Needs clarification, supported by findings and critical-path evidence.
 
-> **Verdict bias**: Default to "Request Changes" unless you can prove correctness for all critical paths. The burden of
-> proof is on the code, not the reviewer.
+Use the existing primary types (`logic`, `security`, `requirement`, `test`, `convention`) and dispositions from
+`templates/finding-types.md`.
+
+| Severity | Meaning |
+|---|---|
+| Critical/Bug | Runtime errors, data loss, or security breach |
+| High | Unmet requirements, data-corruption risk, or missing coverage for critical logic |
+| Medium | Risk under specific conditions requiring clarification or protection |
+| Low | Code quality, minor improvements, defensive hardening |
+| Info | Relevant observations |
+
+Compare changed code and dependencies with existing, standard-library, and native equivalents. Report a demonstrated
+simplification as a `convention` finding: identify what to remove, its exact replacement (or deletion), and evidence
+that required behavior is preserved.
+
+Use Request Changes until correctness is evidenced for every critical path. A Blocking disposition or
+Critical/Bug/High severity requires Request Changes regardless of type; Recommended/Optional findings alone permit
+approval once that evidence is established.
 
 ### 2.7 Offer Fixes and Unit Tests
 
-For each identified issue:
+Give each finding one concrete fix. For defects, include a regression test; for simplifications, identify the checks
+that establish equivalent behavior. Follow the test style, examples, and locations in `docs/PROJECT_CONTEXT.md`
+section `## Testing`.
 
-1. Propose a concrete code fix.
-2. Provide relevant unit tests following the project conventions.
-
-Unit test file location convention: see `docs/PROJECT_CONTEXT.md` section `## Testing`.
-
-Treat wrong test project placement as a review finding. If a test targets one assembly but lives under another
-assembly's test project, request changes. If the matching test project does not exist, require creating it rather than
-accepting the wrong destination.
-
-Reference test style examples listed in `docs/PROJECT_CONTEXT.md` section `## Testing`.
+Tests belong in the project for the assembly they exercise. Treat placement in another assembly's test project as a
+Request Changes finding; require creation of the matching project when it is missing.
 
 ## Step 3: Report Findings
 
