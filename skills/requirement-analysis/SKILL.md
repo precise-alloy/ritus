@@ -104,12 +104,13 @@ Apply `docs/PROJECT_CONTEXT.md` `## Requirement source precedence`.
 
 ### 3.1 Identify requirements
 
-From the requirement source (ticket description + comments, or plain requirement text), extract:
+Extract:
 
-1. **Acceptance criteria** - what must be true for the work to be done.
-2. **Expected behavior** - how the feature/fix should work.
-3. **Test data** - specific values, scenarios, or edge cases mentioned.
-4. **Constraints** - performance, security, compatibility notes.
+- **Acceptance criteria** - observable outcomes required for completion.
+- **Expected behavior** - required behavior versus suggested implementation; record simpler sufficient alternatives for approval.
+- **Test data** - specified values, scenarios, and edge cases.
+- **Constraints** - binding performance, security, compatibility, and technology mandates; flag ambiguity with
+  `[NEEDS CLARIFICATION: <specific question>]`.
 
 ### 3.2 Analyze related code
 
@@ -162,29 +163,25 @@ feature area.
 
 ### 3.6 Research technical options
 
-**Conditional** - only when the work involves a new external dependency/library, a new integration with an unfamiliar
-system, an architectural pattern not yet used here, a technology choice with multiple viable options, or a requirement
-that must conform to an external standard/spec (accessibility, security, a protocol, compliance) whose authority lives
-outside the codebase. Skip for bug fixes, refactors, and features that extend existing patterns.
+Evaluate options in order and choose the first that satisfies the acceptance criteria and project constraints:
 
-When triggered, route each question to the source that actually holds the answer:
+- An existing codebase implementation or pattern.
+- The standard library.
+- A native platform feature.
+- An already-installed dependency.
+- A minimal custom implementation.
 
-1. **Reuse what the codebase already has** - for a library or pattern the project may already use, search the code
-   first; if an existing solution fits, use it, and propose alternatives only when it can't meet the requirements.
-2. **Go to the authoritative source when the answer lives outside the code** - an industry standard or spec
-   (accessibility → W3C/WCAG, security → OWASP, a protocol → its RFC) or an unfamiliar library's official docs. Read
-   the canonical source directly; the codebase won't contain it, and blog posts only paraphrase it.
-3. **Keep online research cheap** - lead with a web search and work from the result snippets; open a full page only
-   when a snippet can't answer it, and fetch it with a **specific query** so only the relevant section loads, not the
-   whole page. Prefer one official source over several tutorials; budget ~2–3 fetches for the investigation; record
-   the URL + the conclusion you drew - the review and exploration log get the finding, never the page contents.
-4. **Investigate options** - for genuinely new choices, research 2-3 options, noting stack compatibility (from
-   `docs/PROJECT_CONTEXT.md`), maintenance status, relevant performance characteristics, and security implications.
-5. **Recommend one option** with rationale - make a decision, don't present a menu.
-6. **Record the decision** - write a `DECISION-NNN` entry per 3.9 if the choice is non-obvious.
+Confirm the choice against real entry points and caller contracts, preserving required validation, error handling,
+security, accessibility, and explicitly requested behavior.
 
-Keep it lightweight (a ~10-minute investigation). If it would take longer, add
-`[NEEDS CLARIFICATION: requires spike - <what to investigate>]` and let the human decide.
+For a new dependency, unfamiliar integration, new architectural pattern, or genuinely open technology choice,
+research the unresolved questions. Consult authoritative specifications for requirements governed by external
+standards, including when reusing an existing implementation; use official documentation for unfamiliar APIs.
+Compare 2-3 options only when a new choice remains, covering stack compatibility, maintenance, performance, and
+security. Recommend one with a concrete reason the simpler options fall short.
+
+Keep research to roughly 2-3 focused source reads and 10 minutes. Record URLs and conclusions in the review and
+exploration log. For a larger investigation, write `[NEEDS CLARIFICATION: requires spike - <what to investigate>]`.
 
 ### 3.7 Flag ambiguities
 

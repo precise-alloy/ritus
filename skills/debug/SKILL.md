@@ -77,14 +77,12 @@ For multi-component systems (API chains, CI pipelines, layered services):
 
 ### 1.5 Trace data flow
 
-For errors deep in the call stack, trace backward from the bad value to its origin:
+Trace the failing value to its origin and establish the affected paths:
 
-1. Find where the bad value is used (the symptom).
-2. Trace backward through the call chain - where did this value come from?
-3. At each step, verify: is the value correct here? If yes, move one step forward. If no, move one step backward.
-4. The point where the value goes from correct to incorrect is the root cause location.
-
-**Fix at source, not at symptom.**
+- Follow the value backward from the symptom, checking expected behavior at each boundary.
+- Locate the first violated contract, including missing validation or an incorrect transformation.
+- Find every caller of the affected function and trace sibling paths to establish which share the defect.
+- Identify the shared correction point for affected paths and the caller contracts it must preserve.
 
 ### Evidence grading
 
