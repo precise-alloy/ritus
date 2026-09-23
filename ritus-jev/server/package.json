@@ -1,0 +1,24 @@
+{
+  "name": "@precise-alloy/ritus-jev-server",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Source of the ritus-jev MCP server; bundled into ../dist/jev.js by build.ts.",
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "build": "bun build.ts",
+    "check": "bun build.ts --check",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "doctor": "bun --use-system-ca ../dist/jev.js doctor"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/sdk": "1.30.0",
+    "@types/bun": "1.4.2",
+    "@typesafe-ai/sdk": "0.6.0",
+    "typescript": "7.0.2",
+    "zod": "4.6.5"
+  },
+  "engines": {
+    "bun": ">=1.4.0"
+  }
+}

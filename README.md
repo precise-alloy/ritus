@@ -73,6 +73,18 @@ or just
 The setup skill automatically scaffolds all project files (`docs/`, `.ritus/.env.example`) and runs an
 11-question interview to fill your project profiles.
 
+### Companion plugins (optional)
+
+Companions install from the same marketplace and weave into the workflow through their `ritus-companion.json`
+manifests (see [docs/COMPANION_PLUGINS.md](docs/COMPANION_PLUGINS.md)); Ritus behaves identically without them.
+
+| Plugin | What it adds | Install |
+|---|---|---|
+| `ritus-frontend` | Browser visual verification via Playwright MCP | `/plugin install ritus-frontend@precise-alloy-marketplace` |
+| `ritus-jev` | TypeSafe Jev MCP tools for coding agents: `locate` (semantic code search), `check` (claims vs code or the git diff), `classify`, `ask`. Enable with `TYPESAFE_API_KEY` in `.ritus/.env.local`; requires Bun | `/plugin install ritus-jev@precise-alloy-marketplace` |
+
+See [ritus-jev/README.md](ritus-jev/README.md) for its tools, key setup and what is sent to TypeSafe.
+
 ## What gets installed
 
 The `/sync` skill copies template files into your project. Files are never overwritten once they exist.
@@ -295,6 +307,13 @@ scripts/                         ← remote API integration scripts (plugin-owne
     provider-ado.ts              ← Azure DevOps (PRs + work items)
     provider-github.ts           ← GitHub (PRs + Issues)
 templates/                       ← plugin-owned (source templates, not copied to projects)
+ritus-jev/                       ← optional companion plugin: TypeSafe Jev MCP tools (see ritus-jev/README.md)
+  .claude-plugin/plugin.json     ← plugin manifest (mcpServers → .mcp.json)
+  .mcp.json                      ← `jev` stdio server: bun --use-system-ca dist/jev.js
+  ritus-companion.json           ← workflow integrations (load the jev skill at worker steps)
+  skills/jev/SKILL.md            ← when and how to use locate / check / classify / ask
+  dist/jev.js                    ← committed MCP server bundle (built from server/)
+  server/                        ← TypeScript source + build tooling (not used at runtime)
 ```
 
 ---

@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "jev": {
+      "command": "bun",
+      "args": ["--use-system-ca", "${CLAUDE_PLUGIN_ROOT}/dist/jev.js"]
+    }
+  }
+}

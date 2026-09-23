@@ -62,11 +62,15 @@ The hook looks for `ritus-companion.json` in three places:
 1. **Your project / repo** — a `ritus-companion.json` at the **repo root**. Only the root is
    checked (`<repo>/ritus-companion.json`); subfolders are not scanned.
 2. **Installed companion plugins** — sibling plugins in the same marketplace (both the Claude and
-   Copilot install layouts are handled).
+   Copilot install layouts are handled). A plugin's own subfolders are not scanned, so a companion
+   that lives inside another plugin's source tree (such as `ritus-jev/` in this repository) registers
+   only when it is installed itself.
 3. **Explicit override** — set `RITUS_COMPANION_PATHS` to a list of files or directories,
-   separated by the OS path-list separator (`;` on Windows, `:` elsewhere).
+   separated by the OS path-list separator (`;` on Windows, `:` elsewhere). Use this for a companion
+   loaded in place from a local checkout.
 
-All discovered manifests are merged; up to 25 are used.
+All discovered manifests are merged; up to 25 are used. When the same companion name is found more
+than once (for example a previous cached version), the most recently written manifest is used.
 
 ## Placement examples
 
@@ -101,6 +105,30 @@ Its registry entry renders as:
 
 The agent reads the manifest itself when it builds the workflow TODO, so the full prompts reach
 context only in sessions that actually run the Ritus workflow.
+
+## Example: ritus-jev
+
+The `ritus-jev` companion (in this repository under `ritus-jev/`) ships MCP tools backed by TypeSafe Jev and one
+`jev` skill. It uses the knowledge shape below at six worker steps, for example:
+
+```json
+{
+  "name": "ritus-jev",
+  "integrations": [
+    {
+      "skill": "jev",
+      "prompt": "While verify-task runs: load the jev skill; pre-screen DONE WHEN with check and the scope with classify change_scope, then confirm each lead at its cited lines."
+    },
+    {
+      "skill": "jev",
+      "prompt": "While debug runs Phase 1: load the jev skill; locate root-cause lines in saved logs and classify them with the failure_kind preset."
+    }
+  ]
+}
+```
+
+The tools return `status: "disabled"` until `TYPESAFE_API_KEY` is set in `.ritus/.env.local`, so a session without a
+key continues with ordinary tools. See [ritus-jev/README.md](../ritus-jev/README.md).
 
 ## Example: adding knowledge to a worker skill
 

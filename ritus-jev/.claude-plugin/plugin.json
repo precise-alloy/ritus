@@ -1,0 +1,20 @@
+{
+  "name": "ritus-jev",
+  "description": "Jev-powered coding tools over MCP - semantic locate, claim checks against code or the git diff, and calibrated classification that read files server-side so agents read less. Runs standalone or woven into ritus",
+  "version": "0.1.0",
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "author": {
+    "name": "eshn"
+  },
+  "keywords": [
+    "AI",
+    "workflow",
+    "mcp",
+    "typesafe",
+    "jev",
+    "semantic search",
+    "verification",
+    "classification"
+  ]
+}

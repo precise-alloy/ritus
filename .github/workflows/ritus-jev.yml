@@ -1,0 +1,47 @@
+name: ritus-jev
+
+on:
+  pull_request:
+    paths:
+      - "ritus-jev/**"
+      - ".github/workflows/ritus-jev.yml"
+  push:
+    branches: [main]
+    paths:
+      - "ritus-jev/**"
+      - ".github/workflows/ritus-jev.yml"
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Typecheck and bundle freshness (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: ritus-jev/server
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v5
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: 1.4.2
+
+      - name: Install build dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Typecheck
+        run: bun run typecheck
+
+      - name: Committed bundle matches the source
+        run: bun run check
+
+      - name: Doctor smoke (no key configured)
+        run: bun --use-system-ca ../dist/jev.js doctor --workspace "${{ github.workspace }}"

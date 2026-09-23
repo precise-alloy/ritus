@@ -24,6 +24,12 @@
         "ref": "feat/ritus-frontend-plugin",
         "path": "./"
       }
+    },
+    {
+      "name": "ritus-jev",
+      "description": "TypeSafe Jev coding tools over MCP - semantic locate, claim checks against code or the git diff, and calibrated classification - standalone or woven into ritus",
+      "version": "0.1.0",
+      "source": "./ritus-jev"
     }
   ]
 }

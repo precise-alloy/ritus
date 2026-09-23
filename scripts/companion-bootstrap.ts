@@ -88,6 +88,12 @@ function addPath(paths: Set<string>, path: string | undefined): void {
   }
 }
 
+// A plugin's own subdirectories are its content, not installed plugins: a plugin whose source tree contains another
+// plugin (ritus ships `ritus-jev/` inside its repository) must not register the inner one unless it is installed.
+function isPluginRoot(dir: string): boolean {
+  return isFile(join(dir, ".claude-plugin", "plugin.json")) || isFile(join(dir, "plugin.json"));
+}
+
 // Companion plugins install as siblings of this plugin; Claude nests each under
 // a version dir (<marketplace>/<plugin>/<version>), so scan sibling plugin dirs
 // and their version subdirs from both the parent and grandparent of pluginRoot.
@@ -104,6 +110,7 @@ function addPluginSiblings(paths: Set<string>, pluginRoot: string | undefined): 
 
       const pluginDir = join(marketplaceRoot, plugin.name);
       addManifestInDir(paths, pluginDir);
+      if (isPluginRoot(pluginDir)) continue;
 
       for (const child of readDirSafe(pluginDir)) {
         if (paths.size >= MAX_MANIFESTS) return;
@@ -163,18 +170,32 @@ function validateManifest(value: unknown): CompanionManifest | null {
   return { name: manifest.name.trim(), integrations };
 }
 
+function modifiedAt(path: string): number {
+  try {
+    return statSync(path).mtimeMs;
+  } catch {
+    return 0;
+  }
+}
+
 function loadCompanions(paths: string[]): LoadedCompanion[] {
-  const companions: LoadedCompanion[] = [];
+  // One entry per companion name: the same companion can be found at several paths (for example a previous
+  // cached version that has not been cleaned up yet); the most recently written manifest wins.
+  const byName = new Map<string, LoadedCompanion & { mtimeMs: number }>();
 
   for (const path of paths) {
     try {
       const manifest = validateManifest(JSON.parse(readFileSync(path, "utf-8")));
-      if (manifest) companions.push({ manifest, path });
+      if (!manifest) continue;
+      const mtimeMs = modifiedAt(path);
+      const existing = byName.get(manifest.name);
+      if (!existing || mtimeMs > existing.mtimeMs) byName.set(manifest.name, { manifest, path, mtimeMs });
     } catch {
       continue;
     }
   }
 
+  const companions = [...byName.values()].map(({ manifest, path }) => ({ manifest, path }));
   companions.sort((left, right) => left.manifest.name.localeCompare(right.manifest.name));
   return companions;
 }

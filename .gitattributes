@@ -1,0 +1,3 @@
+# ritus-jev ships a generated MCP server bundle; keep it byte-stable across platforms and out of diffs.
+ritus-jev/dist/** -diff linguist-generated=true eol=lf
+ritus-jev/server/bun.lock eol=lf

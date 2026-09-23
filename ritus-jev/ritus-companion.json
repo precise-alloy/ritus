@@ -1,0 +1,29 @@
+{
+  "name": "ritus-jev",
+  "integrations": [
+    {
+      "skill": "jev",
+      "prompt": "While requirement-analysis runs: load the jev skill and use locate to find the code each requirement touches before reading files in full."
+    },
+    {
+      "skill": "jev",
+      "prompt": "While execute-task runs: load the jev skill; locate code before reading whole files, and locate failures in saved command output."
+    },
+    {
+      "skill": "jev",
+      "prompt": "While verify-task runs: load the jev skill; pre-screen DONE WHEN with check and the scope with classify change_scope, then confirm each lead at its cited lines."
+    },
+    {
+      "skill": "jev",
+      "prompt": "During pr-review: load the jev skill; map acceptance criteria with check and scan the diff with classify change_risk, confirming each citation before reporting."
+    },
+    {
+      "skill": "jev",
+      "prompt": "While address-feedback filters comments: load the jev skill; pre-sort them with classify review_comment and test already-addressed ones with check - the keep bar and the user gate decide."
+    },
+    {
+      "skill": "jev",
+      "prompt": "While debug runs Phase 1: load the jev skill; locate root-cause lines in saved logs and classify them with the failure_kind preset."
+    }
+  ]
+}
