@@ -73,6 +73,17 @@ export async function mainWorktree(top: string): Promise<string | null> {
   return basename(commonDir) === ".git" ? dirname(commonDir) : null;
 }
 
+/** Commit where HEAD's branch left `ref`, or null when there is none (unrelated histories, unknown ref). */
+export async function mergeBase(cwd: string, ref: string): Promise<string | null> {
+  return gitText(cwd, ["merge-base", "--", ref, "HEAD"]).catch(() => null);
+}
+
+/** True when the working tree has staged, unstaged or untracked (not ignored) changes. */
+export async function hasWorkingTreeChanges(cwd: string): Promise<boolean> {
+  const out = await git(cwd, ["status", "--porcelain", "-z", "--untracked-files=normal"], 1024 * 1024).catch(() => null);
+  return out !== null && out.code === 0 && out.stdout.length > 0;
+}
+
 export function splitNul(bytes: Uint8Array): string[] {
   return new TextDecoder().decode(bytes).split("\0").filter(Boolean);
 }

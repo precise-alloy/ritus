@@ -1,5 +1,6 @@
-import { BUDGET } from "./policy.ts";
-import { ToolError, type Block } from "./types.ts";
+import { truncateLines } from "./chunk.ts";
+import { BUDGET, RESPONSE } from "./policy.ts";
+import { ToolError, type Block, type ToolResult } from "./types.ts";
 
 export function estimateTokens(text: string): number {
   return Math.ceil(text.length / BUDGET.CHARS_PER_TOKEN);
@@ -118,4 +119,46 @@ export function packBudget(longestQuestionTokens: number, fixedStateTokens: numb
 
 export function padId(prefix: string, index: number, total: number): string {
   return `${prefix}${String(index + 1).padStart(Math.max(2, String(total).length), "0")}`;
+}
+
+const TEXT_KEYS = ["text", "excerpt"] as const;
+/** Room kept for the `trimmed` note itself. */
+const NOTE_RESERVE = 220;
+
+function byteLength(value: unknown): number {
+  return Buffer.byteLength(JSON.stringify(value), "utf8");
+}
+
+/**
+ * Keeps a tool result within RESPONSE.MAX_BYTES, lowest-ranked entries first: shortens excerpts, then drops them, then
+ * drops trailing entries, and says what it did in `trimmed`. Hosts truncate or divert larger outputs to temp files,
+ * which costs the agent extra turns.
+ */
+export function fitResponse(result: ToolResult, maxBytes: number = RESPONSE.MAX_BYTES): ToolResult {
+  if (byteLength(result) <= maxBytes) return result;
+  const out = structuredClone(result);
+  const lists = [out.results, out.hits].filter((value): value is Record<string, unknown>[] => Array.isArray(value));
+  const entries = lists.flat().filter((entry) => entry !== null && typeof entry === "object").reverse();
+  const fits = () => byteLength(out) + NOTE_RESERVE <= maxBytes;
+  for (const cap of [24, 12, 6, 3]) {
+    for (const entry of entries) {
+      if (fits()) break;
+      for (const key of TEXT_KEYS) if (typeof entry[key] === "string") entry[key] = truncateLines(entry[key] as string, cap);
+    }
+  }
+  for (const entry of entries) {
+    if (fits()) break;
+    for (const key of TEXT_KEYS) delete entry[key];
+  }
+  let dropped = 0;
+  for (const list of lists) {
+    while (list.length > 1 && !fits()) {
+      list.pop();
+      dropped++;
+    }
+  }
+  out.trimmed = dropped > 0
+    ? `Excerpts were removed and the last ${dropped} entries dropped to fit the host's tool-output limit; narrow the request to see them.`
+    : "Excerpts were shortened to fit the host's tool-output limit; read the cited lines for the rest.";
+  return out;
 }

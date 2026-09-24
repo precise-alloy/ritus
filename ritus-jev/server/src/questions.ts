@@ -1,8 +1,8 @@
 // Every question sent to Jev. Keep each one a single, literal, atomic judgment (see TypeSafe
 // "Jev 1.13 jaggedness"): name the state field it judges in backticks and put boundary cases in criteria.
-import { choice, noul, type ChoiceQuestion, type NoulQuestion } from "@typesafe-ai/sdk";
+import { choice, noul, type ChoiceQuestion, type Description, type NoulQuestion } from "@typesafe-ai/sdk";
 
-type Options = Record<string, string | null>;
+type Options = Record<string, Description>;
 
 function withNone(ids: readonly string[], none: string): Options {
   const options: Options = {};
@@ -38,23 +38,79 @@ export const checkQuestions = {
       withNone(ids, "No item in `evidence` relates to `claim`."),
     );
   },
-  supported(claim: string): NoulQuestion {
-    return noul(
-      { claim, question: "Does the code or text in `evidence` show that `claim` is true?" },
+  /** What kind of statement a claim is, so exact and mechanical checks run in code instead of the model. */
+  kind(id: string): ChoiceQuestion<Options> {
+    return choice(
+      { question: `What kind of statement is \`claims.${id}\`?`, focus: "Classify what would make the statement true, not its topic." },
       {
-        true: "`evidence` explicitly implements or states what `claim` says.",
-        false: "`evidence` does not show it, shows only part of it, or shows something different.",
+        semantic: {
+          what: "Whether it holds depends on what code or text means, says or does.",
+          examples: [
+            "`parseConfig` returns null for an empty file",
+            "The dispatch contract resumes the producer for correction cycles",
+            "No leftover wording such as \"fresh subagent\" contradicts the new rule",
+          ],
+        },
+        literal: {
+          what: "It asserts only that an exact quoted or backticked phrase appears, or does not appear, in files - nothing about what the text means.",
+          not_for: "Statements about meaning, intent or contradiction that quote example phrases.",
+          examples: ["The phrase \"spawn a fresh subagent\" is absent from dispatch.md", "`## Resume vs fresh` appears in dispatch.md"],
+        },
+        count: {
+          what: "It asserts how many times something occurs or how many items exist.",
+          examples: ["dispatch.md has exactly one `## Resume vs fresh` heading", "Three tests cover the parser"],
+        },
+        files: {
+          what: "It asserts which files were changed, added or removed, or that changes are limited to certain files.",
+          examples: ["Changes are limited to README.md and skills/debug/SKILL.md", "skills/debug/SKILL.md was modified"],
+        },
+        format: {
+          what: "It asserts formatting or characters, such as list markers, casing, line length, or a character never appearing.",
+          examples: ["The new text uses no em dash character", "Lists use hyphen markers"],
+        },
       },
     );
   },
-  contradicted(claim: string): NoulQuestion {
-    return noul(
-      { claim, question: "Does the code or text in `evidence` show something that conflicts with `claim`?" },
-      {
-        true: "`evidence` implements or states behavior that is incompatible with `claim`.",
-        false: "Nothing in `evidence` conflicts with `claim`.",
-      },
-    );
+  compound(id: string): NoulQuestion {
+    return noul(`Does \`claims.${id}\` combine two or more independent assertions that could each be true or false on its own?`, {
+      true: "It joins separate conditions that could be checked one at a time, for example with 'and' or a list.",
+      false: "It states one condition, even if that condition mentions several words or files.",
+    });
+  },
+  polarity(id: string): ChoiceQuestion<Options> {
+    return choice(`Does \`claims.${id}\` assert that the quoted phrase appears, or that it does not appear?`, {
+      present: "The phrase appears, is included, is added, or exists.",
+      absent: "The phrase does not appear, is removed, has no matches, or is gone.",
+    });
+  },
+  fileForm(id: string): ChoiceQuestion<Options> {
+    return choice(`What does \`claims.${id}\` assert about the files it names?`, {
+      only_these: "Changes are limited to the named files; no other file changed.",
+      includes: "The named files were changed, added or modified.",
+      excludes: "The named files were not changed.",
+    });
+  },
+  /** Citation-check shape: how one passage (named by its backticked state path) relates to `claim`. */
+  relation(passage: string): ChoiceQuestion<Options> {
+    return choice(`How does \`${passage}\` relate to \`claim\`?`, {
+      supports: "The passage states the claim or directly implies that it is true.",
+      contradicts: "The passage states the opposite of the claim or implies that it is false.",
+      says_nothing: "The passage does not address what the claim asserts, either way.",
+    });
+  },
+};
+
+const SWEEP_MATCH = {
+  true: "The passage itself states, describes or implements what `query` describes, in any wording.",
+  false: "The passage only mentions, imports, calls or links to it, shares words with `query`, or describes something similar but different.",
+};
+
+export const sweepQuestions = {
+  block(id: string): NoulQuestion {
+    return noul(`Does \`blocks.${id}\` itself state or implement what \`query\` describes?`, SWEEP_MATCH);
+  },
+  passage(): NoulQuestion {
+    return noul("Does `passage` itself state or implement what `query` describes?", SWEEP_MATCH);
   },
 };
 
@@ -132,7 +188,7 @@ export function renderQuestion(template: string, itemRef: string, label?: string
 }
 
 export function classifyChoice(question: string, labels: Record<string, string>): ChoiceQuestion<Options> {
-  return choice(question, { ...labels });
+  return choice(question, { ...labels } as Options);
 }
 
 export function classifyNoul(question: string): NoulQuestion {

@@ -79,12 +79,14 @@ export async function ask(input: AskInput, ctx: ToolContext): Promise<ToolResult
     const base = input.state === undefined ? undefined : (redactValue(input.state, p.secrets, counter) as EntryType);
     let state: EntryType = base ?? null;
     let legend: Record<string, string> | undefined;
+    const warnings: string[] = [];
     if (input.sources && input.sources.length > 0) {
-      const { blocks, redactions } = await resolveRefs(p.ws, input.sources, "whole", p.secrets);
-      counter.count += redactions;
+      const resolved = await resolveRefs(p.ws, input.sources, "whole", p.secrets);
+      counter.count += resolved.redactions;
+      warnings.push(...resolved.warnings);
       const sources: Record<string, string> = {};
       legend = {};
-      blocks.forEach((block, index) => {
+      resolved.blocks.forEach((block, index) => {
         const id = block.kind === "inline" ? block.path : `S${index + 1}`;
         sources[id] = blockLabel(block);
         legend![id] = block.kind === "inline" ? "inline text" : `${block.path}:${block.start}-${block.end}`;
@@ -124,6 +126,7 @@ export async function ask(input: AskInput, ctx: ToolContext): Promise<ToolResult
       status: "ok",
       answers,
       ...(legend ? { sources: legend } : {}),
+      ...(warnings.length > 0 ? { warnings } : {}),
       ...(counter.count > 0 ? { redactions: counter.count } : {}),
     };
   });

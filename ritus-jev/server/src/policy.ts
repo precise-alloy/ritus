@@ -22,6 +22,11 @@ export const BUDGET = {
   CONTEXT_CHARS: 4_000,
 } as const;
 
+export const RESPONSE = {
+  /** Serialized size cap for every tool result; hosts truncate or divert larger outputs (Copilot CLI at about 20 KB). */
+  MAX_BYTES: 15_000,
+} as const;
+
 export const LIMITS = {
   MAX_FILE_BYTES: 512 * 1024,
   MAX_EXPLICIT_FILE_BYTES: 2 * 1024 * 1024,
@@ -73,21 +78,43 @@ export const CHECK = {
   MAX_CLAIMS: 20,
   /** Evidence cap for one call, in estimated tokens; above it the call returns scope_too_large. */
   SCOPE_TOKENS: 300_000,
-  SUPPORTED: 0.75,
-  SUPPORTED_MAX_CONTRADICTED: 0.35,
-  CONTRADICTED: 0.7,
-  CONTRADICTED_MAX_SUPPORTED: 0.5,
-  NOT_FOUND_MAX: 0.3,
-  /** Minimum `where` probability for a citation. */
-  CITE_MIN: 0.3,
+  /** Claim routing below this confidence falls back to the semantic (evidence) path. */
+  ROUTE_ACCEPT: 0.6,
+  /** A compound-claim Noul at or above this adds a hint to split the claim. */
+  COMPOUND: 0.7,
+  /** Relation confidence at which a supports / contradicts / says_nothing verdict stands; below it the claim is uncertain. */
+  ACCEPT: 0.7,
+  /** Candidate passages judged per semantic claim, and the minimum shortlist probability. */
   SHORTLIST: 4,
   SHORTLIST_MIN_PROB: 0.05,
-  EVIDENCE_MAX_LINES: 40,
-  EVIDENCE_TOTAL_MAX_LINES: 240,
+  /** Excerpts are returned for contradicted and uncertain claims only (unless include_evidence is "all"). */
+  EXCERPT_LINES: 20,
+  EXCERPT_TOTAL_LINES: 120,
+  /** Files named in claims that are added to default evidence. */
+  NAMED_FILES_MAX: 5,
+  /** Files searched for a literal or counted phrase, and the cited occurrences returned. */
+  LITERAL_FILES_MAX: 400,
+  LITERAL_AT_MAX: 8,
+} as const;
+
+export const SWEEP = {
+  /** Scope cap in estimated tokens; above it the call returns scope_too_large with a breakdown. */
+  SCOPE_TOKENS: 400_000,
+  /** Blocks screened per request (one Noul each). */
+  BATCH_BLOCKS: 120,
+  /** Screen threshold (recall-oriented); blocks at or above it are re-checked alone. */
+  SCREEN: 0.3,
+  /** Final threshold on the solo re-check. */
+  MATCH: 0.6,
+  /** Most screened blocks re-checked in one call; the rest are reported as `more`. */
+  MAX_CONFIRM: 80,
+  DEFAULT_LIMIT: 30,
+  MAX_LIMIT: 100,
+  CONTEXT_LINES: 2,
 } as const;
 
 export const CLASSIFY = {
-  MAX_ITEMS: 200,
+  MAX_ITEMS: 120,
   ITEMS_PER_REQUEST: 40,
   MULTI_ITEMS_PER_REQUEST: 16,
   ITEM_MAX_TOKENS: 3_000,
@@ -106,19 +133,11 @@ export const ASK = {
 } as const;
 
 export type Found = "found" | "partial" | "not_found";
-export type Verdict = "supported" | "contradicted" | "not_found" | "uncertain";
+export type Verdict = "supported" | "contradicted" | "not_found" | "uncertain" | "use_search";
 
 export function foundVerdict(topScore: number): Found {
   if (topScore >= LOCATE.FOUND) return "found";
   return topScore >= LOCATE.PARTIAL ? "partial" : "not_found";
-}
-
-/** Supported and contradicted are separate Nouls; they are combined here, never assumed to sum to 1. */
-export function claimVerdict(supported: number, contradicted: number): Verdict {
-  if (supported >= CHECK.SUPPORTED && contradicted < CHECK.SUPPORTED_MAX_CONTRADICTED) return "supported";
-  if (contradicted >= CHECK.CONTRADICTED && supported < CHECK.CONTRADICTED_MAX_SUPPORTED) return "contradicted";
-  if (supported < CHECK.NOT_FOUND_MAX && contradicted < CHECK.NOT_FOUND_MAX) return "not_found";
-  return "uncertain";
 }
 
 export function noulBand(p: number): "yes" | "no" | "uncertain" {

@@ -2,7 +2,7 @@ import { join } from "node:path";
 import { chunkText } from "./chunk.ts";
 import type { Workspace } from "./config.ts";
 import { isDenied, isNoise, readSafe, redactText } from "./files.ts";
-import { assertRef, git, splitNul } from "./git.ts";
+import { assertRef, git, mergeBase, splitNul } from "./git.ts";
 import { CHUNK, LIMITS } from "./policy.ts";
 import { ToolError, type Block } from "./types.ts";
 
@@ -11,6 +11,13 @@ export interface DiffSpec {
   head?: string;
   staged?: boolean;
   paths?: string[];
+}
+
+/** Human-readable name of a diff source, for warnings. */
+export function describeDiff(spec: DiffSpec): string {
+  if (spec.staged) return spec.base ? `staged changes vs ${spec.base}` : "staged changes";
+  if (spec.head) return `commits ${spec.base ?? "HEAD"}...${spec.head}`;
+  return spec.base && spec.base !== "HEAD" ? `working tree vs the merge-base with ${spec.base}` : "working tree vs HEAD";
 }
 
 /** One hunk of a file: `path` is the post-image path (pre-image for deletions); `oldPath` is null for new files. */
@@ -123,7 +130,11 @@ function redactHunk(hunk: ParsedHunk, secrets: readonly string[]): { hunk: Parse
   return { hunk: { ...hunk, lines: hunk.lines.map((line, i) => `${line[0] ?? " "}${content[i] ?? ""}`) }, count: redacted.count };
 }
 
-/** Read-only `git diff` as redacted hunk blocks; working-tree mode also includes untracked files as new-file blocks. */
+/**
+ * Read-only `git diff` as redacted hunk blocks. Without `head`, the working tree is compared with `base` (default
+ * HEAD; for another ref, its merge-base with HEAD, so the diff is everything the branch changes, committed or not) and
+ * untracked files are included as new-file blocks. With `head`, only commits `base...head` are compared.
+ */
 export async function diffBlocks(
   ws: Workspace,
   spec: DiffSpec,
@@ -141,7 +152,9 @@ export async function diffBlocks(
   } else if (spec.head) {
     args.push(`${assertRef(spec.base ?? "HEAD", "diff.base")}...${assertRef(spec.head, "diff.head")}`);
   } else {
-    args.push(assertRef(spec.base ?? "HEAD", "diff.base"));
+    const base = assertRef(spec.base ?? "HEAD", "diff.base");
+    const fork = base === "HEAD" ? null : await mergeBase(ws.root, base);
+    args.push(fork ?? base);
   }
   args.push("--", ...relPaths);
   const result = await git(ws.root, args);

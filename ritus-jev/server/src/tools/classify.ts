@@ -52,8 +52,11 @@ export async function classify(input: ClassifyInput, ctx: ToolContext): Promise<
     }
 
     if ((input.items?.length ?? 0) > CLASSIFY.MAX_ITEMS) throw new ToolError("input_error", `Pass at most ${CLASSIFY.MAX_ITEMS} items.`);
-    const { blocks, redactions } = await resolveRefs(p.ws, input.items ?? [{ diff: {} }], "whole", p.secrets);
-    if (blocks.length === 0) throw new ToolError("input_error", "No items to classify: the diff is empty or the references resolved to nothing.");
+    const { blocks, redactions, warnings } = await resolveRefs(p.ws, input.items ?? [{ diff: {} }], "whole", p.secrets);
+    if (blocks.length === 0) {
+      throw new ToolError("input_error", "No items to classify: the diff is empty or the references resolved to nothing.",
+        warnings[0] ?? "Pass `items` with file paths, or a diff `base`.");
+    }
     if (blocks.length > CLASSIFY.MAX_ITEMS) {
       throw new ToolError("input_error", `${blocks.length} items exceed the limit of ${CLASSIFY.MAX_ITEMS}.`, "Narrow the diff `paths` or split the call.");
     }
@@ -134,6 +137,7 @@ export async function classify(input: ClassifyInput, ctx: ToolContext): Promise<
       mode,
       results,
       summary,
+      ...(warnings.length > 0 ? { warnings } : {}),
       ...(redactions > 0 ? { redactions } : {}),
     };
   });

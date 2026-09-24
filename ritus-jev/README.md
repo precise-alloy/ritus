@@ -12,14 +12,20 @@ through a companion manifest when Ritus is installed.
 
 | Tool | Use it to | Returns |
 |---|---|---|
+| `sweep` | Find every passage that still states an old rule, contract, API or term after a change, in any wording | Every hit above the threshold as `path` + `lines`, the matching `line` and an excerpt, in file order, with a `count` |
 | `locate` | Find where something is implemented, configured, tested or documented, or where a failure appears in a saved log | `found` / `partial` / `not_found`, ranked `path` + `lines` with a preview, and the text of confident hits |
-| `check` | Verify claims (DONE WHEN, acceptance criteria, "already addressed?") against files or the git diff | Per claim: `supported` / `contradicted` / `not_found` / `uncertain`, both probabilities, the cited range and its lines |
+| `check` | Verify atomic claims (DONE WHEN, acceptance criteria, "already addressed?") against files or the git diff | Per claim: `supported` / `contradicted` / `not_found` / `uncertain` / `use_search`, the method (`code` for exact phrase, count and changed-file claims; `jev` otherwise), the cited range, and an excerpt where the verdict needs a look |
 | `classify` | Label many items (text, file ranges, diff hunks) | Per item: label(s), confidence, `accept` / `review`; presets `failure_kind`, `review_comment`, `change_risk`, `change_scope` |
 | `ask` | Any other narrow judgment | Raw Noul / Choice / Score answers with bands |
 
-Host tool names: Copilot CLI `jev-locate`, `jev-check`, `jev-classify`, `jev-ask`; Claude Code
-`mcp__plugin_ritus-jev_jev__locate` and so on. Every call takes `workspace`, the absolute path of the repository.
-The bundled [`jev` skill](skills/jev/SKILL.md) teaches agents when and how to use each tool.
+Host tool names: Copilot CLI `jev-sweep`, `jev-locate`, `jev-check`, `jev-classify`, `jev-ask`; Claude Code
+`mcp__plugin_ritus-jev_jev__sweep` and so on. Every call takes `workspace`, the absolute path of the repository.
+The bundled [`jev` skill](skills/jev/SKILL.md) teaches agents when to use each tool and when a plain search is better.
+
+How the tools use Jev follows TypeSafe's cookbooks: `sweep` screens every block with one Noul and re-checks each hit
+alone (semantic find, re-ranking); `check` routes each claim first, answers exact-phrase, count and changed-file
+claims in code, and judges the rest one small `{claim, passage}` Choice at a time with a confidence gate (citation
+check); `locate` pairs a Choice skim with a per-candidate Noul (semantic find, re-ranking).
 
 ## Install
 
@@ -73,16 +79,20 @@ bun --use-system-ca <plugin-root>/dist/jev.js doctor --workspace <repo> --ping
 ## How Ritus uses it
 
 `ritus-companion.json` registers `load` integrations, so while the Ritus workflow runs the agent loads the `jev`
-skill at these steps:
+skill where Jev replaces reading or catches what a search misses:
 
 | Step | Use |
 |---|---|
-| requirement-analysis | `locate` the code each requirement touches before reading files in full |
-| execute-task | `locate` code and failures in saved command output |
-| verify-task | pre-screen DONE WHEN with `check` and scope with `classify change_scope`, then confirm at the cited lines |
-| pr-review | map acceptance criteria with `check`, scan the diff with `classify change_risk` |
+| requirement-analysis | when the change alters a rule, contract, API or term, `sweep` for every passage that still states the old one and list the hits in the review; `locate` when the place a behavior lives is unknown |
+| task-generation | make sure a task's CONTEXT covers every `sweep` hit for a changed rule, contract, API or term |
+| execute-task | `locate` failures in saved command output, and code the task's CONTEXT does not name |
+| verify-task | when the task changes a rule or term, `sweep` for stale passages: hits in the task's CONTEXT files are gaps, others are observations |
+| pr-review | `sweep` for passages that still state what the change replaced; `classify change_risk` on diffs with many hunks |
 | address-feedback | pre-sort comments with `classify review_comment`, test "already addressed" with `check` |
 | debug (Phase 1) | `locate` root-cause lines in saved logs, `classify failure_kind` |
+
+The first real Ritus run with v0.1 showed why: its pr-review rounds 2 to final each found one more passage that still
+described the replaced rule, in a different file; two sweeps over the pre-change tree return all of them in seconds.
 
 Ritus's gates, independent verification and user approvals keep their authority: tool results are leads that the
 worker confirms by reading the cited lines. Ritus core files are unchanged, and the workflow behaves identically
@@ -117,11 +127,18 @@ confirm.
   `workspace` explicitly; Claude Code roots are also enforced when the host provides them.
 - The server runs `bun --use-system-ca` so HTTPS works behind TLS-inspecting corporate proxies. Proxies can be set
   with `HTTPS_PROXY` in `.ritus/.env.local`.
-- The four tool schemas add roughly 2k tokens to each session's context; disable the plugin in projects without a key.
+- The five tool schemas add roughly 2.5k tokens to each session's context; disable the plugin in projects without a
+  key.
 - Long command output: redirect it to a file in the OS temp directory and `locate` it by absolute path.
-- Large scopes return `scope_too_large` with a per-directory breakdown instead of spending: `locate` above about 350k
-  tokens, `check` evidence above about 300k tokens. `context` for `check` and `classify` is limited to 4,000
-  characters, and a custom multi-label `classify` question must contain `{label}`.
+- Every result fits a 15 KB budget, under the roughly 20 KB at which Copilot CLI diverts tool output to a temp file:
+  excerpts are shortened first and the result says so in `trimmed`.
+- Large scopes return `scope_too_large` with a per-directory breakdown instead of spending: `sweep` above about 400k
+  tokens, `locate` above about 350k, `check` evidence above about 300k. `context` for `check` and `classify` is limited
+  to 4,000 characters, `classify` takes up to 120 items, and a custom multi-label `classify` question must contain
+  `{label}`.
+- Diff sources: `{}` is the working tree vs HEAD plus untracked files; `{"base": "origin/main"}` is the whole branch
+  (the working tree vs its merge-base with `origin/main`, committed or not); adding `head` compares commits only. A
+  diff source that resolves to nothing is reported in `warnings`.
 - Ritus registers the companion only when ritus-jev is installed as its own plugin. When loading it in place from a
   local checkout, point `RITUS_COMPANION_PATHS` at the `ritus-jev/` directory.
 
@@ -129,7 +146,8 @@ confirm.
 
 All question wording lives in [`server/src/questions.ts`](server/src/questions.ts) and all thresholds, budgets and
 caps in [`server/src/policy.ts`](server/src/policy.ts). Starting values come from the TypeSafe cookbooks (semantic
-find, re-ranking, confidence routing); adjust them against your own cases and rebuild.
+find, re-ranking, citation check, confidence routing); adjust them against your own cases and rebuild. The model is
+pinned to `jev-1.13.0`; move to a newer version deliberately, since thresholds are tuned per version.
 
 ## Development
 
@@ -145,11 +163,12 @@ bun run build     # writes ../dist/jev.js and ../dist/THIRD_PARTY_NOTICES.txt
 bun run check     # fails when the committed bundle is stale
 ```
 
-Every tool also runs from the command line with the same arguments as the MCP call, which is handy for trying
-questions and thresholds:
+Every tool also runs from the command line with the same arguments and output as the MCP call, which is handy for
+trying questions and thresholds:
 
 ```bash
 bun --use-system-ca dist/jev.js locate --workspace <repo> --json '{"query":"where HTTP retries back off"}'
+bun --use-system-ca dist/jev.js sweep --workspace <repo> --json '{"query":"a passage saying retries use a fixed delay","paths":["src","docs"]}'
 bun --use-system-ca dist/jev.js check --workspace <repo> --args-file claims.json
 ```
 

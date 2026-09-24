@@ -81,7 +81,7 @@ manifests (see [docs/COMPANION_PLUGINS.md](docs/COMPANION_PLUGINS.md)); Ritus be
 | Plugin | What it adds | Install |
 |---|---|---|
 | `ritus-frontend` | Browser visual verification via Playwright MCP | `/plugin install ritus-frontend@precise-alloy-marketplace` |
-| `ritus-jev` | TypeSafe Jev MCP tools for coding agents: `locate` (semantic code search), `check` (claims vs code or the git diff), `classify`, `ask`. Enable with `TYPESAFE_API_KEY` in `.ritus/.env.local`; requires Bun | `/plugin install ritus-jev@precise-alloy-marketplace` |
+| `ritus-jev` | TypeSafe Jev MCP tools for coding agents: `sweep` (every passage that still states an old rule or term), `locate` (semantic code search), `check` (claims vs code or the git diff), `classify`, `ask`. Enable with `TYPESAFE_API_KEY` in `.ritus/.env.local`; requires Bun | `/plugin install ritus-jev@precise-alloy-marketplace` |
 
 See [ritus-jev/README.md](ritus-jev/README.md) for its tools, key setup and what is sent to TypeSafe.
 
@@ -311,7 +311,7 @@ ritus-jev/                       ← optional companion plugin: TypeSafe Jev MCP
   .claude-plugin/plugin.json     ← plugin manifest (mcpServers → .mcp.json)
   .mcp.json                      ← `jev` stdio server: bun --use-system-ca dist/jev.js
   ritus-companion.json           ← workflow integrations (load the jev skill at worker steps)
-  skills/jev/SKILL.md            ← when and how to use locate / check / classify / ask
+  skills/jev/SKILL.md            ← when to use sweep / locate / check / classify / ask, and when a search is better
   dist/jev.js                    ← committed MCP server bundle (built from server/)
   server/                        ← TypeScript source + build tooling (not used at runtime)
 ```

@@ -1,7 +1,7 @@
 {
   "name": "ritus-jev",
-  "description": "Jev-powered coding tools over MCP - semantic locate, claim checks against code or the git diff, and calibrated classification that read files server-side so agents read less. Runs standalone or woven into ritus",
-  "version": "0.1.0",
+  "description": "Jev-powered coding tools over MCP - sweep for every passage that still states an old rule, semantic locate, exact-first claim checks against code or the git diff, and calibrated classification that read files server-side so agents read less. Runs standalone or woven into ritus",
+  "version": "0.2.0",
   "skills": "./skills/",
   "mcpServers": "./.mcp.json",
   "author": {

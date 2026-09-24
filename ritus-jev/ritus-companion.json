@@ -3,19 +3,23 @@
   "integrations": [
     {
       "skill": "jev",
-      "prompt": "While requirement-analysis runs: load the jev skill and use locate to find the code each requirement touches before reading files in full."
+      "prompt": "While requirement-analysis runs: load the jev skill. When the change alters a rule, contract, API or term, sweep for every passage that still states the old one and list the hits in the review document; use locate when the place a behavior lives is unknown."
     },
     {
       "skill": "jev",
-      "prompt": "While execute-task runs: load the jev skill; locate code before reading whole files, and locate failures in saved command output."
+      "prompt": "While task-generation runs, when the change alters a rule, contract, API or term: load the jev skill, sweep for passages that still state the old one, and make sure a task's CONTEXT covers every hit."
     },
     {
       "skill": "jev",
-      "prompt": "While verify-task runs: load the jev skill; pre-screen DONE WHEN with check and the scope with classify change_scope, then confirm each lead at its cited lines."
+      "prompt": "While execute-task runs: load the jev skill to locate failures in saved command output, and to locate code only when the task's CONTEXT does not name the files."
     },
     {
       "skill": "jev",
-      "prompt": "During pr-review: load the jev skill; map acceptance criteria with check and scan the diff with classify change_risk, confirming each citation before reporting."
+      "prompt": "While verify-task runs, when the task changes a rule, contract, API or term: load the jev skill and sweep for passages that still state the old one; report hits in the task's CONTEXT files as gaps and other hits as observations."
+    },
+    {
+      "skill": "jev",
+      "prompt": "During pr-review: load the jev skill; for each rule, contract, API or term the change alters, sweep for passages that still state the old one and report confirmed hits as findings; use classify change_risk only on diffs with many hunks."
     },
     {
       "skill": "jev",

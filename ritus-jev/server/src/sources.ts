@@ -3,9 +3,9 @@ import { readdir, stat } from "node:fs/promises";
 import { isAbsolute, join, relative } from "node:path";
 import { blockKind, chunkText, splitLines } from "./chunk.ts";
 import type { Workspace } from "./config.ts";
-import { diffBlocks, type DiffSpec } from "./diff.ts";
+import { describeDiff, diffBlocks, type DiffSpec } from "./diff.ts";
 import { access, isDenied, isNoise, mapLimit, readSafe, readText, redactText } from "./files.ts";
-import { git, splitNul } from "./git.ts";
+import { git, hasWorkingTreeChanges, splitNul } from "./git.ts";
 import { contains, hasStreamSyntax, inTempRoot, IS_WINDOWS, realpathOrNull, tempRoots, toPosix } from "./paths.ts";
 import { LIMITS } from "./policy.ts";
 import { ToolError, type Block } from "./types.ts";
@@ -180,6 +180,92 @@ export interface LoadedFile {
   redactions: number;
 }
 
+export interface NamedPaths {
+  files: string[];
+  dirs: string[];
+}
+
+const TOKEN_SPLIT = /[\s`'"“”‘’(){}[\],;]+/;
+const FILE_LIKE = /^[\w.@-]*[\w@-]\.[A-Za-z0-9]{1,10}$/;
+
+/**
+ * Workspace files and directories a claim names: tokens with a path separator or a file extension, with `:line`
+ * suffixes removed. A bare file name resolves only when exactly one workspace file has that name.
+ */
+export async function namedPaths(ws: Workspace, text: string, list: () => Promise<readonly string[]> = () => listFiles(ws)): Promise<NamedPaths> {
+  const files = new Map<string, string>();
+  const dirs = new Map<string, string>();
+  let byName: Map<string, string[]> | null = null;
+  for (const raw of text.split(TOKEN_SPLIT)) {
+    const token = raw.replace(/^:+/, "").replace(/[.:!?]+$/, "").replace(/:\d+(?:-\d+)?$/, "");
+    if (!token || token.includes("://") || token.length > 300) continue;
+    const pathLike = token.includes("/") || token.includes("\\");
+    if (!pathLike && !FILE_LIKE.test(token)) continue;
+    let rel: string;
+    try {
+      rel = toRelative(ws, token);
+    } catch {
+      continue;
+    }
+    if (!rel || isDenied(rel)) continue;
+    const info = await stat(join(ws.root, rel)).catch(() => null);
+    if (info?.isFile()) {
+      files.set(fold(rel), rel);
+    } else if (info?.isDirectory()) {
+      dirs.set(fold(rel), rel);
+    } else if (!pathLike) {
+      if (!byName) {
+        byName = new Map();
+        for (const path of await list()) {
+          const name = fold(path.slice(path.lastIndexOf("/") + 1));
+          byName.set(name, [...(byName.get(name) ?? []), path]);
+        }
+      }
+      const matches = byName.get(fold(rel)) ?? [];
+      if (matches.length === 1 && !isDenied(matches[0] as string)) files.set(fold(matches[0] as string), matches[0] as string);
+    }
+  }
+  return { files: [...files.values()], dirs: [...dirs.values()] };
+}
+
+/** Readable, allowed text files under a workspace directory (listed files plus ignored files on disk). */
+export async function filesInDir(ws: Workspace, dir: string, list: () => Promise<readonly string[]> = () => listFiles(ws)): Promise<string[]> {
+  const all = await filesUnder(ws, await list(), dir);
+  return all.filter((path) => !isDenied(path) && !isNoise(path));
+}
+
+export interface PhraseHit {
+  path: string;
+  line: number;
+  /** The matching line, clipped; callers redact it before returning it. */
+  text: string;
+}
+
+/**
+ * Exact, case-sensitive occurrences of `phrase` in the current content of workspace files. Returns the number of
+ * occurrences and where they are; files that cannot be read (missing, denied, binary) are skipped.
+ */
+export async function findPhrase(ws: Workspace, phrase: string, relPaths: readonly string[]): Promise<{ count: number; hits: PhraseHit[] }> {
+  let count = 0;
+  const hits: PhraseHit[] = [];
+  let total = 0;
+  for (const rel of relPaths) {
+    const read = await readSafe(join(ws.root, rel), true, [ws.root]);
+    if (read.text === null) continue;
+    total += read.text.length;
+    if (total > LIMITS.MAX_READ_BYTES) throw new ToolError("scope_too_large", "The phrase search exceeds the read limit.", "Name fewer files in the claim.");
+    read.text.split(/\r?\n/).forEach((line, index) => {
+      let from = line.indexOf(phrase);
+      while (from >= 0) {
+        count++;
+        hits.push({ path: rel, line: index + 1, text: line.length > 200 ? `${line.slice(0, 200)} ...` : line });
+        from = line.indexOf(phrase, from + Math.max(1, phrase.length));
+      }
+    });
+  }
+  return { count, hits };
+}
+
 const loadedCache = new Map<string, { mtimeMs: number; size: number; loaded: Omit<LoadedFile, "file"> }>();
 let cachedChars = 0;
 
@@ -241,15 +327,17 @@ export async function loadScope(
 
 /**
  * Resolves evidence/item references. `blocks` chunks file ranges for search; `whole` keeps each reference as one
- * block. Diff references expand to hunks either way. Default reference: working-tree diff against HEAD.
+ * block. Diff references expand to hunks either way. Default reference: working-tree diff against HEAD. Sources that
+ * resolve to nothing are reported in `warnings` rather than silently dropped.
  */
 export async function resolveRefs(
   ws: Workspace,
   refs: readonly SourceRef[],
   mode: "blocks" | "whole",
   secrets: readonly string[],
-): Promise<{ blocks: Block[]; redactions: number }> {
+): Promise<{ blocks: Block[]; redactions: number; warnings: string[] }> {
   const blocks: Block[] = [];
+  const warnings: string[] = [];
   let redactions = 0;
   let inline = 0;
   for (const ref of refs) {
@@ -269,6 +357,13 @@ export async function resolveRefs(
       const diffed = await diffBlocks(ws, ref.diff, relPaths, secrets);
       redactions += diffed.redactions;
       blocks.push(...diffed.blocks);
+      if (diffed.blocks.length === 0) {
+        const where = relPaths.length > 0 ? ` in ${relPaths.join(", ")}` : "";
+        const dropHead = ref.diff.head !== undefined && (await hasWorkingTreeChanges(ws.root))
+          ? "; the working tree has uncommitted changes, which a base...head range leaves out - drop `head` to include them"
+          : "";
+        warnings.push(`The diff source (${describeDiff(ref.diff)}) has no changes${where}${dropHead}.`);
+      }
       continue;
     }
     const raw = ref.path as string;
@@ -304,5 +399,5 @@ export async function resolveRefs(
       }
     }
   }
-  return { blocks, redactions };
+  return { blocks, redactions, warnings };
 }

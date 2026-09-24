@@ -13,8 +13,8 @@ const source = z
     id: z.string().optional().describe("Id for inline text."),
     diff: z
       .object({
-        base: z.string().optional().describe("Default HEAD; with head, compares base...head."),
-        head: z.string().optional(),
+        base: z.string().optional().describe("Default HEAD. Without head: working tree vs the merge-base with base, plus untracked files (the whole branch, committed or not)."),
+        head: z.string().optional().describe("Commits only: base...head."),
         staged: z.boolean().optional(),
         paths: z.array(z.string()).optional(),
       })
@@ -36,10 +36,22 @@ export const locateShape = {
 
 export const checkShape = {
   workspace,
-  claims: z.array(z.string()).describe("1-20 specific, testable statements."),
-  evidence: z.array(source).optional().describe("What to check against (default: working-tree diff vs HEAD plus untracked files)."),
+  claims: z.array(z.string()).describe("1-20 atomic statements; quote exact phrases in backticks."),
+  evidence: z.array(source).optional().describe("What to check against (default: working-tree diff vs HEAD plus untracked files, and files the claims name)."),
   context: z.string().optional().describe("Task or requirement summary, as background."),
-  include_evidence: z.boolean().optional().describe("Include the cited lines (default true)."),
+  include_evidence: z
+    .union([z.enum(["auto", "all", "none"]), z.boolean()])
+    .optional()
+    .describe("Excerpts: auto (default) for contradicted and uncertain claims, all, or none."),
+};
+
+export const sweepShape = {
+  workspace,
+  query: z.string().describe("The passages to find, described directly (for example the old wording or behavior), in plain English."),
+  paths: z.array(z.string()).optional().describe("Files, directories or globs to sweep (default: whole workspace)."),
+  exclude: z.array(z.string()).optional().describe("Paths or globs to leave out, for example old task files."),
+  terms: z.array(z.string()).optional().describe("Optional literal keywords; only blocks containing one are swept."),
+  limit: z.number().optional().describe("Maximum hits returned (default 30, max 100)."),
 };
 
 export const classifyShape = {
@@ -70,5 +82,5 @@ export const askShape = {
     .describe("id -> question. choice: criteria = option -> description; score: 2-10 ordered levels; noul: optional {true, false}."),
 };
 
-export const SHAPES = { locate: locateShape, check: checkShape, classify: classifyShape, ask: askShape } as const;
+export const SHAPES = { locate: locateShape, sweep: sweepShape, check: checkShape, classify: classifyShape, ask: askShape } as const;
 export type ToolName = keyof typeof SHAPES;

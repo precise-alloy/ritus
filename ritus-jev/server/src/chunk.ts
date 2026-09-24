@@ -142,3 +142,9 @@ export function sliceWithContext(lines: readonly string[], start: number, end: n
   const to = Math.min(lines.length, end + context);
   return { start: from, end: to, text: lines.slice(from - 1, to).join("\n") };
 }
+
+export function truncateLines(text: string, maxLines: number): string {
+  const lines = text.trimEnd().split("\n");
+  if (lines.length <= maxLines) return lines.join("\n");
+  return `${lines.slice(0, maxLines).join("\n")}\n... (+${lines.length - maxLines} more lines)`;
+}

@@ -1,7 +1,7 @@
 import type { Questions } from "@typesafe-ai/sdk";
 import { choiceOf, noulOf, probability } from "../answers.ts";
 import { blockLabel, blockTokens, packBy, padId } from "../budget.ts";
-import { describeBlock, sliceWithContext } from "../chunk.ts";
+import { describeBlock, sliceWithContext, truncateLines } from "../chunk.ts";
 import { evaluate } from "../jev.ts";
 import { BUDGET, CHUNK, foundVerdict, LOCATE } from "../policy.ts";
 import { tempRoots } from "../paths.ts";
@@ -25,10 +25,10 @@ interface Candidate {
   score: number;
 }
 
-export function truncateLines(text: string, maxLines: number): string {
-  const lines = text.trimEnd().split("\n");
-  if (lines.length <= maxLines) return lines.join("\n");
-  return `${lines.slice(0, maxLines).join("\n")}\n... (+${lines.length - maxLines} more lines)`;
+/** True when a query lists several topics; one behavior per query ranks better. */
+export function bundlesTopics(query: string): boolean {
+  const separators = (query.match(/,|;|\band\b|\bor\b/gi) ?? []).length;
+  return query.length > 80 && separators >= 3;
 }
 
 export function breakdown(blocks: readonly Block[]) {
@@ -177,6 +177,9 @@ export async function locate(input: LocateInput, ctx: ToolContext): Promise<Tool
       results: shaped,
       ...(closest.length > 0 ? { note: "Nothing in scope clearly addresses the query; the closest block is shown." } : {}),
       scanned: { ...scanned, searched: blocks.length, mode: single ? "single" : "two_stage" },
+      ...(bundlesTopics(query)
+        ? { warnings: ["The query bundles several topics; one behavior per query ranks better - run separate queries in parallel."] }
+        : {}),
       ...(redactions > 0 ? { redactions } : {}),
     };
   });

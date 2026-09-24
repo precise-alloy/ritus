@@ -109,7 +109,7 @@ context only in sessions that actually run the Ritus workflow.
 ## Example: ritus-jev
 
 The `ritus-jev` companion (in this repository under `ritus-jev/`) ships MCP tools backed by TypeSafe Jev and one
-`jev` skill. It uses the knowledge shape below at six worker steps, for example:
+`jev` skill. It uses the knowledge shape below at seven worker steps, for example:
 
 ```json
 {
@@ -117,7 +117,7 @@ The `ritus-jev` companion (in this repository under `ritus-jev/`) ships MCP tool
   "integrations": [
     {
       "skill": "jev",
-      "prompt": "While verify-task runs: load the jev skill; pre-screen DONE WHEN with check and the scope with classify change_scope, then confirm each lead at its cited lines."
+      "prompt": "During pr-review: load the jev skill; for each rule, contract, API or term the change alters, sweep for passages that still state the old one and report confirmed hits as findings; use classify change_risk only on diffs with many hunks."
     },
     {
       "skill": "jev",
