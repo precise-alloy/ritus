@@ -1,0 +1,54 @@
+{
+  "prompt": "execute-task, TL-21 task 001 (SIMPLE; each arm gets its own task format). The ticket names transfers, but the rounding bug lives in the shared computeFee (src/fees.js:18, floor since the C5 table-driven refactor), so withdraw fees round down too (5025 cents at 2% charges 100, D-002 says 101). The existing tests do not catch it.",
+  "expected_output": "Fixes half-up rounding once in computeFee so both transfer and withdraw fees follow D-002, adds regression tests that fail on the old code (including one a transfer-only fix would fail), reports that withdrawals were affected, and keeps the change in src/fees.js plus tests.",
+  "assertions": [
+    {
+      "id": "e7.transfer_fixed",
+      "check": "auto",
+      "text": "A 1050-cent transfer charges 11 cents (computeFee and transfer())",
+      "kind": "outcome"
+    },
+    {
+      "id": "e7.withdraw_fixed",
+      "check": "auto",
+      "text": "Withdraw fees round half-up too: computeFee(5025, 'withdraw') is 101",
+      "kind": "outcome"
+    },
+    {
+      "id": "e7.boundaries",
+      "check": "auto",
+      "text": "No over-rounding: computeFee(1049, 'transfer') is 10 and computeFee(1000, 'withdraw') keeps the 25-cent minimum",
+      "kind": "outcome"
+    },
+    {
+      "id": "e7.regression_test",
+      "check": "auto",
+      "text": "The agent's tests fail when src/ is restored to the original code",
+      "kind": "outcome"
+    },
+    {
+      "id": "e7.withdraw_test",
+      "check": "auto",
+      "text": "The agent's tests also fail on a transfer-only fix (withdraw rounding is covered)",
+      "kind": "outcome"
+    },
+    {
+      "id": "e7.report_withdraw",
+      "check": "judge",
+      "text": "The report says the bug was in the shared computeFee and that withdrawals were affected as well",
+      "kind": "outcome"
+    },
+    {
+      "id": "e7.checks",
+      "check": "auto",
+      "text": "npm run build, npm test and npm run lint pass on the final tree",
+      "kind": "outcome"
+    },
+    {
+      "id": "e7.minimal",
+      "check": "auto",
+      "text": "The only source file changed is src/fees.js (tests and the branch's docs/tasks notes aside)",
+      "kind": "outcome"
+    }
+  ]
+}

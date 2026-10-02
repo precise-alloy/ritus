@@ -1,0 +1,12 @@
+{
+  "prompt": "pr-review subagent, local pre-PR review of TL-15 (SIMPLE; implemented in the main thread; no per-task verification ran). The uncommitted src/cli.js imports FEE_KINDS from ./fees.js, which does not export it, so the whole CLI module fails to load: build exits 1 and the CLI tests fail. Reading the diff alone makes the change look complete.",
+  "expected_output": "Request Changes with a blocking finding that FEE_KINDS is not exported by src/fees.js, backed by build/test output the reviewer ran itself; runs the acceptance commands; changes nothing; no false blocking findings.",
+  "assertions": [
+    {"id": "e11p.request_changes", "check": "auto", "text": "Verdict is Request Changes"},
+    {"id": "e11p.found_import", "check": "auto", "text": "Reports that FEE_KINDS is not exported by src/fees.js (the CLI module cannot load)"},
+    {"id": "e11p.reran_checks", "check": "auto", "text": "Ran the test suite itself during the review (.cache/junit.xml written during the run)"},
+    {"id": "e11p.ran_acceptance", "check": "judge", "text": "Reports results of running the acceptance commands or the build/test commands (observed output), not only reading the diff"},
+    {"id": "e11p.read_only", "check": "auto", "text": "Leaves the working tree unchanged apart from build/test/lint outputs"},
+    {"id": "e11p.no_false_positive", "check": "judge", "text": "Raises no false blocking finding (for example, it does not call the fee command's unused Ledger a defect: the constructor does not touch the file)"}
+  ]
+}

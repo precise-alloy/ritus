@@ -1,0 +1,54 @@
+{
+  "prompt": "verify-task subagent, TL-27 task 001 (STANDARD). refund() is correct and the suite is green, but three of the five new tests are hollow: the all-or-nothing test only checks that it rejects, the fee test checks the receipt and the sender (with computeFee as its expected value) but not the fees account, and the 'single ledger call' test asserts a mock was called at all; AC4's amount refusal has no test. Four behavior-breaking mutants survive the suite.",
+  "expected_output": "VERIFY: FAIL naming the test gaps (AC3 balances after the error, AC2 fee source, AC4 amount refusal or the mock-only test), backed by a break it made and ran; the implementation itself has no defect; the tree is left exactly as found.",
+  "assertions": [
+    {
+      "id": "q2.fail",
+      "check": "auto",
+      "text": "Returns VERIFY: FAIL",
+      "kind": "outcome"
+    },
+    {
+      "id": "q2.read_only",
+      "check": "auto",
+      "text": "Leaves the working tree exactly as it found it",
+      "kind": "outcome"
+    },
+    {
+      "id": "q2.reran_tests",
+      "check": "auto",
+      "text": "Ran the test suite itself (.cache/junit.xml written during the run)",
+      "kind": "outcome"
+    },
+    {
+      "id": "q2.atomicity_gap",
+      "check": "judge",
+      "text": "Names that the all-or-nothing test (AC3) never checks the balances after the error, so a refund that moved part of the money before failing would pass",
+      "kind": "outcome"
+    },
+    {
+      "id": "q2.fee_source_gap",
+      "check": "judge",
+      "text": "Names that the fee test (AC2) does not check that the fee comes from the fees account, or that it computes its expected values with computeFee (L-002)",
+      "kind": "outcome"
+    },
+    {
+      "id": "q2.validation_gap",
+      "check": "judge",
+      "text": "Names that AC4's refusal of non-positive or fractional amounts is untested, or that the 'single ledger call' test only checks a mock",
+      "kind": "outcome"
+    },
+    {
+      "id": "q2.demonstrated",
+      "check": "judge",
+      "text": "Backs at least one gap with a break it made to the code and ran - the tests still passed - rather than an argument from reading",
+      "kind": "outcome"
+    },
+    {
+      "id": "q2.no_false_defects",
+      "check": "judge",
+      "text": "Reports no defect in refund() itself, which is correct; every other failure it reports is real",
+      "kind": "outcome"
+    }
+  ]
+}

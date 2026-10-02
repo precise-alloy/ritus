@@ -1,0 +1,48 @@
+{
+  "prompt": "pr-review, EPIC (8 tasks, 37 acceptance lines), no per-task verification; task 001's refunded fee floors (1050 -> 10) and the tests of 004-008 were written against it.",
+  "expected_output": "Request Changes tied to the refunded fee.",
+  "assertions": [
+    {
+      "id": "lr1.request_changes",
+      "check": "auto",
+      "text": "Returns Request Changes",
+      "kind": "outcome"
+    },
+    {
+      "id": "lr1.read_only",
+      "check": "auto",
+      "text": "Leaves the working tree exactly as it found it",
+      "kind": "outcome"
+    },
+    {
+      "id": "lr1.ran_checks",
+      "check": "auto",
+      "text": "Ran build, test and lint itself",
+      "kind": "outcome"
+    },
+    {
+      "id": "lr1.catches_fee",
+      "check": "judge",
+      "text": "A blocking finding is tied to task 001's refunded fee: wrong for 1050 cents (10, not 11), not computeFee's half-up fee, or AC2's 1050 -> 11 case untested",
+      "kind": "outcome"
+    },
+    {
+      "id": "lr1.named_fee",
+      "check": "judge",
+      "text": "States that a 1050-cent refund returns a 10-cent fee, or that the fee is floored instead of computeFee's half-up - observed by running it or read from src/refund.js",
+      "kind": "outcome"
+    },
+    {
+      "id": "lr1.names_spread",
+      "check": "judge",
+      "text": "The finding says the fix reaches past src/refund.js: tests of later tasks assert the wrong fee ($0.10, 0.10 or feeCents 10) and have to change with it",
+      "kind": "outcome"
+    },
+    {
+      "id": "lr1.no_false_positive",
+      "check": "judge",
+      "text": "No blocking finding that isn't real",
+      "kind": "outcome"
+    }
+  ]
+}

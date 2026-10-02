@@ -1,0 +1,78 @@
+{
+  "prompt": "Main thread, /setup with no message on tinyledger, a repository without Ritus: package.json names it, origin is a GitHub URL, commit messages carry TL-<n> keys, two people committed recently, and the team has its own CLAUDE.md and docs. The developer answers the first question with everything they know, then says to use the defaults.",
+  "expected_output": "Shows what it detected (name, language, GitHub, base branch main, Jira TL keys) with where each came from, asks only what the repository can't answer, then writes valid YAML profiles with the right and derived values, renders docs/PROJECT_CONTEXT.md, and appends the routing block to CLAUDE.md without touching the team's lines.",
+  "invocation": "The developer typed `/setup` with no message, which invokes the `setup` skill.",
+  "user_script": {
+    "max_replies": 6,
+    "question": [
+      "It's our existing codebase. We're three developers: Mai, Quan and me. Tickets live in one Jira site - the TL-123 keys you see in the commits. We open PRs on GitHub against main. The whole team owns the workflow config. No QA docs, and keep every agent on the session model. I use Claude Code.",
+      "Use your defaults for anything else.",
+      "tinyledger, like package.json says. Use your defaults for anything else.",
+      "JavaScript on Node.js, no framework - see package.json. Use your defaults for everything else.",
+      "Use your defaults for everything else."
+    ],
+    "approval": "Looks right - go ahead and write it."
+  },
+  "assertions": [
+    {
+      "id": "f1.nothing_before_answers",
+      "check": "auto",
+      "text": "Fills no profile value before the developer's first answer",
+      "kind": "process"
+    },
+    {
+      "id": "f1.few_rounds",
+      "check": "auto",
+      "text": "Writes the profiles after at most two developer answers",
+      "kind": "process"
+    },
+    {
+      "id": "f1.yaml_valid",
+      "check": "auto",
+      "text": "All three profiles parse as YAML, and no text field reads as a boolean or null (such as an unquoted off or #123)",
+      "kind": "outcome"
+    },
+    {
+      "id": "f1.values",
+      "check": "auto",
+      "text": "The profiles hold what the repository shows and the developer said: tinyledger, JavaScript, a small team on GitHub, PR-based off main, Jira with TL-style keys, QA off, every agent on the session model (session routing, or no routing setting), team-owned, Claude Code",
+      "kind": "outcome"
+    },
+    {
+      "id": "f1.derived",
+      "check": "auto",
+      "text": "The derived fields follow a small team: 30-day memory expiry, one PR reviewer, ticket IDs in branch and commit",
+      "kind": "outcome"
+    },
+    {
+      "id": "f1.context_rendered",
+      "check": "auto",
+      "text": "Renders docs/PROJECT_CONTEXT.md for tinyledger with no {{placeholder}} left",
+      "kind": "outcome"
+    },
+    {
+      "id": "f1.routing_block",
+      "check": "auto",
+      "text": "Appends the Ritus routing block to CLAUDE.md and keeps the team's lines as they were",
+      "kind": "process"
+    },
+    {
+      "id": "f1.team_files_kept",
+      "check": "auto",
+      "text": "Leaves the team's DECISIONS.md, LESSONS.md, README, code and git history unchanged",
+      "kind": "outcome"
+    },
+    {
+      "id": "f1.shows_sources",
+      "check": "judge",
+      "text": "Before asking anything, shows what it found in the repository and where each value came from, for the developer to correct",
+      "kind": "outcome"
+    },
+    {
+      "id": "f1.asks_only_gaps",
+      "check": "judge",
+      "text": "Never asks the developer for a value the repository already shows: the project name, the language, the git platform, the base branch or the ticket key format",
+      "kind": "outcome"
+    }
+  ]
+}

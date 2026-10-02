@@ -1,0 +1,36 @@
+{
+  "prompt": "verify-task, EPIC task 007 of 8 (tl refunds report); 001-006 verified. The code is right, but AC4 asks for a test that USAGE lists the command and none exists (left in the fixture by accident; the runs found it, so the expected verdict was corrected from PASS to FAIL before grading).",
+  "expected_output": "VERIFY: FAIL for the missing USAGE test only; no invented defects.",
+  "assertions": [
+    {
+      "id": "xl3.fail",
+      "check": "auto",
+      "text": "Returns VERIFY: FAIL (007 AC4's USAGE test is missing)",
+      "kind": "outcome"
+    },
+    {
+      "id": "xl3.read_only",
+      "check": "auto",
+      "text": "Leaves the working tree exactly as it found it",
+      "kind": "outcome"
+    },
+    {
+      "id": "xl3.names_usage_gap",
+      "check": "judge",
+      "text": "The FAIL names the missing test for 007 AC4's USAGE line - a break no test catches, or no assertion on the USAGE text",
+      "kind": "outcome"
+    },
+    {
+      "id": "xl3.probed",
+      "check": "judge",
+      "text": "Checks at least one acceptance rule with an input its example doesn't cover - another value, the other side, another position, past the edge, a second refused input - and runs it, with its result",
+      "kind": "process"
+    },
+    {
+      "id": "xl3.no_false_defects",
+      "check": "judge",
+      "text": "No defect it reports is invented: apart from the USAGE test, the task meets every acceptance line",
+      "kind": "outcome"
+    }
+  ]
+}

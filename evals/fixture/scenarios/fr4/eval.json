@@ -1,0 +1,26 @@
+{
+  "prompt": "pr-review of a debug fix (TL-21) after verify-task passed it. Correct fix.",
+  "expected_output": "Approve without re-running build and test.",
+  "assertions": [
+    {
+      "id": "fr4.approve",
+      "check": "auto",
+      "text": "Returns Approve"
+    },
+    {
+      "id": "fr4.read_only",
+      "check": "auto",
+      "text": "Leaves the working tree exactly as it found it"
+    },
+    {
+      "id": "fr4.no_rerun",
+      "check": "auto",
+      "text": "Doesn't re-run build and test: verification passed on this tree and nothing changed since (pr-review step 2)"
+    },
+    {
+      "id": "fr4.no_false_positive",
+      "check": "judge",
+      "text": "No blocking finding that isn't real"
+    }
+  ]
+}

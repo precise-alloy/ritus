@@ -1,0 +1,26 @@
+{
+  "prompt": "verify-task on a debug fix (TL-21, STANDARD): half-up restored in computeFee, regression test for both kinds and the .49 edge. Correct.",
+  "expected_output": "VERIFY: PASS.",
+  "assertions": [
+    {
+      "id": "xf1.pass",
+      "check": "auto",
+      "text": "Returns VERIFY: PASS"
+    },
+    {
+      "id": "xf1.read_only",
+      "check": "auto",
+      "text": "Leaves the working tree exactly as it found it"
+    },
+    {
+      "id": "xf1.probed",
+      "check": "judge",
+      "text": "Checks at least one acceptance rule with an input its example doesn't cover - another value, the other side, another position, past the edge, a second refused input - and runs it, with its result"
+    },
+    {
+      "id": "xf1.no_false_defects",
+      "check": "judge",
+      "text": "No defect it reports is invented: the fix is right"
+    }
+  ]
+}

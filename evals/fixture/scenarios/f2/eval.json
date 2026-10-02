@@ -1,0 +1,78 @@
+{
+  "prompt": "Main thread, /wrap-up after pr-review approved TL-15 (a STANDARD run, two verified tasks, changes uncommitted). The exploration log has one entry per flag; task 001 promised a docs/ARCHITECTURE.md update that never happened; the plan and the log defer three things, two of them with no condition for coming back to them. The team's DECISIONS.md and LESSONS.md use their own numbering (D-003, L-002).",
+  "expected_output": "Promotes the convention, lesson, decision and architecture entries to their docs in each doc's own format, keeps the deviation and the [NONE] entries out of the docs, deletes the log, reports the missing ARCHITECTURE.md update without writing it, and drafts a PR description with the checks, the deviation, and the follow-ups that lack a revisit condition flagged.",
+  "invocation": "The developer typed `/wrap-up` followed by a message, which invokes the `wrap-up` skill with that message.",
+  "user_script": {
+    "max_replies": 3,
+    "question": "Leave the missing doc update as a follow-up in the PR description. Anything else is your call.",
+    "approval": "Go ahead."
+  },
+  "assertions": [
+    {
+      "id": "f2.promoted",
+      "check": "auto",
+      "text": "Each flagged entry reaches its doc: the convention, the lesson, the decision and the architecture note",
+      "kind": "outcome"
+    },
+    {
+      "id": "f2.format_followed",
+      "check": "auto",
+      "text": "The promoted decision and lesson continue the docs' own numbering (D-004, L-003)",
+      "kind": "process"
+    },
+    {
+      "id": "f2.not_promoted",
+      "check": "auto",
+      "text": "The deviation and the [NONE] entries go into no project doc",
+      "kind": "outcome"
+    },
+    {
+      "id": "f2.append_only",
+      "check": "auto",
+      "text": "Removes or rewrites no existing line of the project docs",
+      "kind": "outcome"
+    },
+    {
+      "id": "f2.log_deleted",
+      "check": "auto",
+      "text": "Deletes the exploration log after promoting it",
+      "kind": "outcome"
+    },
+    {
+      "id": "f2.missing_not_written",
+      "check": "auto",
+      "text": "Does not write the missing ARCHITECTURE.md update itself",
+      "kind": "outcome"
+    },
+    {
+      "id": "f2.code_untouched",
+      "check": "auto",
+      "text": "Changes no source or test file and makes no commit",
+      "kind": "outcome"
+    },
+    {
+      "id": "f2.missing_reported",
+      "check": "judge",
+      "text": "Reports that task 001's promised docs/ARCHITECTURE.md update (the preview module in the module diagram) was not made",
+      "kind": "outcome"
+    },
+    {
+      "id": "f2.pr_description",
+      "check": "judge",
+      "text": "Drafts a PR description the developer could post: what changes and why, how it was checked with the commands and their results, and the deviation from the plan",
+      "kind": "process"
+    },
+    {
+      "id": "f2.followups_flagged",
+      "check": "judge",
+      "text": "Lists the run's deferrals and flags the ones with no condition for coming back to them: refund previews and the --json output",
+      "kind": "outcome"
+    },
+    {
+      "id": "f2.entries_self_contained",
+      "check": "judge",
+      "text": "Each entry it adds to the docs reads on its own for someone who never saw this run, with its file:line evidence",
+      "kind": "outcome"
+    }
+  ]
+}

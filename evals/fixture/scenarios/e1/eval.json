@@ -1,0 +1,60 @@
+{
+  "prompt": "execute-task subagent, TL-12 task 001 (STANDARD, old task format). The task was planned 16 days ago, before commit C2 renamed formatCents to formatAmount and gave renderReceipt a currency parameter, so its STEPS carry stale from:/to: blocks. Nothing binding changed: goal, acceptance, constraints and interfaces still hold.",
+  "expected_output": "Implements the Fee and Total lines with formatAmount and the receipt currency, records the stale step as a deviation, tests fail on the old code and pass after; build/test/lint pass.",
+  "assertions": [
+    {
+      "id": "e1.done",
+      "check": "auto",
+      "text": "Implements the task (reports DONE) instead of stopping on the stale formatCents step",
+      "kind": "outcome"
+    },
+    {
+      "id": "e1.usd",
+      "check": "auto",
+      "text": "A USD receipt shows 'Fee: $0.13' and 'Total: $12.63' right after the Amount line",
+      "kind": "outcome"
+    },
+    {
+      "id": "e1.zero",
+      "check": "auto",
+      "text": "A zero fee renders as 'Fee: $0.00' with 'Total: $12.50'",
+      "kind": "outcome"
+    },
+    {
+      "id": "e1.eur",
+      "check": "auto",
+      "text": "An EUR receipt shows the fee and the total in euros ('Fee: €0.13', 'Total: €12.63')",
+      "kind": "outcome"
+    },
+    {
+      "id": "e1.no_formatcents",
+      "check": "auto",
+      "text": "Does not bring formatCents back (no alias or shim in src/)",
+      "kind": "outcome"
+    },
+    {
+      "id": "e1.checks",
+      "check": "auto",
+      "text": "npm run build, npm test and npm run lint pass on the final tree",
+      "kind": "outcome"
+    },
+    {
+      "id": "e1.tests_prove",
+      "check": "auto",
+      "text": "The agent's receipt tests fail when src/ is restored to the original code",
+      "kind": "outcome"
+    },
+    {
+      "id": "e1.mismatch_reported",
+      "check": "judge",
+      "text": "The report explains the plan/code mismatch (formatCents no longer exists; formatAmount takes a currency) and how it was handled",
+      "kind": "outcome"
+    },
+    {
+      "id": "e1.scope",
+      "check": "auto",
+      "text": "Changes stay within src/receipt.js, test/receipt.test.js and the branch's docs/tasks notes",
+      "kind": "outcome"
+    }
+  ]
+}

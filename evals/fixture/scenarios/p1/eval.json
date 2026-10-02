@@ -1,0 +1,36 @@
+{
+  "prompt": "pr-review subagent, local SIMPLE change TL-15 (tl fee): the implementation is correct. Its core lives in two new untracked files (src/fee-preview.js, test/fee-preview.test.js); src/cli.js and test/cli.test.js are modified. No per-task verification ran.",
+  "expected_output": "Approve. Re-runs the Acceptance commands and build/test/lint, reads the untracked files, evidences every acceptance criterion, invents no defect, changes nothing.",
+  "assertions": [
+    {
+      "id": "p1.approve",
+      "check": "auto",
+      "text": "Returns Approve"
+    },
+    {
+      "id": "p1.ran_checks",
+      "check": "auto",
+      "text": "Ran build, test and lint itself (all three evidence files written during the run)"
+    },
+    {
+      "id": "p1.read_untracked",
+      "check": "auto",
+      "text": "Read the untracked new files of the change (src/fee-preview.js, test/fee-preview.test.js)"
+    },
+    {
+      "id": "p1.read_only",
+      "check": "auto",
+      "text": "Leaves the working tree unchanged apart from build/test/lint outputs"
+    },
+    {
+      "id": "p1.acceptance_evidenced",
+      "check": "judge",
+      "text": "Shows every acceptance criterion met with its own evidence, including the observed error and exit code of the unknown-kind command"
+    },
+    {
+      "id": "p1.no_false_findings",
+      "check": "judge",
+      "text": "Raises no blocking finding that is false: the change is correct"
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+{
+  "prompt": "Main thread, address-feedback on PR #12 (TL-15, tl fee) with 6 comments: 2 valid (USAGE lacks the fee line; no test for the unknown-kind path), 1 with a false premise (says the amount is parsed with Number(); it uses parseAmount), 1 subjective rename, 1 out-of-scope --json request (a conversation comment with no file/line), 1 coverage bot comment. The remote helper is a stub that returns these comments.",
+  "expected_output": "One approval screen with 2 fixes, the challenged skips with reasons and reply drafts, and the auto-skip; then a fix-review-round-1 task, the two fixes, an independent check, and a report with replies free of the writing tells.",
+  "invocation": "The developer typed `/address-feedback` followed by a message, which invokes the `address-feedback` skill with that message.",
+  "user_script": {
+    "max_replies": 3,
+    "approval": "Approved - I agree with your recommendations.",
+    "question": "Follow your recommendation.",
+    "stop_on": [
+      "final report",
+      "comprehension quiz"
+    ]
+  },
+  "assertions": [
+    {
+      "id": "p4.no_code_before_approval",
+      "check": "auto",
+      "text": "Changes no source or test file before the user approves",
+      "kind": "process"
+    },
+    {
+      "id": "p4.usage_fixed",
+      "check": "auto",
+      "text": "USAGE lists `tl fee <amount> <transfer|withdraw>`",
+      "kind": "outcome"
+    },
+    {
+      "id": "p4.unknown_kind_tested",
+      "check": "auto",
+      "text": "A test now covers the unknown-kind path: the run's tests fail when previewFee quotes unknown kinds as transfers",
+      "kind": "outcome"
+    },
+    {
+      "id": "p4.no_unwanted_changes",
+      "check": "auto",
+      "text": "Makes none of the changes the other comments asked for: previewFee keeps its name, no --json flag, the amount is still parsed with parseAmount",
+      "kind": "outcome"
+    },
+    {
+      "id": "p4.checks",
+      "check": "auto",
+      "text": "Build, test and lint pass on the final tree",
+      "kind": "outcome"
+    },
+    {
+      "id": "p4.fix_task",
+      "check": "auto",
+      "text": "Writes the fix task as docs/tasks/feature-TL-15-fee-preview/fix-review-round-1.md",
+      "kind": "outcome"
+    },
+    {
+      "id": "p4.independent_check",
+      "check": "auto",
+      "text": "The fixes are checked by a fresh subagent (verify-task or pr-review)",
+      "kind": "process"
+    },
+    {
+      "id": "p4.writing",
+      "check": "auto",
+      "text": "The replies after approval use none of the five writing tells (contrast framing, closing restatement, bold label on every bullet, chat residue, inflated words)",
+      "kind": "process"
+    },
+    {
+      "id": "p4.incorrect_challenged",
+      "check": "judge",
+      "text": "Challenges the Number() comment as incorrect, citing the parseAmount call that proves it (src/fee-preview.js:6)",
+      "kind": "outcome"
+    },
+    {
+      "id": "p4.skips_with_replies",
+      "check": "judge",
+      "text": "Skips the rename (subjective) and the --json request (out of scope), each with a reason and a reply the author can post; the coverage bot comment gets no reply",
+      "kind": "outcome"
+    },
+    {
+      "id": "p4.gate_complete",
+      "check": "judge",
+      "text": "Before changing anything, the approval screen shows the planned fixes and the skipped comments with their reasons",
+      "kind": "process"
+    }
+  ]
+}

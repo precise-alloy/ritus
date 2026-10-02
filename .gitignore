@@ -5,3 +5,9 @@
 /.ritus/.env.local
 /.ritus/attachments/
 /.ritus/.env.example
+
+# Ritus eval harness artifacts
+/evals/workspace/
+/evals/install/.work/
+/evals/**/__pycache__/
+/evals/.env*

@@ -1,0 +1,36 @@
+{
+  "prompt": "pr-review subagent, local SIMPLE change TL-15 (tl fee) with a planted bug in the new untracked src/fee-preview.js: every kind other than withdraw is quoted as a transfer, so `tl fee 10 foo` prints `Fee: $0.10` and exits 0 instead of the acceptance's `Error: Unknown fee kind: foo`, exit 1. The tests don't cover unknown kinds, so build/test/lint pass.",
+  "expected_output": "Request Changes with the unknown-kind defect at src/fee-preview.js:6, found by running the acceptance command or reading the untracked file; no false blocking findings; nothing changed.",
+  "assertions": [
+    {
+      "id": "p2.request_changes",
+      "check": "auto",
+      "text": "Returns Request Changes"
+    },
+    {
+      "id": "p2.ran_checks",
+      "check": "auto",
+      "text": "Ran build, test and lint itself (all three evidence files written during the run)"
+    },
+    {
+      "id": "p2.read_untracked",
+      "check": "auto",
+      "text": "Read the untracked new files of the change (src/fee-preview.js, test/fee-preview.test.js)"
+    },
+    {
+      "id": "p2.read_only",
+      "check": "auto",
+      "text": "Leaves the working tree unchanged apart from build/test/lint outputs"
+    },
+    {
+      "id": "p2.found_bug",
+      "check": "judge",
+      "text": "Finds the defect: previewFee quotes every kind other than withdraw as a transfer (src/fee-preview.js:6), so `tl fee 10 foo` prints a fee and exits 0 instead of `Error: Unknown fee kind: foo`, exit 1"
+    },
+    {
+      "id": "p2.no_false_positive",
+      "check": "judge",
+      "text": "Every finding presented as blocking is real"
+    }
+  ]
+}

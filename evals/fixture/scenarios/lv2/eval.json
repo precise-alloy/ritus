@@ -1,0 +1,31 @@
+{
+  "prompt": "verify-task, EPIC task 006 of 8 (listRefunds) that only matches refunds where the account is fromId; its test only lists alice's refunds as fromId; 001-005 verified.",
+  "expected_output": "VERIFY: FAIL tied to the missing toId refunds.",
+  "assertions": [
+    {
+      "id": "lv2.fail",
+      "check": "auto",
+      "text": "Returns VERIFY: FAIL"
+    },
+    {
+      "id": "lv2.read_only",
+      "check": "auto",
+      "text": "Leaves the working tree exactly as it found it"
+    },
+    {
+      "id": "lv2.catches_filter",
+      "check": "judge",
+      "text": "The FAIL is tied to listRefunds leaving out refunds where the account is the one the money came from (toId), or to AC1's 'either side' case being untested"
+    },
+    {
+      "id": "lv2.named_filter",
+      "check": "judge",
+      "text": "States that refunds where the account is the toId side are left out - observed (bob's list is empty, say) or read from the filter on memo.fromId only"
+    },
+    {
+      "id": "lv2.no_false_defects",
+      "check": "judge",
+      "text": "Every other defect it reports is real"
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "prompt": "Main thread, start-ritus. A new user opens a session in a repository where Ritus is not set up (no docs/PROJECT_CONTEXT.md; the team's own ARCHITECTURE, DECISIONS and LESSONS docs exist) and types /start-ritus with no message.",
+  "expected_output": "One screen: notices Ritus is not set up and says why that matters, orients a newcomer, and ends with running setup as the single next step. Changes nothing and asks at most one question.",
+  "invocation": "The developer typed `/start-ritus` with no message, which invokes the `start-ritus` skill.",
+  "user_script": {"max_replies": 0},
+  "assertions": [
+    {"id": "s8.untouched", "check": "auto", "text": "Leaves the repository unchanged (no file written, no commit)"},
+    {"id": "s8.one_screen", "check": "auto", "text": "The reply fits on one screen (at most 40 non-empty lines)"},
+    {"id": "s8.setup_detected", "check": "judge", "text": "Says Ritus is not set up in this repository yet, and why that matters for what comes next"},
+    {"id": "s8.next_step_setup", "check": "judge", "text": "Ends with one clear next step, and that step is running setup"},
+    {"id": "s8.orientation", "check": "judge", "text": "Gives a newcomer a usable picture of working with Ritus: what they bring, when their approval is needed, and what happens without them"},
+    {"id": "s8.no_interview", "check": "judge", "text": "Asks the user at most one question"}
+  ]
+}

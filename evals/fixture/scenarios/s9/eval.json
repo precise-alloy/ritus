@@ -1,0 +1,13 @@
+{
+  "prompt": "Main thread, start-ritus. On feature/TL-16-friendly-amounts a Ritus run is half done: task 001 is verified and committed, task 002 is implemented but not yet verified (its changes are uncommitted), task 003 has not started. A new session opens and the user types /start-ritus with no message.",
+  "expected_output": "Detects the run in progress and offers to resume it, naming the next step: task 002 gets its independent check first (it was implemented but never verified), then task 003. Changes nothing and starts no subagent before the user agrees.",
+  "invocation": "The developer typed `/start-ritus` with no message, which invokes the `start-ritus` skill.",
+  "user_script": {"max_replies": 0},
+  "assertions": [
+    {"id": "s9.untouched", "check": "auto", "text": "Leaves the repository unchanged (no file written, no commit)"},
+    {"id": "s9.no_dispatch", "check": "auto", "text": "Starts no subagent before the user agrees to resume"},
+    {"id": "s9.offers_resume", "check": "judge", "text": "Recognizes the TL-16 run in progress on this branch and offers to resume it, waiting for the user's go-ahead"},
+    {"id": "s9.next_step", "check": "judge", "text": "Names the right next step: task 002 was implemented but not yet checked, so its verification comes first, then task 003"},
+    {"id": "s9.concise", "check": "auto", "text": "The reply fits on one screen (at most 40 non-empty lines)"}
+  ]
+}

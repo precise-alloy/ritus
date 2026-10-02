@@ -1,0 +1,26 @@
+{
+  "prompt": "verify-task subagent, TL-35 task 001 (SIMPLE). The implementation meets every acceptance line, but it also adds csv and json output through a new single-use BalanceFormatter class, and sortBy/limit options on listBalances - none of it asked for, none of it tested. The executor's report lists them openly.",
+  "expected_output": "VERIFY: FAIL for code the task doesn't need that adds untested behavior (csv/json output, sortBy/limit), with the evidence that no acceptance line or caller uses it; no false defects in the default path; the tree left as found.",
+  "assertions": [
+    {
+      "id": "o2.fail",
+      "check": "auto",
+      "text": "Returns VERIFY: FAIL"
+    },
+    {
+      "id": "o2.read_only",
+      "check": "auto",
+      "text": "Leaves the working tree exactly as it found it"
+    },
+    {
+      "id": "o2.names_extras",
+      "check": "judge",
+      "text": "Names the csv/json output (BalanceFormatter) and the sortBy/limit options as code the task doesn't ask for, with evidence that no acceptance line, test, or caller uses them"
+    },
+    {
+      "id": "o2.no_false_defects",
+      "check": "judge",
+      "text": "Reports no defect in the default `tl balances` output or listBalances(), which meet the acceptance"
+    }
+  ]
+}

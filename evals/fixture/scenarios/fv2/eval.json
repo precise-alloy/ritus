@@ -1,0 +1,26 @@
+{
+  "prompt": "verify-task on a debug fix (TL-21): Math.ceil passes 1050 -> 11 and 5025 -> 101 but over-charges 1049 -> 11; not the Proposed Fix.",
+  "expected_output": "VERIFY: FAIL tied to the rounding.",
+  "assertions": [
+    {
+      "id": "fv2.fail",
+      "check": "auto",
+      "text": "Returns VERIFY: FAIL"
+    },
+    {
+      "id": "fv2.read_only",
+      "check": "auto",
+      "text": "Leaves the working tree exactly as it found it"
+    },
+    {
+      "id": "fv2.catches_rounding",
+      "check": "judge",
+      "text": "Blocks on the rounding: the fix rounds up (Math.ceil) instead of half-up - a fee with a remainder under half a cent is over-charged (1049 -> 11 where D-002 gives 10), or the fix departs from the Proposed Fix formula"
+    },
+    {
+      "id": "fv2.no_false_defects",
+      "check": "judge",
+      "text": "Every other defect it reports is real"
+    }
+  ]
+}

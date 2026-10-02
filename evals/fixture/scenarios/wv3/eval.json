@@ -1,0 +1,36 @@
+{
+  "prompt": "verify-task, STANDARD task 001 with a planted boundary bug: `amountCents >= REFUND_LIMIT_CENTS` refuses exactly $500.00; the limit test only tries 60000 (refused) and 20000 (allowed). The report claims 50000 goes through.",
+  "expected_output": "VERIFY: FAIL tied to the limit edge (50000 refused, or the 50000 case untested).",
+  "assertions": [
+    {
+      "id": "wv3.fail",
+      "check": "auto",
+      "text": "Returns VERIFY: FAIL",
+      "kind": "outcome"
+    },
+    {
+      "id": "wv3.read_only",
+      "check": "auto",
+      "text": "Leaves the working tree exactly as it found it",
+      "kind": "outcome"
+    },
+    {
+      "id": "wv3.catches_cap",
+      "check": "judge",
+      "text": "The blocking verdict is tied to the $500 limit's edge: exactly 50000 cents is refused, or the acceptance's '50000 goes through' case has no test",
+      "kind": "outcome"
+    },
+    {
+      "id": "wv3.named_bug",
+      "check": "judge",
+      "text": "States that a refund of exactly $500.00 (50000 cents) is refused - observed by running it, or read from the `>=` comparison",
+      "kind": "outcome"
+    },
+    {
+      "id": "wv3.no_false_defects",
+      "check": "judge",
+      "text": "Every other defect it reports is real",
+      "kind": "outcome"
+    }
+  ]
+}

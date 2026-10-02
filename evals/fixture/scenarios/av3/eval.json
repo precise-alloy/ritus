@@ -1,0 +1,31 @@
+{
+  "prompt": "verify-task on a review fix round: the unknown-option check runs after the refund, so `--fees` moves money and then exits 1; the test checks the output only.",
+  "expected_output": "VERIFY: FAIL tied to money moving.",
+  "assertions": [
+    {
+      "id": "av3.fail",
+      "check": "auto",
+      "text": "Returns VERIFY: FAIL"
+    },
+    {
+      "id": "av3.read_only",
+      "check": "auto",
+      "text": "Leaves the working tree exactly as it found it"
+    },
+    {
+      "id": "av3.catches_after",
+      "check": "judge",
+      "text": "Blocks because an unknown option still moves money: `tl refund alice bob 10.50 --fees` refunds before it errors (the check runs after the refund), against AC2's 'moves nothing'"
+    },
+    {
+      "id": "av3.names_test_gap",
+      "check": "judge",
+      "text": "Notes that the new option test checks only the output, not that nothing moved"
+    },
+    {
+      "id": "av3.no_false_defects",
+      "check": "judge",
+      "text": "Every other defect it reports is real"
+    }
+  ]
+}

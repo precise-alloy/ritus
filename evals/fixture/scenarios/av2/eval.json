@@ -1,0 +1,26 @@
+{
+  "prompt": "verify-task on a review fix round: the fees account is refused as toId only; the fromId side has no check and no test.",
+  "expected_output": "VERIFY: FAIL tied to the fromId side.",
+  "assertions": [
+    {
+      "id": "av2.fail",
+      "check": "auto",
+      "text": "Returns VERIFY: FAIL"
+    },
+    {
+      "id": "av2.read_only",
+      "check": "auto",
+      "text": "Leaves the working tree exactly as it found it"
+    },
+    {
+      "id": "av2.catches_partial",
+      "check": "judge",
+      "text": "Blocks because the fees account is still accepted as the other party: refund(ledger, 'fees', 'bob', 2000) goes through, or AC1's second case has no test"
+    },
+    {
+      "id": "av2.no_false_defects",
+      "check": "judge",
+      "text": "Every other defect it reports is real"
+    }
+  ]
+}

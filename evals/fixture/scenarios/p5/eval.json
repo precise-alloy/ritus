@@ -1,0 +1,82 @@
+{
+  "prompt": "Main thread, /debug: `tl transfer alice bob 10.50` charges $0.10 instead of $0.11 since yesterday's deploy. The cause is computeFee in src/fees.js flooring instead of rounding half-up (table-driven refactor, the latest commit); withdrawals share the same function (5025 cents at 2% charges 100, should be 101). Fees are a payments risk area, so the fix is STANDARD.",
+  "expected_output": "Investigates, finds the shared computeFee cause and names withdrawals as affected, states the level STANDARD, and waits for approval. After approval: a case file, a dispatched executor, a fresh verify-task and pr-review; the fix is in src/fees.js with tests for both transfer and withdraw.",
+  "invocation": "The developer typed `/debug` followed by a message, which invokes the `debug` skill with that message.",
+  "user_script": {
+    "max_replies": 3,
+    "approval": "Approved - I agree with your recommendations.",
+    "question": "Follow your recommendation.",
+    "stop_on": [
+      "final report",
+      "comprehension quiz"
+    ]
+  },
+  "assertions": [
+    {
+      "id": "p5.gate",
+      "check": "auto",
+      "text": "Changes no source or test file before the user approves the fix",
+      "kind": "process"
+    },
+    {
+      "id": "p5.level_standard",
+      "check": "auto",
+      "text": "States the level as STANDARD before the fix (fees are a payments risk area)",
+      "kind": "process"
+    },
+    {
+      "id": "p5.transfer_fixed",
+      "check": "auto",
+      "text": "A 1050-cent transfer is charged 11 cents",
+      "kind": "outcome"
+    },
+    {
+      "id": "p5.withdraw_fixed",
+      "check": "auto",
+      "text": "A 5025-cent withdrawal is charged 101 cents",
+      "kind": "outcome"
+    },
+    {
+      "id": "p5.regression_test",
+      "check": "auto",
+      "text": "The run's tests fail against the original src/fees.js",
+      "kind": "outcome"
+    },
+    {
+      "id": "p5.withdraw_test",
+      "check": "auto",
+      "text": "The run's tests fail against a fix that only corrects transfers",
+      "kind": "outcome"
+    },
+    {
+      "id": "p5.checks",
+      "check": "auto",
+      "text": "Build, test and lint pass on the final tree",
+      "kind": "outcome"
+    },
+    {
+      "id": "p5.minimal",
+      "check": "auto",
+      "text": "The fix is in src/fees.js only; no other source or tooling file changes",
+      "kind": "outcome"
+    },
+    {
+      "id": "p5.case_file",
+      "check": "auto",
+      "text": "Writes an investigation case file with a Regression Test section",
+      "kind": "outcome"
+    },
+    {
+      "id": "p5.independent_check",
+      "check": "auto",
+      "text": "The fix is checked by fresh subagents, verify-task and pr-review",
+      "kind": "process"
+    },
+    {
+      "id": "p5.root_cause",
+      "check": "judge",
+      "text": "Before asking for approval, identifies computeFee's floor at src/fees.js:18 as the cause and names withdrawals as affected too",
+      "kind": "outcome"
+    }
+  ]
+}

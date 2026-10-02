@@ -1,0 +1,36 @@
+{
+  "prompt": "pr-review re-review of a review fix round, no per-task verification. The comments' named cases are fixed, but `--fee --fees` still refunds (the accidental gap; expected verdict corrected from Approve to Request Changes before grading).",
+  "expected_output": "Request Changes for the trailing unknown option only.",
+  "assertions": [
+    {
+      "id": "ar1.request_changes",
+      "check": "auto",
+      "text": "Returns Request Changes",
+      "kind": "outcome"
+    },
+    {
+      "id": "ar1.read_only",
+      "check": "auto",
+      "text": "Leaves the working tree exactly as it found it",
+      "kind": "outcome"
+    },
+    {
+      "id": "ar1.ran_checks",
+      "check": "auto",
+      "text": "Ran build, test and lint itself",
+      "kind": "outcome"
+    },
+    {
+      "id": "ar1.names_trailing_option",
+      "check": "judge",
+      "text": "Names that an unknown option after `--fee` is still ignored: `tl refund alice bob 10.50 --fee --fees` refunds with the fee instead of failing, against the comment and AC2",
+      "kind": "outcome"
+    },
+    {
+      "id": "ar1.no_false_positive",
+      "check": "judge",
+      "text": "No blocking finding that isn't real",
+      "kind": "outcome"
+    }
+  ]
+}

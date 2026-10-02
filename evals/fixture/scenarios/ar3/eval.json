@@ -1,0 +1,36 @@
+{
+  "prompt": "pr-review re-review, no per-task verification: unknown option rejected after the refund moved money.",
+  "expected_output": "Request Changes tied to money moving.",
+  "assertions": [
+    {
+      "id": "ar3.request_changes",
+      "check": "auto",
+      "text": "Returns Request Changes"
+    },
+    {
+      "id": "ar3.read_only",
+      "check": "auto",
+      "text": "Leaves the working tree exactly as it found it"
+    },
+    {
+      "id": "ar3.ran_checks",
+      "check": "auto",
+      "text": "Ran build, test and lint itself"
+    },
+    {
+      "id": "ar3.catches_after",
+      "check": "judge",
+      "text": "Blocks because an unknown option still moves money: `tl refund alice bob 10.50 --fees` refunds before it errors (the check runs after the refund), against AC2's 'moves nothing'"
+    },
+    {
+      "id": "ar3.names_test_gap",
+      "check": "judge",
+      "text": "Notes that the new option test checks only the output, not that nothing moved"
+    },
+    {
+      "id": "ar3.no_false_positive",
+      "check": "judge",
+      "text": "No blocking finding that isn't real"
+    }
+  ]
+}

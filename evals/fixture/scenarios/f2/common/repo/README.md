@@ -1,0 +1,13 @@
+# tinyledger
+
+Wallet balances, transfers, and fees for the support tooling. A library (`src/`) plus a small CLI (`tl`).
+
+```sh
+npm test          # node:test suite, JUnit report in .cache/junit.xml
+npm run build     # syntax-check and link every module
+npm run lint      # project rules, see docs/PROJECT_CONTEXT.md
+TL_LEDGER=ledger.json node src/cli.js balance alice
+node src/cli.js fee 10.50 transfer   # quote a fee without moving money
+```
+
+Amounts are integer cents everywhere. See `docs/DECISIONS.md` before touching money, fees, or the ledger file.

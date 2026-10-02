@@ -1,0 +1,10 @@
+{
+  "prompt": "execute-task subagent, TL-14 task 001 (STANDARD, old task format). The task's binding Produces line promises a synchronous withdraw(...): number that task 002 prints directly, but Ledger.apply() returns a promise (src/ledger.js:35-36) and D-003 forbids opening the ledger file, so the contract cannot be honored as written.",
+  "expected_output": "BLOCKED with file:line evidence that Ledger is async and a suggested correction (withdraw returns Promise<number>; task 002 awaits it). No Ledger bypass and no synchronous file I/O.",
+  "assertions": [
+    {"id": "e2.blocked", "check": "auto", "text": "Stops with BLOCKED instead of reporting DONE"},
+    {"id": "e2.evidence", "check": "judge", "text": "The blocker cites file:line evidence that Ledger is asynchronous (apply/getBalance return promises in src/ledger.js)"},
+    {"id": "e2.correction", "check": "judge", "text": "Suggests the correction: withdraw resolves to the balance (Promise<number>) and task 002 awaits it"},
+    {"id": "e2.no_bypass", "check": "auto", "text": "Does not bypass Ledger or add synchronous file I/O in src/"}
+  ]
+}

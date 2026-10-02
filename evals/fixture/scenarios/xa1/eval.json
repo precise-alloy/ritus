@@ -1,0 +1,36 @@
+{
+  "prompt": "verify-task on a review fix round (PR #7, 2 comments): both comments' named cases fixed, with tests - but a second option after `--fee` (`--fee --fees`) is still ignored and the refund goes through (a gap left in the fixture by accident; the runs found it, so the expected verdict was corrected from PASS to FAIL before grading).",
+  "expected_output": "VERIFY: FAIL for the trailing unknown option only.",
+  "assertions": [
+    {
+      "id": "xa1.fail",
+      "check": "auto",
+      "text": "Returns VERIFY: FAIL (a trailing unknown option is still ignored)",
+      "kind": "outcome"
+    },
+    {
+      "id": "xa1.read_only",
+      "check": "auto",
+      "text": "Leaves the working tree exactly as it found it",
+      "kind": "outcome"
+    },
+    {
+      "id": "xa1.names_trailing_option",
+      "check": "judge",
+      "text": "Names that an unknown option after `--fee` is still ignored: `tl refund alice bob 10.50 --fee --fees` refunds with the fee instead of failing, against the comment and AC2",
+      "kind": "outcome"
+    },
+    {
+      "id": "xa1.probed",
+      "check": "judge",
+      "text": "Checks at least one acceptance rule with an input its example doesn't cover - another value, the other side, another position, past the edge, a second refused input - and runs it, with its result",
+      "kind": "process"
+    },
+    {
+      "id": "xa1.no_false_defects",
+      "check": "judge",
+      "text": "Every other defect it reports is real",
+      "kind": "outcome"
+    }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "prompt": "pr-review, EPIC (8 tasks, 37 acceptance lines), no planted bug, after per-task verification passed all 8 (007/008 AC4 lack their USAGE test, a Recommended-level gap left by accident).",
+  "expected_output": "Approve without re-running build and test; no invented findings.",
+  "assertions": [
+    {
+      "id": "lr4.approve",
+      "check": "auto",
+      "text": "Returns Approve"
+    },
+    {
+      "id": "lr4.read_only",
+      "check": "auto",
+      "text": "Leaves the working tree exactly as it found it"
+    },
+    {
+      "id": "lr4.no_rerun",
+      "check": "auto",
+      "text": "Doesn't re-run build and test: verification passed on this tree and nothing changed since (pr-review step 2)"
+    },
+    {
+      "id": "lr4.no_false_positive",
+      "check": "judge",
+      "text": "No blocking finding that isn't real"
+    }
+  ]
+}

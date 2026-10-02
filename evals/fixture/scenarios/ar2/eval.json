@@ -1,0 +1,31 @@
+{
+  "prompt": "pr-review re-review, no per-task verification: fees refused as toId only.",
+  "expected_output": "Request Changes tied to the fromId side.",
+  "assertions": [
+    {
+      "id": "ar2.request_changes",
+      "check": "auto",
+      "text": "Returns Request Changes"
+    },
+    {
+      "id": "ar2.read_only",
+      "check": "auto",
+      "text": "Leaves the working tree exactly as it found it"
+    },
+    {
+      "id": "ar2.ran_checks",
+      "check": "auto",
+      "text": "Ran build, test and lint itself"
+    },
+    {
+      "id": "ar2.catches_partial",
+      "check": "judge",
+      "text": "Blocks because the fees account is still accepted as the other party: refund(ledger, 'fees', 'bob', 2000) goes through, or AC1's second case has no test"
+    },
+    {
+      "id": "ar2.no_false_positive",
+      "check": "judge",
+      "text": "No blocking finding that isn't real"
+    }
+  ]
+}

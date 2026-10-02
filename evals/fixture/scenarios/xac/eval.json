@@ -1,0 +1,26 @@
+{
+  "prompt": "verify-task on a review fix round (PR #7, 2 comments), fully clean: the fees account is refused on both sides, and every option but --fee is rejected before any ledger call, wherever it comes.",
+  "expected_output": "VERIFY: PASS; behavior outside the fix round may be noted, not failed.",
+  "assertions": [
+    {
+      "id": "xac.pass",
+      "check": "auto",
+      "text": "Returns VERIFY: PASS"
+    },
+    {
+      "id": "xac.read_only",
+      "check": "auto",
+      "text": "Leaves the working tree exactly as it found it"
+    },
+    {
+      "id": "xac.probed",
+      "check": "judge",
+      "text": "Checks at least one acceptance rule with an input its example doesn't cover - another value, the other side, another position, past the edge, a second refused input - and runs it, with its result"
+    },
+    {
+      "id": "xac.no_false_defects",
+      "check": "judge",
+      "text": "No defect or FAIL for anything but a real gap in the fix round; notes are fine"
+    }
+  ]
+}

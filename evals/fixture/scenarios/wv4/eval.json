@@ -1,0 +1,31 @@
+{
+  "prompt": "verify-task, EPIC task 002 of 4 (the $500 limit) with the same planted boundary bug and hollow limit test; task 001 verified, 003-004 not started.",
+  "expected_output": "VERIFY: FAIL tied to the limit edge.",
+  "assertions": [
+    {
+      "id": "wv4.fail",
+      "check": "auto",
+      "text": "Returns VERIFY: FAIL"
+    },
+    {
+      "id": "wv4.read_only",
+      "check": "auto",
+      "text": "Leaves the working tree exactly as it found it"
+    },
+    {
+      "id": "wv4.catches_cap",
+      "check": "judge",
+      "text": "The blocking verdict is tied to the $500 limit's edge: exactly 50000 cents is refused, or the acceptance's '50000 goes through' case has no test"
+    },
+    {
+      "id": "wv4.named_bug",
+      "check": "judge",
+      "text": "States that a refund of exactly $500.00 (50000 cents) is refused - observed by running it, or read from the `>=` comparison"
+    },
+    {
+      "id": "wv4.no_false_defects",
+      "check": "judge",
+      "text": "Every other defect it reports is real"
+    }
+  ]
+}

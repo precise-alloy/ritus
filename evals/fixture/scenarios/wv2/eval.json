@@ -1,0 +1,21 @@
+{
+  "prompt": "verify-task, STANDARD task 002 (`tl refund`), clean, with task 001 already verified.",
+  "expected_output": "VERIFY: PASS with evidence; task 001's files counted as the earlier task's; no invented defects.",
+  "assertions": [
+    {
+      "id": "wv2.pass",
+      "check": "auto",
+      "text": "Returns VERIFY: PASS"
+    },
+    {
+      "id": "wv2.read_only",
+      "check": "auto",
+      "text": "Leaves the working tree exactly as it found it"
+    },
+    {
+      "id": "wv2.no_false_defects",
+      "check": "judge",
+      "text": "Reports no defect or gap that isn't real: the task meets every acceptance line"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "prompt": "verify-task, STANDARD task 001 (refund() with the $500 limit), clean: correct code, good tests including the 50000/50001 edge.",
+  "expected_output": "VERIFY: PASS with evidence; no invented defects.",
+  "assertions": [
+    {
+      "id": "wv1.pass",
+      "check": "auto",
+      "text": "Returns VERIFY: PASS"
+    },
+    {
+      "id": "wv1.read_only",
+      "check": "auto",
+      "text": "Leaves the working tree exactly as it found it"
+    },
+    {
+      "id": "wv1.no_false_defects",
+      "check": "judge",
+      "text": "Reports no defect or gap that isn't real: the task meets every acceptance line"
+    }
+  ]
+}

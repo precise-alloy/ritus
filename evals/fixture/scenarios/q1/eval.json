@@ -1,0 +1,90 @@
+{
+  "prompt": "execute-task subagent, TL-27 task 001 (STANDARD): add refund(ledger, fromId, toId, amountCents, { refundFee }) in src/refund.js with tests. The run's tests are then run against 10 mutants of a reference refund(), each breaking one behavior the acceptance or the domain requires.",
+  "expected_output": "A correct refund() in one ledger.apply(), with tests that pin every acceptance line by balances and literal values: they fail against each mutant, including the all-or-nothing, fee-source, amount-validation, and half-up rounding mutants. No existing test changes.",
+  "assertions": [
+    {
+      "id": "q1.checks",
+      "check": "auto",
+      "text": "Build, test and lint pass on the final tree",
+      "kind": "outcome"
+    },
+    {
+      "id": "q1.correct",
+      "check": "auto",
+      "text": "The run's refund() passes the hidden reference tests for AC1-AC5",
+      "kind": "outcome"
+    },
+    {
+      "id": "q1.kill_M1",
+      "check": "auto",
+      "text": "The run's tests fail against a refund() where the direction is swapped (the sender pays, the recipient is credited)",
+      "kind": "outcome"
+    },
+    {
+      "id": "q1.kill_M2",
+      "check": "auto",
+      "text": "The run's tests fail against a refund() where the fee is never refunded",
+      "kind": "outcome"
+    },
+    {
+      "id": "q1.kill_M3",
+      "check": "auto",
+      "text": "The run's tests fail against a refund() where the fee is refunded even without refundFee",
+      "kind": "outcome"
+    },
+    {
+      "id": "q1.kill_M4",
+      "check": "auto",
+      "text": "The run's tests fail against a refund() where the refunded fee is computed as a withdrawal fee",
+      "kind": "outcome"
+    },
+    {
+      "id": "q1.kill_M5",
+      "check": "auto",
+      "text": "The run's tests fail against a refund() where the sender is credited in one apply() and the recipient debited in a second, so a failed refund leaves money moved",
+      "kind": "outcome"
+    },
+    {
+      "id": "q1.kill_M6",
+      "check": "auto",
+      "text": "The run's tests fail against a refund() where amounts are not validated (0 or a negative amount goes through)",
+      "kind": "outcome"
+    },
+    {
+      "id": "q1.kill_M7",
+      "check": "auto",
+      "text": "The run's tests fail against a refund() where a refund to the same account is allowed",
+      "kind": "outcome"
+    },
+    {
+      "id": "q1.kill_M8",
+      "check": "auto",
+      "text": "The run's tests fail against a refund() where the receipt reports no refunded fee",
+      "kind": "outcome"
+    },
+    {
+      "id": "q1.kill_M9",
+      "check": "auto",
+      "text": "The run's tests fail against a refund() where the refunded fee is taken from the recipient instead of the fees account",
+      "kind": "outcome"
+    },
+    {
+      "id": "q1.kill_M10",
+      "check": "auto",
+      "text": "The run's tests fail against a refund() where the refunded fee is floored instead of rounded half-up (D-002)",
+      "kind": "outcome"
+    },
+    {
+      "id": "q1.existing_tests",
+      "check": "auto",
+      "text": "Changes no existing test file",
+      "kind": "outcome"
+    },
+    {
+      "id": "q1.literal_expected",
+      "check": "auto",
+      "text": "The refund tests spell out expected values instead of calling computeFee (L-002)",
+      "kind": "outcome"
+    }
+  ]
+}

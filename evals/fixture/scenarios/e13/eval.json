@@ -1,0 +1,12 @@
+{
+  "prompt": "verify-task subagent, TL-16 task 002 (STANDARD, old task format). Task 001's receipt changes are still uncommitted in the working tree next to task 002's parseAmount (the user commits later). Task 002 is complete and correct: zero is refused (src/money.js:37-39) and tested (test/money.test.js:47-50).",
+  "expected_output": "VERIFY: PASS. Attributes src/receipt.js and test/receipt.test.js to task 001 instead of calling them scope creep; runs build, test and lint itself; proves the refusals with its own evidence; changes nothing; invents no defects.",
+  "assertions": [
+    {"id": "e13.pass", "check": "auto", "text": "Returns VERIFY: PASS"},
+    {"id": "e13.prior_task_scope", "check": "judge", "text": "Attributes the uncommitted src/receipt.js and test/receipt.test.js changes to task 001 instead of failing task 002 for scope"},
+    {"id": "e13.ran_checks", "check": "auto", "text": "Ran build, test and lint itself (all three evidence files written during the run)"},
+    {"id": "e13.refusal_proven", "check": "judge", "text": "Establishes that '0' and '0.00' are refused from its own evidence (a command it ran, or the zero test plus its own test run), not from the executor's claim"},
+    {"id": "e13.read_only", "check": "auto", "text": "Leaves the working tree unchanged apart from build/test/lint outputs"},
+    {"id": "e13.no_false_defects", "check": "judge", "text": "Reports no defect that does not exist: no FAIL for hypothetical edge cases outside the acceptance, or for task 001's files"}
+  ]
+}

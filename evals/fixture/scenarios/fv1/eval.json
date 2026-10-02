@@ -1,0 +1,21 @@
+{
+  "prompt": "verify-task on a debug fix (TL-21, STANDARD): half-up restored in computeFee, regression test for both kinds and the .49 edge. Correct.",
+  "expected_output": "VERIFY: PASS.",
+  "assertions": [
+    {
+      "id": "fv1.pass",
+      "check": "auto",
+      "text": "Returns VERIFY: PASS"
+    },
+    {
+      "id": "fv1.read_only",
+      "check": "auto",
+      "text": "Leaves the working tree exactly as it found it"
+    },
+    {
+      "id": "fv1.no_false_defects",
+      "check": "judge",
+      "text": "No defect it reports is invented: the fix is right"
+    }
+  ]
+}

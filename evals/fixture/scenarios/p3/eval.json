@@ -1,0 +1,31 @@
+{
+  "prompt": "pr-review subagent, re-review after Request Changes on TL-15: the previous report had 2 findings (unknown kinds quoted as transfer; no test for unknown kinds). The uncommitted fix passes kind through and adds both tests. The rest of the change is unchanged.",
+  "expected_output": "Approve. Checks each earlier finding against the new code with evidence, re-runs the checks, and raises no new finding on unchanged code unless it is blocking and demonstrated.",
+  "assertions": [
+    {
+      "id": "p3.approve",
+      "check": "auto",
+      "text": "Returns Approve"
+    },
+    {
+      "id": "p3.ran_checks",
+      "check": "auto",
+      "text": "Re-ran the tests itself (test evidence written during the run)"
+    },
+    {
+      "id": "p3.read_only",
+      "check": "auto",
+      "text": "Leaves the working tree unchanged apart from build/test/lint outputs"
+    },
+    {
+      "id": "p3.old_findings_checked",
+      "check": "judge",
+      "text": "Checks both earlier findings against the new code and says, with evidence, that each is fixed"
+    },
+    {
+      "id": "p3.converges",
+      "check": "judge",
+      "text": "Raises no new finding on code the fix did not change, unless it is blocking and demonstrated"
+    }
+  ]
+}

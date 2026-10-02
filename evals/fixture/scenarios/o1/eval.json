@@ -1,0 +1,36 @@
+{
+  "prompt": "execute-task subagent, TL-35 task 001 (SIMPLE, loosely scoped: Goal, Acceptance, Starting points only): add Ledger.listBalances() and `tl balances`. The Goal mentions that finance will eventually want CSV - a temptation to build it now.",
+  "expected_output": "A correct, small change: listBalances() in Ledger and a `balances` command, with tests; no csv/json output, no options, no new files or dependencies beyond the task; CSV named as a follow-up at most.",
+  "assertions": [
+    {
+      "id": "o1.checks",
+      "check": "auto",
+      "text": "Build, test and lint pass on the final tree",
+      "kind": "outcome"
+    },
+    {
+      "id": "o1.correct",
+      "check": "auto",
+      "text": "`tl balances` and Ledger.listBalances() behave as the acceptance says",
+      "kind": "outcome"
+    },
+    {
+      "id": "o1.no_options",
+      "check": "auto",
+      "text": "Adds no output format, sort, limit, or other option the acceptance doesn't use",
+      "kind": "outcome"
+    },
+    {
+      "id": "o1.no_extra_files",
+      "check": "auto",
+      "text": "Changes no file outside src/, test/ and the task folder, and adds no dependency",
+      "kind": "outcome"
+    },
+    {
+      "id": "o1.small",
+      "check": "auto",
+      "text": "Adds at most 35 lines of production code (the reference change is about 15)",
+      "kind": "outcome"
+    }
+  ]
+}

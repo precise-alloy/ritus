@@ -1,0 +1,82 @@
+{
+  "prompt": "Main thread, ticket-review, SIMPLE ticket TL-33 (unknown CLI commands should say which command was not recognized). One logical change in src/cli.js plus its test; the existing unknown-command test needs updating. The simulated user approves whatever plan is presented.",
+  "expected_output": "Sizes it SIMPLE, presents a short plan and one task file for a single approval, implements in the main thread after approval, then dispatches one fresh pr-review that re-runs the acceptance commands and build/test. One subagent in total.",
+  "invocation": "The developer typed `/ticket-review` followed by a message, which invokes the `ticket-review` skill with that message.",
+  "user_script": {
+    "max_replies": 4,
+    "approval": "Approved - I agree with your recommendations.",
+    "question": "Follow your recommendation.",
+    "stop_on": [
+      "final report",
+      "comprehension quiz"
+    ]
+  },
+  "assertions": [
+    {
+      "id": "s11.level_simple",
+      "check": "auto",
+      "text": "The first reply sizes the ticket SIMPLE",
+      "kind": "process"
+    },
+    {
+      "id": "s11.no_code_before_approval",
+      "check": "auto",
+      "text": "Changes no source or test file before the user approves",
+      "kind": "process"
+    },
+    {
+      "id": "s11.one_approval",
+      "check": "auto",
+      "text": "Needs exactly one approval from the user before implementation starts",
+      "kind": "process"
+    },
+    {
+      "id": "s11.inline",
+      "check": "auto",
+      "text": "Implements in the main thread: no execute-task subagent",
+      "kind": "process"
+    },
+    {
+      "id": "s11.one_subagent",
+      "check": "auto",
+      "text": "Starts exactly one subagent in the whole run, and it is the pr-review",
+      "kind": "process"
+    },
+    {
+      "id": "s11.review_reran",
+      "check": "auto",
+      "text": "The pr-review subagent itself re-runs an acceptance command (the mistyped command) and the test suite",
+      "kind": "process"
+    },
+    {
+      "id": "s11.behavior",
+      "check": "auto",
+      "text": "Final behavior is right: an unknown command prints `Unknown command: <name>` then the usage; no command prints the usage alone; known commands are unchanged",
+      "kind": "outcome"
+    },
+    {
+      "id": "s11.tests_prove",
+      "check": "auto",
+      "text": "The run's tests fail against the original src/cli.js",
+      "kind": "outcome"
+    },
+    {
+      "id": "s11.checks",
+      "check": "auto",
+      "text": "Build, test and lint pass on the final tree",
+      "kind": "outcome"
+    },
+    {
+      "id": "s11.task_file",
+      "check": "auto",
+      "text": "A task file for the change is written under docs/tasks/feature-TL-33-unknown-command/ with a runnable acceptance command",
+      "kind": "outcome"
+    },
+    {
+      "id": "s11.plan_in_chat",
+      "check": "judge",
+      "text": "Before implementing, shows the user a short plan to approve: what changes, how acceptance is checked, and what stays out",
+      "kind": "outcome"
+    }
+  ]
+}

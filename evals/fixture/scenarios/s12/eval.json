@@ -1,0 +1,94 @@
+{
+  "prompt": "Main thread, ticket-review, STANDARD ticket TL-44 (typed amounts in tl transfer) plus a chat-only constraint the ticket does not mention: finance's nightly script calls `tl transfer <from> <to> <cents>` with integer cents, and that call must keep working exactly as before. The user wants only the plan and task files today. At the first approval the user adds a requirement for the invalid-amount error text.",
+  "expected_output": "Level STANDARD. The plan records the user's constraint as binding, surfaces the collision between typed amounts and the cents form as a decision with a recommendation, adds a regression check for the old call, and pins the parser interface. The task files carry the constraint, the regression check and the late error-text requirement. No code is written.",
+  "invocation": "The developer typed `/ticket-review` followed by a message, which invokes the `ticket-review` skill with that message.",
+  "user_script": {
+    "max_replies": 4,
+    "first_approval": "Approved - I agree with your recommendations. One more requirement from the support lead: when the amount is invalid, the error message must include a correct example, meaning `Error: Invalid amount \"abc\": expected an amount like 12.50`.",
+    "approval": "Approved.",
+    "question": "Follow your recommendation.",
+    "stop_on": [
+      "final report"
+    ]
+  },
+  "assertions": [
+    {
+      "id": "s12.level_standard",
+      "check": "auto",
+      "text": "The first reply sizes the ticket STANDARD",
+      "kind": "process"
+    },
+    {
+      "id": "s12.no_code",
+      "check": "auto",
+      "text": "Changes no source or test file (the user asked for the plan and tasks only)",
+      "kind": "process"
+    },
+    {
+      "id": "s12.plan_file",
+      "check": "auto",
+      "text": "Writes the plan under docs/reviews/ before asking for approval",
+      "kind": "process"
+    },
+    {
+      "id": "s12.tasks_written",
+      "check": "auto",
+      "text": "Ends with task files under docs/tasks/feature-TL-44-typed-amounts/",
+      "kind": "outcome"
+    },
+    {
+      "id": "s12.citations",
+      "check": "auto",
+      "text": "Every file:line the plan and task files cite exists in the repository",
+      "kind": "outcome"
+    },
+    {
+      "id": "s12.late_requirement",
+      "check": "auto",
+      "text": "The error text the user added at approval (`expected an amount like 12.50`) is in the task files",
+      "kind": "outcome"
+    },
+    {
+      "id": "s12.constraint_in_plan",
+      "check": "judge",
+      "text": "The plan records the user's constraint - the integer-cents call `tl transfer <from> <to> <cents>` keeps working exactly as before, because finance's nightly script uses it - as binding, attributed to the user",
+      "kind": "outcome"
+    },
+    {
+      "id": "s12.conflict_decision",
+      "check": "judge",
+      "text": "Surfaces that typed amounts collide with the cents form (an integer like 1250 could be read as dollars) and puts the resolution to the user as a decision with a recommendation",
+      "kind": "outcome"
+    },
+    {
+      "id": "s12.regression_ac",
+      "check": "judge",
+      "text": "The acceptance criteria include a check that the existing cents call still behaves exactly as before",
+      "kind": "outcome"
+    },
+    {
+      "id": "s12.constraint_in_tasks",
+      "check": "judge",
+      "text": "Every task that changes how `tl transfer` reads its amount carries the constraint and the regression check, so an executor who never saw the chat keeps the old call working",
+      "kind": "outcome"
+    },
+    {
+      "id": "s12.interfaces_pinned",
+      "check": "judge",
+      "text": "The interface shared between tasks - the parser's module, name, signature and error - is pinned by name, not left to the executors",
+      "kind": "outcome"
+    },
+    {
+      "id": "s12.ac_checkable",
+      "check": "judge",
+      "text": "Each acceptance criterion is observable (a command and its expected output, or a named test), and the invalid inputs the ticket names are covered",
+      "kind": "outcome"
+    },
+    {
+      "id": "s12.decisions_first",
+      "check": "judge",
+      "text": "When asking for approval, the chat leads with the level and what the user must decide, before the details",
+      "kind": "process"
+    }
+  ]
+}

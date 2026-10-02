@@ -1,0 +1,36 @@
+{
+  "prompt": "pr-review, EPIC (8 tasks, 37 acceptance lines), no per-task verification; task 006's listRefunds misses refunds where the account is toId, and its test doesn't cover that side.",
+  "expected_output": "Request Changes tied to listRefunds.",
+  "assertions": [
+    {
+      "id": "lr2.request_changes",
+      "check": "auto",
+      "text": "Returns Request Changes"
+    },
+    {
+      "id": "lr2.read_only",
+      "check": "auto",
+      "text": "Leaves the working tree exactly as it found it"
+    },
+    {
+      "id": "lr2.ran_checks",
+      "check": "auto",
+      "text": "Ran build, test and lint itself"
+    },
+    {
+      "id": "lr2.catches_filter",
+      "check": "judge",
+      "text": "A blocking finding is tied to listRefunds leaving out refunds where the account is the one the money came from (toId), or to AC1's 'either side' case being untested"
+    },
+    {
+      "id": "lr2.named_filter",
+      "check": "judge",
+      "text": "States that refunds where the account is the toId side are left out - observed (bob's list is empty, say) or read from the filter on memo.fromId only"
+    },
+    {
+      "id": "lr2.no_false_positive",
+      "check": "judge",
+      "text": "No blocking finding that isn't real"
+    }
+  ]
+}

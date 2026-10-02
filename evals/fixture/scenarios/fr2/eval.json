@@ -1,0 +1,31 @@
+{
+  "prompt": "pr-review of a debug fix (TL-21), no per-task verification: Math.ceil instead of half-up.",
+  "expected_output": "Request Changes tied to the rounding.",
+  "assertions": [
+    {
+      "id": "fr2.request_changes",
+      "check": "auto",
+      "text": "Returns Request Changes"
+    },
+    {
+      "id": "fr2.read_only",
+      "check": "auto",
+      "text": "Leaves the working tree exactly as it found it"
+    },
+    {
+      "id": "fr2.ran_checks",
+      "check": "auto",
+      "text": "Ran build, test and lint itself"
+    },
+    {
+      "id": "fr2.catches_rounding",
+      "check": "judge",
+      "text": "Blocks on the rounding: the fix rounds up (Math.ceil) instead of half-up - a fee with a remainder under half a cent is over-charged (1049 -> 11 where D-002 gives 10), or the fix departs from the Proposed Fix formula"
+    },
+    {
+      "id": "fr2.no_false_positive",
+      "check": "judge",
+      "text": "No blocking finding that isn't real"
+    }
+  ]
+}

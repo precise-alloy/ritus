@@ -1,0 +1,36 @@
+{
+  "prompt": "verify-task on a debug fix (TL-21): half-up for transfer only; withdraw still floors (5025 -> 100); only a transfer test, though the case file lists both paths.",
+  "expected_output": "VERIFY: FAIL tied to withdraw.",
+  "assertions": [
+    {
+      "id": "fv3.fail",
+      "check": "auto",
+      "text": "Returns VERIFY: FAIL",
+      "kind": "outcome"
+    },
+    {
+      "id": "fv3.read_only",
+      "check": "auto",
+      "text": "Leaves the working tree exactly as it found it",
+      "kind": "outcome"
+    },
+    {
+      "id": "fv3.catches_withdraw",
+      "check": "judge",
+      "text": "Blocks because withdrawals still round down: computeFee(5025, 'withdraw') is 100 not 101, or the withdraw regression test the case file asks for is missing",
+      "kind": "outcome"
+    },
+    {
+      "id": "fv3.named_withdraw",
+      "check": "judge",
+      "text": "States that a withdraw fee still floors (5025 -> 100, observed or read from the transfer-only offset)",
+      "kind": "outcome"
+    },
+    {
+      "id": "fv3.no_false_defects",
+      "check": "judge",
+      "text": "Every other defect it reports is real",
+      "kind": "outcome"
+    }
+  ]
+}

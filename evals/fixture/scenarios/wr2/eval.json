@@ -1,0 +1,26 @@
+{
+  "prompt": "pr-review, STANDARD change (2 tasks), clean, with no per-task verification.",
+  "expected_output": "Approve after re-running the acceptance checks; no invented findings.",
+  "assertions": [
+    {
+      "id": "wr2.approve",
+      "check": "auto",
+      "text": "Returns Approve"
+    },
+    {
+      "id": "wr2.read_only",
+      "check": "auto",
+      "text": "Leaves the working tree exactly as it found it"
+    },
+    {
+      "id": "wr2.ran_checks",
+      "check": "auto",
+      "text": "Ran build, test and lint itself"
+    },
+    {
+      "id": "wr2.no_false_positive",
+      "check": "judge",
+      "text": "No blocking finding that isn't real: the change meets every acceptance line"
+    }
+  ]
+}

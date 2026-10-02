@@ -1,0 +1,63 @@
+{
+  "prompt": "Main thread, ticket-review, STANDARD ticket TL-27 (refund a mistaken transfer) on tinyledger. Two rules decide values: the refunded fee follows D-002 half-up rounding (only in the repo docs, not in the ticket), and refunds above $500.00 are refused (in the ticket). The user wants only the plan and task files today.",
+  "expected_output": "Level STANDARD (payments). The plan's acceptance criteria and the task files pin both value rules with examples at their edges: a refunded fee where half-up rounding decides the cents (e.g. 1050 -> 11), and the $500 cap at its boundary ($500.00 accepted, $500.01 refused). No code is written.",
+  "invocation": "The developer typed `/ticket-review` followed by a message, which invokes the `ticket-review` skill with that message.",
+  "user_script": {
+    "max_replies": 3,
+    "approval": "Approved - I agree with your recommendations.",
+    "question": "Follow your recommendation.",
+    "stop_on": [
+      "final report"
+    ]
+  },
+  "assertions": [
+    {
+      "id": "r1.level_standard",
+      "check": "auto",
+      "text": "Sizes the ticket STANDARD before the first approval",
+      "kind": "process"
+    },
+    {
+      "id": "r1.no_code",
+      "check": "auto",
+      "text": "Changes no source or test file (the user asked for the plan and tasks only)",
+      "kind": "process"
+    },
+    {
+      "id": "r1.plan_file",
+      "check": "auto",
+      "text": "Writes the plan under docs/reviews/ before asking for approval",
+      "kind": "process"
+    },
+    {
+      "id": "r1.tasks_written",
+      "check": "auto",
+      "text": "Ends with task files under docs/tasks/feature-TL-27-refunds/",
+      "kind": "outcome"
+    },
+    {
+      "id": "r1.cap_edge_in_tasks",
+      "check": "auto",
+      "text": "The task files test the $500 limit just past its edge ($500.01, or 50001 cents)",
+      "kind": "outcome"
+    },
+    {
+      "id": "r1.rounding_ac",
+      "check": "judge",
+      "text": "An acceptance criterion pins the refunded fee to D-002's half-up rounding with an amount where rounding decides the cents (for example a 1050-cent refund returns an 11-cent fee), not only a round amount such as 2000 -> 20",
+      "kind": "outcome"
+    },
+    {
+      "id": "r1.cap_edge",
+      "check": "judge",
+      "text": "An acceptance criterion pins the $500 limit at its boundary: exactly $500.00 is accepted and $500.01 is refused (or the same in cents)",
+      "kind": "outcome"
+    },
+    {
+      "id": "r1.tasks_carry",
+      "check": "judge",
+      "text": "The task files carry both rules as Acceptance lines with those edge examples, so an executor who never saw the plan tests them",
+      "kind": "outcome"
+    }
+  ]
+}

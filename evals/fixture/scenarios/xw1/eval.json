@@ -1,0 +1,26 @@
+{
+  "prompt": "verify-task, STANDARD task 001 (refund() with the $500 limit), clean: correct code, good tests including the 50000/50001 edge.",
+  "expected_output": "VERIFY: PASS with evidence; no invented defects.",
+  "assertions": [
+    {
+      "id": "xw1.pass",
+      "check": "auto",
+      "text": "Returns VERIFY: PASS"
+    },
+    {
+      "id": "xw1.read_only",
+      "check": "auto",
+      "text": "Leaves the working tree exactly as it found it"
+    },
+    {
+      "id": "xw1.probed",
+      "check": "judge",
+      "text": "Checks at least one acceptance rule with an input its example doesn't cover - another value, the other side, another position, past the edge, a second refused input - and runs it, with its result"
+    },
+    {
+      "id": "xw1.no_false_defects",
+      "check": "judge",
+      "text": "Reports no defect or gap that isn't real: the task meets every acceptance line"
+    }
+  ]
+}

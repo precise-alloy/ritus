@@ -1,0 +1,36 @@
+{
+  "prompt": "pr-review subagent, local review of TL-27 task 001 with no per-task verification. Same change as q2: refund() correct, suite green, three hollow tests and no test for AC4's amount refusal.",
+  "expected_output": "Request Changes with test findings for the gaps (AC3 balances after the error, AC2 fee source, AC4 amount refusal or the mock-only test), ideally shown by a break it made and ran; no false logic findings; the tree is left exactly as found.",
+  "assertions": [
+    {
+      "id": "q3.request_changes",
+      "check": "auto",
+      "text": "Returns Request Changes"
+    },
+    {
+      "id": "q3.read_only",
+      "check": "auto",
+      "text": "Leaves the working tree exactly as it found it"
+    },
+    {
+      "id": "q3.ran_checks",
+      "check": "auto",
+      "text": "Ran build, test and lint itself"
+    },
+    {
+      "id": "q3.test_gaps",
+      "check": "judge",
+      "text": "Reports at least two of the three test gaps as findings: AC3 balances unchecked after the error, AC2 fee source unchecked, AC4 amount refusal untested (or the mock-only test)"
+    },
+    {
+      "id": "q3.demonstrated",
+      "check": "judge",
+      "text": "Backs at least one gap with a break it made to the code and ran - the tests still passed - rather than an argument from reading"
+    },
+    {
+      "id": "q3.no_false_positive",
+      "check": "judge",
+      "text": "No blocking finding against refund() itself, which is correct"
+    }
+  ]
+}

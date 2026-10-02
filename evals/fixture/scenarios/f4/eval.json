@@ -1,0 +1,60 @@
+{
+  "prompt": "Main thread, /brainstorm: support wants refunds of mistaken transfers; the developer is unsure how to model a refund in the ledger or whether the fee comes back, and wants to think it through before planning. The ledger file keeps only balances - no record of past transfers. The developer's answers: CLI, whole transfers, fee back only when support decides the mistake was ours, and nothing already recorded may be edited.",
+  "expected_output": "Asks about the problem one question at a time, grounds 2-3 real options in the code (noticing the ledger keeps no transfer history), raises the blind spots (double refunds, a recipient who spent the money, the fees account), waits for the choice, and ends with a decision brief that keeps the developer's constraints. Writes nothing and starts no planning.",
+  "invocation": "The developer typed `/brainstorm` followed by a message, which invokes the `brainstorm` skill with that message.",
+  "user_script": {
+    "max_replies": 4,
+    "question": [
+      "Support staff would run refunds from the CLI, a few a week, always for a whole transfer. The customer gets the amount back; the fee comes back only when the mistake was ours, and support decides that case by case. Finance reconciles against the ledger, so a refund must never edit or remove what's already recorded - it has to show up as its own movement.",
+      "No deadline, and nothing else I know of. Use your judgment for the rest."
+    ],
+    "approval": "Let's go with your recommendation."
+  },
+  "assertions": [
+    {
+      "id": "f4.untouched",
+      "check": "auto",
+      "text": "Changes no file and makes no commit"
+    },
+    {
+      "id": "f4.no_dispatch",
+      "check": "auto",
+      "text": "Starts no subagent: the developer asked to think it through before planning"
+    },
+    {
+      "id": "f4.grounded",
+      "check": "auto",
+      "text": "Cites real code: valid file:line references into at least two source files"
+    },
+    {
+      "id": "f4.understands_first",
+      "check": "judge",
+      "text": "Asks about the problem before proposing options, one question per reply"
+    },
+    {
+      "id": "f4.no_history_noticed",
+      "check": "judge",
+      "text": "Notices that the ledger keeps only balances - no record of past transfers - so a refund can't look up the original transfer without new data or the support person supplying it"
+    },
+    {
+      "id": "f4.real_options",
+      "check": "judge",
+      "text": "Presents 2 or 3 genuine options, each with how it works in this codebase, its effort, its risk and whether it can be undone"
+    },
+    {
+      "id": "f4.blind_spots",
+      "check": "judge",
+      "text": "Before the developer chooses, raises where the options break: a transfer refunded twice, a recipient who already spent the money, or the fees account paying a fee back"
+    },
+    {
+      "id": "f4.respects_constraints",
+      "check": "judge",
+      "text": "The recommendation and the brief keep the developer's constraints: nothing recorded is edited, the refund is its own movement, and the fee comes back only when support decides the mistake was ours"
+    },
+    {
+      "id": "f4.brief",
+      "check": "judge",
+      "text": "Ends with a decision brief someone could plan from: the problem, the decision, why not the other options, the constraints, and the open questions"
+    }
+  ]
+}

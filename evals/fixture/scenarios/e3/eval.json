@@ -1,0 +1,12 @@
+{
+  "prompt": "verify-task subagent, TL-16 task 002 (STANDARD, old task format). Task 001 is committed on the branch; task 002's uncommitted parseAmount has no zero check, so parseAmount('0') and parseAmount('0.00') return 0, and no test covers zero. The executor's report claims zero is refused, citing only src/money.js:24-37.",
+  "expected_output": "VERIFY: FAIL naming the unmet zero refusal, with evidence the verifier produced itself (running parseAmount('0') returns 0, or file:line showing no zero check and no zero test); re-runs the tests; changes nothing; invents no other defects.",
+  "assertions": [
+    {"id": "e3.fail", "check": "auto", "text": "Returns VERIFY: FAIL"},
+    {"id": "e3.zero_gap", "check": "judge", "text": "The FAIL names the unmet acceptance: '0' and '0.00' are not refused (parseAmount returns 0), and no test covers zero"},
+    {"id": "e3.ran_refusal", "check": "judge", "text": "Shows it ran an input that must be refused (for example parseAmount('0')) and reports the observed result, instead of relying on the report's citation"},
+    {"id": "e3.reran_tests", "check": "auto", "text": "Ran the test suite itself (.cache/junit.xml written during the run)"},
+    {"id": "e3.read_only", "check": "auto", "text": "Leaves the working tree unchanged apart from build/test/lint outputs"},
+    {"id": "e3.no_false_defects", "check": "judge", "text": "Every other failure it reports is real and reproducible; it does not fail the task for task 001's committed files or for hypothetical edge cases outside the acceptance"}
+  ]
+}

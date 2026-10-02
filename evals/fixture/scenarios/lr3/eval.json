@@ -1,0 +1,26 @@
+{
+  "prompt": "pr-review, EPIC (8 tasks, 37 acceptance lines), no planted bug, no per-task verification (007/008 AC4 lack their USAGE test, a Recommended-level gap left by accident).",
+  "expected_output": "Approve; no invented findings.",
+  "assertions": [
+    {
+      "id": "lr3.approve",
+      "check": "auto",
+      "text": "Returns Approve"
+    },
+    {
+      "id": "lr3.read_only",
+      "check": "auto",
+      "text": "Leaves the working tree exactly as it found it"
+    },
+    {
+      "id": "lr3.ran_checks",
+      "check": "auto",
+      "text": "Ran build, test and lint itself"
+    },
+    {
+      "id": "lr3.no_false_positive",
+      "check": "judge",
+      "text": "No blocking finding that isn't real"
+    }
+  ]
+}

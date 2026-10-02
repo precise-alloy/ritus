@@ -1,0 +1,12 @@
+{
+  "prompt": "Main thread, start-ritus with a bug report in the same message. Ritus is set up. The user types: /start-ritus since yesterday's deploy, `tl transfer alice bob 10.50` charges a $0.10 fee; it should be $0.11. (The cause: computeFee in src/fees.js floors instead of rounding half-up, since the table-driven fee refactor.)",
+  "expected_output": "Hands off to debug at once, with no tour and no questions the repository can answer; the debug investigation then runs as that skill says and stops at its approval gate.",
+  "invocation": "The developer typed `/start-ritus` followed by a message, which invokes the `start-ritus` skill with that message.",
+  "user_script": {"max_replies": 0},
+  "assertions": [
+    {"id": "s10.debug", "check": "auto", "text": "Follows the debug skill (reads its SKILL.md)"},
+    {"id": "s10.direct", "check": "auto", "text": "Goes to debug without reading any other workflow skill first"},
+    {"id": "s10.no_tour", "check": "judge", "text": "Goes straight to the problem: no tour of Ritus, and no question the repository could answer"},
+    {"id": "s10.cause", "check": "judge", "text": "The investigation finds the cause: computeFee in src/fees.js floors the fee instead of rounding half-up"}
+  ]
+}

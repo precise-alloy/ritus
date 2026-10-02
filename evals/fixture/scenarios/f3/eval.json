@@ -1,0 +1,69 @@
+{
+  "prompt": "Main thread, /comprehension before the developer commits TL-15 (`tl fee`). The change is uncommitted: src/cli.js and test/cli.test.js are modified, and the core of it - src/fee-preview.js and its test - is untracked, so `git diff` alone doesn't show it. The developer answers each quiz question with a fixed option position.",
+  "expected_output": "Reads the untracked files, briefs what changed, why, and the existing code it leans on (computeFee's errors, rounding and minimum; parseAmount's refusals; the Ledger that main() builds but never uses) with file:line, then asks 3-5 consequence questions one at a time with balanced options, gives feedback after each answer, and ends with the score and a suggested commit message. Changes nothing.",
+  "invocation": "The developer typed `/comprehension` followed by a message, which invokes the `comprehension` skill with that message.",
+  "user_script": {
+    "max_replies": 5,
+    "quiz": [
+      "The second option.",
+      "The first one.",
+      "The third one.",
+      "The second one.",
+      "The first one."
+    ],
+    "question": "Yes, go ahead.",
+    "approval": "Yes, go ahead."
+  },
+  "assertions": [
+    {
+      "id": "f3.read_untracked",
+      "check": "auto",
+      "text": "Reads the untracked src/fee-preview.js"
+    },
+    {
+      "id": "f3.names_module",
+      "check": "auto",
+      "text": "The first reply names the new module (fee-preview.js or previewFee)"
+    },
+    {
+      "id": "f3.quiz_length",
+      "check": "auto",
+      "text": "Asks 3 to 5 quiz questions, one reply each"
+    },
+    {
+      "id": "f3.summary",
+      "check": "auto",
+      "text": "Ends with the score and a suggested commit message"
+    },
+    {
+      "id": "f3.untouched",
+      "check": "auto",
+      "text": "Changes no file and makes no commit"
+    },
+    {
+      "id": "f3.leans_on",
+      "check": "judge",
+      "text": "The brief explains existing code the change relies on that the diff doesn't show, with file:line"
+    },
+    {
+      "id": "f3.consequence_questions",
+      "check": "judge",
+      "text": "Each question tests a consequence - what the code now does for an input, what would break, or why this approach - rather than a fact the diff states"
+    },
+    {
+      "id": "f3.fair_options",
+      "check": "judge",
+      "text": "Each question offers 4 or 5 plausible options, none marked as recommended, and the right answer's position varies"
+    },
+    {
+      "id": "f3.feedback",
+      "check": "judge",
+      "text": "After each answer, says whether it was right and fills the gap in a sentence or two"
+    },
+    {
+      "id": "f3.one_at_a_time",
+      "check": "judge",
+      "text": "Asks one question per reply and waits for the answer"
+    }
+  ]
+}

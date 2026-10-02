@@ -1,0 +1,42 @@
+{
+  "prompt": "pr-review, STANDARD change (2 tasks) with the planted boundary bug in task 001, with no per-task verification.",
+  "expected_output": "Request Changes tied to the limit edge.",
+  "assertions": [
+    {
+      "id": "wr3.request_changes",
+      "check": "auto",
+      "text": "Returns Request Changes",
+      "kind": "outcome"
+    },
+    {
+      "id": "wr3.read_only",
+      "check": "auto",
+      "text": "Leaves the working tree exactly as it found it",
+      "kind": "outcome"
+    },
+    {
+      "id": "wr3.ran_checks",
+      "check": "auto",
+      "text": "Ran build, test and lint itself",
+      "kind": "outcome"
+    },
+    {
+      "id": "wr3.catches_cap",
+      "check": "judge",
+      "text": "The blocking verdict is tied to the $500 limit's edge: exactly 50000 cents is refused, or the acceptance's '50000 goes through' case has no test",
+      "kind": "outcome"
+    },
+    {
+      "id": "wr3.named_bug",
+      "check": "judge",
+      "text": "States that a refund of exactly $500.00 (50000 cents) is refused - observed by running it, or read from the `>=` comparison",
+      "kind": "outcome"
+    },
+    {
+      "id": "wr3.no_false_positive",
+      "check": "judge",
+      "text": "Every other blocking finding it reports is real",
+      "kind": "outcome"
+    }
+  ]
+}
