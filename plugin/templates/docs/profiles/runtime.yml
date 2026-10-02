@@ -1,0 +1,8 @@
+# Runtime profile data - filled by setup.
+# Edit this file, then re-run the `setup` skill to regenerate docs/PROJECT_CONTEXT.md.
+# Values like off/no/yes must be quoted: key: "off"
+
+schema_version: 2
+
+# Filled by setup
+ai_tools: ""

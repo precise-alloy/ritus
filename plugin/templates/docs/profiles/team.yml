@@ -1,0 +1,22 @@
+# Team profile data - filled by setup.
+# Edit this file, then re-run the `setup` skill to regenerate docs/PROJECT_CONTEXT.md.
+# Values like off/no/yes must be quoted: key: "off"
+
+schema_version: 1
+
+# Filled by setup
+team_size: ""
+git_platform: ""
+ticket_providers: []
+git_flow: ""
+workflow_owner: ""
+ticket_format: ""
+qa_mode: ""
+
+# Derived by setup, user can override
+memory_expiry_days: ""
+branch_format: ""
+tasks_path_convention: ""
+pr_reviewers: ""
+default_base_branch: ""
+traceability_policy: ""

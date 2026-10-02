@@ -11,12 +11,12 @@ You never patch a core skill or `dispatch.md` per companion — you write a mani
 
 ## How it works
 
-1. On `SessionStart`, Ritus runs `scripts/companion-bootstrap.ts` (wired through `hooks/hooks.json`).
+1. On `SessionStart`, Ritus runs `plugin/scripts/companion-bootstrap.ts` (wired through `plugin/hooks/hooks.json`).
 2. The hook discovers every `ritus-companion.json` it can find (see [Discovery](#discovery)).
 3. The hook returns one **Ritus Companion Registry** section as `additionalContext`: one line per
    companion with its manifest path - your prompts stay on disk, out of session-start context.
 4. When the agent builds or updates the workflow TODO, it reads each manifest and applies the
-   integrations at their workflow points (see "Companion weaving" in `skills/shared/dispatch.md`).
+   integrations at their workflow points (see "Companion weaving" in `plugin/skills/shared/dispatch.md`).
 
 > Requirements: [Bun](https://bun.sh) must be on `PATH`. The registry refreshes on each configured
 > `SessionStart` lifecycle event (`startup`, `resume`, `clear`, `compact`, `fork`) — i.e. at session
@@ -53,7 +53,9 @@ Each `prompt` is **read verbatim** from your manifest when the TODO is built - k
   `While <worker skill> runs<, on <condition>>: load the <skill> skill and apply it.`
 
 Use Ritus's own step names so the agent can place your step precisely:
-`triage → ticket-review → task-generation → execute-task → verify-task → pr-review → wrap-up`.
+`ticket-review → task-generation (task files written) → execute-task → verify-task → pr-review → wrap-up`.
+The TODO is built once the plan is approved, so the earliest point is after task-generation: sizing and the analysis
+agent inside `ticket-review` take no companion steps.
 
 ## Discovery
 

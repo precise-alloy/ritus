@@ -1,0 +1,19 @@
+{
+  "name": "ritus",
+  "description": "AI-assisted development workflow - sizes and plans each change, implements it task by task, checks every task independently, and reviews the result adversarially",
+  "version": "3.0.0",
+  "skills": "./skills/",
+  "author": {
+    "name": "eshn"
+  },
+  "keywords": [
+    "AI",
+    "workflow",
+    "development",
+    "planning",
+    "execution",
+    "verification",
+    "adversarial code review",
+    "debugging"
+  ]
+}

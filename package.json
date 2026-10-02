@@ -1,6 +1,6 @@
 {
   "name": "ritus",
-  "version": "2.1.2",
+  "version": "3.0.0",
   "description": "AI-assisted development workflow plugin with skills and sync tooling.",
   "repository": {
     "url": "https://github.com/precise-alloy/ritus"
@@ -9,19 +9,17 @@
     "AI",
     "workflow",
     "development",
-    "triage",
-    "task generation",
+    "planning",
     "execution",
     "verification",
-    "adversarial code review"
+    "adversarial code review",
+    "debugging"
   ],
-  "directories": {
-    "skills": "skills",
-    ".claude-plugin": ".claude-plugin",
-    ".github": ".github",
-    "docs": "docs",
-    "templates": "templates"
-  },
+  "files": [
+    "plugin/",
+    "README.md",
+    "LICENSE"
+  ],
   "author": "eshn",
   "license": "MIT"
 }

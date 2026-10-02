@@ -26,7 +26,7 @@ AI Agent Workflow = Primary rules + Core workflow + Project profile + Runtime co
 | Layer           | File(s)                                           | What it does                                                                                    |
 |-----------------|---------------------------------------------------|-------------------------------------------------------------------------------------------------|
 | Primary rules   | CLAUDE.md / copilot-instructions.md               | User's behavioral directives - highest authority                                                |
-| Core workflow   | Skills (via plugin)                               | On-demand pure-capability skills; the main thread dispatches subagents per `skills/shared/dispatch.md` |
+| Core workflow   | Skills (via plugin)                               | On-demand pure-capability skills; the main thread dispatches subagents per `plugin/skills/shared/dispatch.md` |
 | Project profile | `docs/profiles/*.yml` → `docs/PROJECT_CONTEXT.md` | Project facts rendered from YAML data                                                           |
 | Runtime context | Current task file + active skill                  | What to work on now                                                                             |
 
@@ -58,20 +58,22 @@ AI Agent Workflow = Primary rules + Core workflow + Project profile + Runtime co
 /plugin install ritus@precise-alloy-marketplace
 ```
 
-After plugin install, tell your AI agent:
+After plugin install, start with:
 
 ```text
-setup ai work flow
+/start-ritus
 ```
 
-or just
+It checks whether the project is set up, gives a one-screen tour, and hands off to the right skill. To go straight to
+setup, run `/setup` (or tell the agent "set up Ritus").
 
-```text
-/setup
-```
-
-The setup skill automatically scaffolds all project files (`docs/`, `.ritus/.env.example`) and runs an
-11-question interview to fill your project profiles.
+The setup skill scaffolds the project files (`docs/`, `.ritus/.env.example`), then detects what the repository already
+answers - the git remote and base branch, manifests, ticket keys in recent commits - and shows each value with where it
+came from for you to correct. It asks only what is left, one question at a time with a default, then writes your
+project profiles and renders `docs/PROJECT_CONTEXT.md`. It also adds a short routing block to `CLAUDE.md` (Claude Code)
+and `AGENTS.md` or `.github/copilot-instructions.md` (Copilot) naming which Ritus skill to start with for a ticket, a
+bug, or a review. Without it, models tend to start reading and editing code instead of invoking the skill; the block
+sits between `ritus:routing` markers, and setup refreshes only what is between them.
 
 ## What gets installed
 
@@ -93,7 +95,7 @@ credentials and scratch stay out of version control while the committed template
 tracked `.ritus/` files remain in git.
 
 **Note for upgrading projects:** If you previously installed Ritus and have a `.ritus/scripts/` directory in your
-project, it can be safely deleted. These scripts now live in the plugin's `scripts/` directory and are no longer copied
+project, it can be safely deleted. These scripts now live in `plugin/scripts/` and are no longer copied
 into consuming projects.
 
 For existing codebases, follow up with:
@@ -102,20 +104,85 @@ For existing codebases, follow up with:
 run repo-scan
 ```
 
-This detects auth patterns, build commands, testing conventions, and coding conventions from your codebase.
+This detects auth patterns, build commands, testing conventions, and coding conventions from your codebase, each with
+the file it came from, and writes them once you confirm.
 
 ### Upgrading
 
-**Plugin:** updates automatically - skills are replaced. On next session start, the sync hook reports
-missing project files. Run the setup again to create any new files. Existing user files are never overwritten.
+**Plugin:** updates automatically - skills are replaced. When a new version adds project files, `/sync create missing`
+creates them (`/setup` runs it too). Existing user files are never overwritten.
+
+### Upgrading from 2.x to 3.0.0
+
+3.0.0 rewrites the skills for current models: 14 skills instead of 22, each stating its goal and the reasons behind
+its rules rather than a script of steps, with fewer stops for approval and the same floor for risky changes. Your
+profiles, docs, and a run already in progress keep working.
+
+**After upgrading:**
+
+1. Run `/setup` once, or accept the offer `/start-ritus` makes. It keeps every value already in your profiles and adds
+   the routing block described under [Installation](#plugin-recommended) - without it, the planning, debugging, and
+   review skills rarely start on their own.
+2. If you invoked a removed skill directly, see the table below: planning starts with `ticket-review` now, and the
+   standards are docs the workers read on their own, with nothing to invoke.
+3. Companion manifests are read when the driving TODO is built, once the plan is approved, so the earliest point a
+   companion can name is `after task-generation` (once the task files exist). Move an integration that names `triage`
+   or `requirement-analysis` there or later: planning itself no longer takes companion steps.
+4. Delete `.ritus/scripts/` if it is still in the project (see the note above).
+5. The plugin source now lives in `plugin/`; marketplace installs pick it up on update with nothing to do.
+6. Model routing is gone: every subagent runs on the session model, or whatever your tool is set to use for
+   subagents. `/setup` drops the `model_routing` key from `docs/profiles/runtime.yml` and the `## Model routing`
+   section from `docs/PROJECT_CONTEXT.md`; until you run it, the agents ignore both.
+
+**Where the removed skills went:**
+
+| 2.x                                          | 3.0.0                                                                                                     |
+|----------------------------------------------|-----------------------------------------------------------------------------------------------------------|
+| `triage`                                     | `ticket-review` sizes the change; the levels are in `plugin/skills/shared/levels.md`                      |
+| `requirement-analysis`                       | The analysis subagent `ticket-review` dispatches for STANDARD and EPIC, briefed by `plugin/skills/ticket-review/references/analysis-brief.md` |
+| `task-generation`                            | `ticket-review` writes the task files once the plan is approved (`plugin/skills/ticket-review/references/task-generation.md`, `plugin/skills/ticket-review/templates/task.md`) |
+| `code-conventions`, `definition-of-done`     | `plugin/skills/shared/standards/engineering.md`                                                           |
+| `testing-policy`, `tdd`                      | `plugin/skills/shared/standards/testing.md`                                                               |
+| `security`                                   | `plugin/skills/shared/standards/security.md`                                                              |
+| `plugin/skills/ticket-review/templates/review-document.md` | `plugin/skills/ticket-review/templates/plan.md` - the plan keeps its path in your project       |
+| `plugin/skills/pr-review/templates/finding-types.md`       | `plugin/skills/pr-review/references/findings.md`                                                |
+
+**What behaves differently:**
+
+- **One approval per run.** The plan and the task breakdown are approved together; an EPIC gets a second approval once
+  its task files exist. A TRIVIAL change - one obvious edit that adds no logic - needs none.
+- **SIMPLE changes run inline.** The main thread implements the one task, and the `pr-review` subagent re-runs its
+  acceptance commands in place of `verify-task`.
+- **"Just do it" lowers the level,** except for changes in the risk areas
+  `plugin/skills/shared/levels.md` lists, which never go below STANDARD. "Full process" raises it.
+- **Plans lead with the decisions** that need you and the blocking questions, then the summary, acceptance criteria,
+  and task breakdown.
+- **Task files are contracts** - goal, acceptance, constraints, non-goals - with a `Status` line, so a run can resume
+  after a restart. Task files written by 2.x still work; `/start-ritus` judges their progress from the diff.
+- **`debug` writes a case file** (`investigation-*.md`) that serves as the fix's task file. A fix that adds no logic
+  goes straight in; any other waits for your approval.
+- **`pr-review` reports only defects it can demonstrate,** each with its cause. A clean review is a valid result;
+  concerns it can't demonstrate go under Questions.
+- **Tests are checked, not just run.** The executor names the break each new test catches and never weakens an
+  existing test to get green; `verify-task` and `pr-review` read the diff of existing tests and break the key logic
+  once to confirm a test fails. `verify-task` also names the assertion behind each part of an acceptance line that a
+  test must check, and breaks a part nothing guards: a part no test catches leaves the line unmet. Add your mutation
+  tool to `docs/TEST_CONVENTIONS.md` if you run one.
+- **Each rule is probed past its example.** `verify-task` runs an acceptance line's example, then an input the rule
+  covers that the example doesn't, and checks the change against the review comment or ticket text the task quotes.
+  Behavior no rule covers is noted for `pr-review`, not failed.
+- **Built to the task, not beyond it.** The executor stops when the acceptance is met and names extras as follow-ups;
+  an unused option, a single-use abstraction, or an unrequested file or dependency is a `scope` finding, blocking when
+  it adds behavior no test covers.
+- **`setup` detects before it asks,** and **`wrap-up` drafts the PR description.**
 
 ## What gets generated
 
 **By plugin (workflow-owned):**
 
-| Component | What it contains           |
-|-----------|----------------------------|
-| 22 skills | Workflow + standard skills |
+| Component | What it contains                                               |
+|-----------|----------------------------------------------------------------|
+| 14 skills | Workflow skills, plus shared standards and templates they read |
 
 **By setup / repo-scan (user-owned in target project):**
 
@@ -133,98 +200,105 @@ missing project files. Run the setup again to create any new files. Existing use
 
 Skills are self-contained SKILL.md files loaded on-demand. Each has YAML frontmatter (name + description) so the
 agent scans relevance without loading the full content. Skills are pure capabilities - they describe *what* to do,
-not who runs next; the main thread drives them via a TODO and dispatches subagents (model, effort, constraints)
-using the single contract in `skills/shared/dispatch.md`.
+not who runs next; the main thread drives them via a TODO and dispatches subagents (inputs, tools, constraints)
+using the single contract in `plugin/skills/shared/dispatch.md`.
 
 ### Workflow skills
 
 | Skill                  | Purpose                                                                                |
 |------------------------|----------------------------------------------------------------------------------------|
-| `start-ritus`          | Entry-point meta-skill - golden rules, dispatch instructions, workflow tracking        |
-| `brainstorm`           | Explore unclear requirements - propose 2-3 approaches before triage                    |
-| `triage`               | Classify changes by blast radius, contract impact, validation clarity                  |
-| `ticket-review`        | Analyze requirements (plain text or ticket) → produce task files                       |
-| `requirement-analysis` | Read-heavy analysis + draft review doc (dispatched by ticket-review for STANDARD/EPIC) |
-| `task-generation`      | Generate task files + execution plan from the approved review doc (dispatched by ticket-review for STANDARD/EPIC) |
-| `execute-task`         | Implement a task file - load context, implement steps, report                          |
-| `verify-task`          | Independent per-task verification (dispatched as fresh cheap model subagent)            |
-| `pr-review`            | Adversarial review at ticket/PR level (dispatched as fresh standard model subagent)     |
-| `address-feedback`     | Read PR review comments, generate fix tasks; user reviews the diff and commits         |
-| `wrap-up`              | Post-review cleanup - promote exploration entries, verify docs, report status          |
-| `comprehension`        | Post-wrap-up advisory quiz - brief the human on the change, check understanding before commit |
-| `debug`                | Systematic 4-phase root cause investigation with evidence grading                      |
-| `setup`                | Setup interview - write YAML profiles, render docs/PROJECT_CONTEXT.md                  |
-| `sync`                 | Scaffold or check project files - create missing docs, profiles, scripts               |
-| `repo-scan`            | Detect stack, auth, build commands from existing codebase                              |
-| `migrate-docs`         | Migrate pre-existing docs/notes into the ritus document standard                       |
+| `start-ritus`          | Front door - checks setup, offers to resume the branch's run, orients new users, hands off to the right skill |
+| `brainstorm`           | Think an open question through - one question at a time, 2-3 real options grounded in the code, a blind-spot pass, then a decision brief for `ticket-review` |
+| `ticket-review`        | Plan before coding - size the change (TRIVIAL to EPIC), read the code (an analysis subagent for STANDARD/EPIC), write the plan and task files, one approval (EPIC: two) |
+| `execute-task`         | Implement one task file against its acceptance criteria; report with evidence          |
+| `verify-task`          | Independent per-task check in a fresh context - re-runs the commands itself, probes each acceptance rule past its example, and names the test that guards each part |
+| `pr-review`            | Adversarial review of a branch or PR against its plan or ticket, in a fresh subagent; reports only defects it can demonstrate |
+| `address-feedback`     | Weigh PR review comments against the code, fix what holds up, draft replies for the rest; one approval, then the user commits and posts |
+| `wrap-up`              | Close out an approved run - promote the exploration log into the docs, check the doc updates the tasks promised, draft the PR description |
+| `comprehension`        | Brief the human on the change and the existing code it leans on, then a short advisory quiz before commit; an HTML brief on request |
+| `debug`                | Root-cause investigation with graded evidence; proposes the fix for approval (a fix that adds no logic goes straight in) |
+| `setup`                | Detect-first setup - confirm what the repository shows, ask only the rest, write the profiles and `docs/PROJECT_CONTEXT.md`, add the routing block |
+| `sync`                 | Check or create missing project files (docs, profiles, `.ritus/.env.example`) without setup's questions; never overwrites |
+| `repo-scan`            | Detect stack, commands, auth, conventions, and module map, with evidence for each value; writes after you confirm |
+| `migrate-docs`         | Sort existing notes and docs into the Ritus docs; shows where every section goes before writing |
 
-### Standard skills (loaded alongside workflow skills when applicable)
+### Standards (shared docs the workers read, not skills)
 
-| Skill                | Load when                                                                      |
-|----------------------|--------------------------------------------------------------------------------|
-| `code-conventions`   | Any code change                                                                |
-| `testing-policy`     | New service, endpoint, worker, or bug fix                                      |
-| `tdd`                | New business logic, new API endpoint, or bug fix - enforces red-green-refactor |
-| `security`           | Auth, billing, migrations, tenant isolation, infra, shared contracts           |
-| `definition-of-done` | STANDARD or EPIC tasks                                                         |
+| File                                     | Applies when                                                                   |
+|------------------------------------------|--------------------------------------------------------------------------------|
+| `plugin/skills/shared/standards/engineering.md` | Any code change - what "done" means, and the few opinions that differ from defaults |
+| `plugin/skills/shared/standards/testing.md`     | Any code change - which tests a change needs, what makes a test count, and how a checker tests the tests |
+| `plugin/skills/shared/standards/security.md`    | Auth, user data, outside input, rendering, URL fetching, secrets or config, billing, migrations, shared contracts |
+| `plugin/skills/shared/standards/writing.md`     | Text people read or post as written - review replies, PR descriptions, entries promoted into the docs |
+
+`execute-task` reads the first three before implementing; `verify-task` and `pr-review` apply them again.
+`address-feedback` and `wrap-up` follow `writing.md`. The project's own `docs/CODE_CONVENTIONS.md` and
+`docs/TEST_CONVENTIONS.md` win where they disagree.
 
 ### Skill chains
 
 ```text
-Explore/brainstorm:   brainstorm → triage → ticket-review
-Plan/implement:       triage → ticket-review → execute-task → verify-task → pr-review → wrap-up → comprehension
-Debug/fix:            debug → execute-task → verify-task → pr-review → wrap-up → comprehension
-Review:               pr-review (standard model subagent) → verdict  (wrap-up only within a task-driven run)
-Address feedback:     address-feedback → execute-task → verify-task → [pr-review re-check → wrap-up → comprehension]
-Iterate:              wrap-up → comprehension; then user feedback → triage or brainstorm (new run)
+Start:                start-ritus → the matching skill (new users, resuming a run, or unsure which fits)
+Explore/brainstorm:   brainstorm → ticket-review
+Plan/implement:       ticket-review → execute-task → [verify-task per task, STANDARD+] → pr-review → wrap-up → comprehension
+Debug/fix:            debug → [TRIVIAL: fix + self-check] | execute-task → [verify-task, STANDARD+] → pr-review → wrap-up → comprehension
+Review:               pr-review (fresh subagent) → verdict  (wrap-up only within a task-driven run)
+Address feedback:     address-feedback → execute-task → verify-task → [pr-review if a re-review is asked → wrap-up → comprehension]
+                      (at SIMPLE the re-review replaces verify-task)
+Iterate:              wrap-up → comprehension; then user feedback → ticket-review or brainstorm (new run)
 ```
 
 ---
 
 ## Control flow (TODO-driven)
 
-Every workflow skill starts by writing its own step list as a TODO - verbatim, one item per step - and marks each
-item done as it goes. This keeps a long-running agent on the rails: it never stops mid-chain, never skips a step,
-and always shows the human exactly where it is.
+The orchestrating skills build a driving TODO - one item per step, each naming its contract: `invoke <skill>` runs
+inline, `dispatch <skill> subagent` runs in a fresh subagent - and the main thread marks each item done as it goes.
+This keeps a long-running agent on the rails: it never stops mid-chain, never skips a step, and always shows the
+human exactly where it is.
 
-The TODO is the single control surface. Each skill ends with a `## Handoff` that (1) reports its result and
-(2) updates that TODO:
+The TODO is the single control surface. Each skill ends by reporting its result, and the main thread applies it to
+that TODO:
 
 - **Orchestrators** (`ticket-review`, `address-feedback`, `debug`) create/own the driving TODO and apply TODO updates from worker verdicts.
-- **Routing** (`start-ritus`, `brainstorm`, `triage`) direct to the next skill (typically `invoke <skill>`).
-- **Workers** (`execute-task`, `verify-task`, `pr-review`) run as dispatched subagents and only report a verdict + follow-up.
-- **Intra-skill workers** (`requirement-analysis`, `task-generation`) are dispatched by `ticket-review` (not driving-TODO items) - analysis before the review gate, generation after the completeness gate.
+- **Routing** (`start-ritus`, `brainstorm`, `wrap-up`) direct to the next skill (typically `invoke <skill>`).
+- **Workers** (`execute-task`, `verify-task`, `pr-review`) end at their report; the main thread applies the outcome.
+- The **analysis agent** is a read-only subagent that `ticket-review` dispatches for STANDARD/EPIC before a plan exists (not a driving-TODO item); the main thread writes the plan and task files from its report.
 - The **main thread** owns and walks the TODO top to bottom - dispatching each `dispatch <skill> subagent` item as
   a fresh, independent subagent and running each `invoke <skill>` item inline.
 
 Because the main thread is the only dispatcher, subagents never spawn other subagents - the workflow behaves
 identically on Claude Code, GitHub Copilot, or any host, with no nested-subagent support required. The full dispatch
-contract lives in one place: [`skills/shared/dispatch.md`](./skills/shared/dispatch.md).
+contract lives in one place: [`plugin/skills/shared/dispatch.md`](./plugin/skills/shared/dispatch.md).
 
 ---
 
 ## Daily workflow
 
 ```text
-Write requirement
-  → Agent loads triage skill → classifies (TRIVIAL / SIMPLE / STANDARD / EPIC)
-  → Triage recommends model + effort from routing table
+Write requirement (or run /start-ritus)
+  → ticket-review sizes it: TRIVIAL / SIMPLE / STANDARD / EPIC (plugin/skills/shared/levels.md)
 
-  TRIVIAL:                Agent implements directly - no task file, self-verifies
-  SIMPLE / STANDARD / EPIC:
-    → ticket-review produces task files (parallel groups when independent)
-    → execute-task implements each task
-    → verify-task subagent (cheap model) reviews each task independently
-    → pr-review subagent (standard model) runs adversarial review at ticket level
+  TRIVIAL:                Agent implements directly - no plan, no task file, self-verifies
+  SIMPLE:
+    → ticket-review reads the code, puts a short plan in chat and writes one task file → you approve
+    → the main thread implements it (execute-task, inline)
+    → pr-review subagent reviews it and re-runs the acceptance commands + build/test
+  STANDARD / EPIC:
+    → analysis subagent (read-only) reads the code and reports
+    → the main thread writes the plan + task breakdown → you approve (EPIC: again once the task files exist)
+    → execute-task subagent implements each task, one at a time
+    → verify-task subagent (fresh context) checks each task independently
+    → pr-review subagent runs adversarial review at ticket level
 
-  If pr-review approves → wrap-up (promote exploration, verify docs) → ready for merge/PR
-  If pr-review rejects  → fix → re-verify → re-review (up to 3 attempts, then escalate — dispatch circuit breaker)
+  If pr-review approves → wrap-up (promote exploration, check doc updates, draft the PR description) → ready for merge/PR
+  If pr-review rejects  → fix → re-review (up to 3 cycles, then escalate — dispatch circuit breaker)
 
   Human:
     → Reviews diff
     → Commits + pushes
     → If PR receives review comments → address-feedback → fix → verify → local commit
-    → Or provides follow-up changes → workflow restarts from triage/brainstorm
+    → Or provides follow-up changes → workflow restarts from ticket-review/brainstorm
 ```
 
 For the full workflow diagram, see [docs/WORKFLOW_DIAGRAMS.md](./docs/WORKFLOW_DIAGRAMS.md).
@@ -236,103 +310,93 @@ For the full workflow diagram, see [docs/WORKFLOW_DIAGRAMS.md](./docs/WORKFLOW_D
 ```text
 marketplace.json                 ← Copilot marketplace manifest
 .claude-plugin/
-    marketplace.json       ← Claude marketplace manifest
-    plugin.json   ← Claude Code plugin manifest
+  marketplace.json               ← Claude marketplace manifest
+package.json                     ← npm package manifest (publishes plugin/, README.md, LICENSE)
 README.md                        ← this file
-templates/.ritus/.env.example        ← remote API credentials template (scaffolded into target project as .ritus/.env.example)
-skills/
-  start-ritus/SKILL.md     ← entry-point meta-skill: golden rules, dispatch instructions
-  brainstorm/SKILL.md
-  triage/SKILL.md
-  ticket-review/SKILL.md
-    templates/               ← review doc + exploration templates
-  requirement-analysis/SKILL.md  ← read-heavy analysis worker (dispatched by ticket-review)
-  task-generation/SKILL.md       ← task-file generation worker (dispatched by ticket-review)
-    templates/               ← task file, QA, EPIC memory templates
-  execute-task/SKILL.md
-  verify-task/SKILL.md
-  pr-review/SKILL.md
-  address-feedback/SKILL.md
-  wrap-up/SKILL.md
-  comprehension/SKILL.md
-  shared/
-    dispatch.md              ← TODO dispatch contract (spawn-then-invoke, run configs, Handoff convention)
-    remote-api-access.md     ← remote API rules (shared by ticket-review + pr-review + address-feedback)
-  debug/SKILL.md
-  setup/SKILL.md
-  sync/SKILL.md
-    script/sync.ts               ← project file scaffolding script
-  repo-scan/SKILL.md
-  migrate-docs/SKILL.md
-  code-conventions/SKILL.md
-  testing-policy/SKILL.md
-  tdd/SKILL.md
-  security/SKILL.md
-  definition-of-done/SKILL.md
-docs/                            ← user-owned (scaffolded into target project)
-  PROJECT_CONTEXT.md             ← always-on project facts (rendered from profiles)
-  profiles/
-    project.yml                  ← project data (source of truth)
-    team.yml                     ← team data
-    runtime.yml                  ← runtime data
-  tasks/                         ← execution task files (created during work)
-  memory/                        ← multi-session EPIC context snapshots
-  ARCHITECTURE.md
-  CODE_CONVENTIONS.md
-  TEST_CONVENTIONS.md
-  CUTOFF.md
-  DECISIONS.md
-  CHANGELOG.md
-  LESSONS.md
+docs/                            ← repository docs for maintainers; not installed with the plugin
+  COMPANION_PLUGINS.md
   WORKFLOW_DIAGRAMS.md           ← visual workflow reference (human-only)
-  qa/                            ← EPIC QA summaries (when QA mode is active)
-scripts/                         ← remote API integration scripts (plugin-owned)
-  remote-api.ts                  ← CLI dispatcher for remote API providers
-  providers/
-    types.ts                     ← Provider interface and shared types
-    http.ts                      ← HTTP plumbing (retry, auth, env loading)
-    provider-jira.ts             ← Jira Cloud (tickets, comments, changelog, attachments)
-    provider-ado.ts              ← Azure DevOps (PRs + work items)
-    provider-github.ts           ← GitHub (PRs + Issues)
-templates/                       ← plugin-owned (source templates, not copied to projects)
+evals/                           ← maintainer-only eval harness and results; not installed with the plugin
+plugin/                          ← installed plugin source
+  .claude-plugin/
+    plugin.json                  ← Claude Code plugin manifest
+  templates/.ritus/.env.example  ← remote API credentials template (scaffolded as .ritus/.env.example)
+  skills/
+    start-ritus/SKILL.md         ← front door: setup check, resume, orientation, hand-off
+    brainstorm/SKILL.md
+    ticket-review/SKILL.md       ← planning hub: size, analyze, plan, approve, task files, driving TODO
+      references/                ← analysis brief (read by the analysis subagent), task-generation rules
+      templates/                 ← plan, task, exploration, QA, EPIC memory templates
+    execute-task/SKILL.md
+    verify-task/SKILL.md
+    pr-review/SKILL.md
+      references/                ← review rubric; finding types, severities, and how they set the verdict
+    address-feedback/SKILL.md
+      templates/skip-reasons.md  ← the keep bar and skip categories for review comments
+    wrap-up/SKILL.md
+    comprehension/SKILL.md
+    shared/
+      dispatch.md                ← TODO dispatch contract (modes by level, outcomes, resume, models)
+      levels.md                  ← TRIVIAL / SIMPLE / STANDARD / EPIC, and never-below-STANDARD areas
+      remote-api-access.md       ← remote API rules (ticket-review + pr-review + address-feedback)
+      standards/                 ← engineering, testing, security, and writing standards
+    debug/SKILL.md
+      templates/case-file.md     ← the investigation case file, which is the fix's task file
+    setup/SKILL.md
+      references/                ← settings to detect or ask, derived values, PROJECT_CONTEXT rendering
+      templates/agent-routing.md ← routing block setup adds to CLAUDE.md / AGENTS.md
+    sync/SKILL.md
+      script/sync.ts             ← project file scaffolding script
+    repo-scan/SKILL.md
+    migrate-docs/SKILL.md
+  hooks/
+    hooks.json                   ← Claude Code hook wiring
+  scripts/                       ← remote API integration scripts (plugin-owned)
+    remote-api.ts                ← CLI dispatcher for remote API providers
+    companion-bootstrap.ts       ← companion discovery hook
+    providers/                   ← Jira, Azure DevOps, GitHub, and shared HTTP/provider types
 ```
 
 ---
 
 ## Remote API - provider-agnostic dispatch
 
-The `scripts/remote-api.ts` CLI supports three providers (Jira, Azure DevOps, GitHub) and two invocation
+The `plugin/scripts/remote-api.ts` CLI supports three providers (Jira, Azure DevOps, GitHub) and two invocation
 modes: auto-detected and explicit.
 
 ### Auto-detected (recommended)
 
+In the examples, `<plugin-root>` is the installed plugin directory: Copilot CLI uses
+`~/.copilot/installed-plugins/<marketplace>/ritus`, Claude Code uses
+`~/.claude/plugins/cache/<marketplace>/ritus/<version>`, and a clone of this repository uses `plugin/`.
+
 The dispatcher infers the provider from the target format:
 
 ```bash
-bun run scripts/remote-api.ts <action> <target> [extra]
+bun run "<plugin-root>/scripts/remote-api.ts" <action> <target> [extra]
 ```
 
 Examples:
 
 ```bash
 # Jira - detected from bare key format (PROJ-123)
-bun run scripts/remote-api.ts issue PROJ-123
+bun run "<plugin-root>/scripts/remote-api.ts" issue PROJ-123
 
 # ADO work item - detected from bare numeric ID or full URL
-bun run scripts/remote-api.ts issue 12345
-bun run scripts/remote-api.ts issue https://dev.azure.com/org/project/_workitems/edit/12345
+bun run "<plugin-root>/scripts/remote-api.ts" issue 12345
+bun run "<plugin-root>/scripts/remote-api.ts" issue https://dev.azure.com/org/project/_workitems/edit/12345
 
 # GitHub - detected from #-prefixed number (requires GITHUB_REPO_URL in .ritus/.env.local)
-bun run scripts/remote-api.ts pr '#18'
-bun run scripts/remote-api.ts comments '#18'
-bun run scripts/remote-api.ts issue '#7'
+bun run "<plugin-root>/scripts/remote-api.ts" pr '#18'
+bun run "<plugin-root>/scripts/remote-api.ts" comments '#18'
+bun run "<plugin-root>/scripts/remote-api.ts" issue '#7'
 
 # GitHub - detected from full URL
-bun run scripts/remote-api.ts pr https://github.com/owner/repo/pull/42
-bun run scripts/remote-api.ts issue https://github.com/owner/repo/issues/7
+bun run "<plugin-root>/scripts/remote-api.ts" pr https://github.com/owner/repo/pull/42
+bun run "<plugin-root>/scripts/remote-api.ts" issue https://github.com/owner/repo/issues/7
 
 # ADO PR - detected from dev.azure.com URL
-bun run scripts/remote-api.ts pr https://dev.azure.com/org/project/_git/repo/pullrequest/1
+bun run "<plugin-root>/scripts/remote-api.ts" pr https://dev.azure.com/org/project/_git/repo/pullrequest/1
 ```
 
 Target format conventions (each provider has a distinct short-ref format - no ambiguity):
@@ -346,8 +410,8 @@ Target format conventions (each provider has a distinct short-ref format - no am
 **Note:** The `#` prefix must be quoted in bash to prevent shell comment interpretation:
 
 ```bash
-bun run scripts/remote-api.ts pr '#18'   # correct
-bun run scripts/remote-api.ts pr #18     # fails - shell treats #18 as comment
+bun run "<plugin-root>/scripts/remote-api.ts" pr '#18'   # correct
+bun run "<plugin-root>/scripts/remote-api.ts" pr #18     # fails - shell treats #18 as comment
 ```
 
 Detection precedence:
@@ -383,15 +447,15 @@ Single-instance setups require no `team.yml` changes - the default env var names
 Use when auto-detection is ambiguous or you want to bypass detection:
 
 ```bash
-bun run scripts/remote-api.ts <provider> <action> <target> [extra]
+bun run "<plugin-root>/scripts/remote-api.ts" <provider> <action> <target> [extra]
 ```
 
 Examples:
 
 ```bash
-bun run scripts/remote-api.ts jira issue PROJ-123
-bun run scripts/remote-api.ts github pr https://github.com/owner/repo/pull/42
-bun run scripts/remote-api.ts ado pr https://dev.azure.com/org/project/_git/repo/pullrequest/1
+bun run "<plugin-root>/scripts/remote-api.ts" jira issue PROJ-123
+bun run "<plugin-root>/scripts/remote-api.ts" github pr https://github.com/owner/repo/pull/42
+bun run "<plugin-root>/scripts/remote-api.ts" ado pr https://dev.azure.com/org/project/_git/repo/pullrequest/1
 ```
 
 ### Multi-instance configuration
@@ -428,7 +492,7 @@ The `check-env` command reports per-instance credential status when `team.yml` l
 ### Environment check
 
 ```bash
-bun run scripts/remote-api.ts check-env
+bun run "<plugin-root>/scripts/remote-api.ts" check-env
 ```
 
 Reports which providers (or instances) are configured and which env vars are missing.
@@ -439,7 +503,8 @@ Reports which providers (or instances) are configured and which env vars are mis
 
 ### `docs/profiles/project.yml` - fill during work
 
-Edit the `.yml` file. The AI agent re-reads `docs/PROJECT_CONTEXT.md` on next session start.
+Edit the `.yml` file, then have `docs/PROJECT_CONTEXT.md` re-rendered from it - `/setup` and `/repo-scan` both do - since
+that rendered file is what the skills read.
 
 | YAML field            | When to fill                                 |
 |-----------------------|----------------------------------------------|
@@ -466,8 +531,10 @@ Repo-scan detects test framework, naming, mocking strategy, fixtures, async patt
 
 ### `docs/DECISIONS.md` - record non-obvious decisions
 
-Written automatically by `ticket-review` (architectural choices), `debug` (escalation gate), and `pr-review`
-(design concerns). Also written manually for any non-obvious constraint.
+Written by `wrap-up` from `[DECISIONS]` entries that `ticket-review` (plan decisions) and the executors log in the
+branch's exploration log, and by tasks that introduce an architecture decision; `debug` logs the direction the user
+chooses when a fix loop escalates. `pr-review` names decisions worth recording. Also written manually for any
+non-obvious constraint.
 
 ### `docs/LESSONS.md` - one entry per dangerous pattern found
 
@@ -488,10 +555,10 @@ Expiry days set by team size (solo=60, small=30, medium=21, large=14). Before de
 
 | Resource                                               | Purpose                              |
 |--------------------------------------------------------|--------------------------------------|
-| [docs/PROJECT_CONTEXT.md](docs/PROJECT_CONTEXT.md)     | Always-on project facts              |
-| [docs/profiles/](docs/profiles/)                       | YAML data files (source of truth)    |
-| [docs/CODE_CONVENTIONS.md](docs/CODE_CONVENTIONS.md)   | Project-specific coding conventions  |
-| [docs/TEST_CONVENTIONS.md](docs/TEST_CONVENTIONS.md)   | Project-specific test conventions    |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)           | System architecture                  |
-| [docs/DECISIONS.md](docs/DECISIONS.md)                 | Architecture decisions and rationale |
+| `docs/PROJECT_CONTEXT.md`                              | Always-on project facts              |
+| `docs/profiles/`                                        | YAML data files (source of truth)    |
+| `docs/CODE_CONVENTIONS.md`                              | Project-specific coding conventions  |
+| `docs/TEST_CONVENTIONS.md`                              | Project-specific test conventions    |
+| `docs/ARCHITECTURE.md`                                  | System architecture                  |
+| `docs/DECISIONS.md`                                    | Architecture decisions and rationale |
 | [docs/WORKFLOW_DIAGRAMS.md](docs/WORKFLOW_DIAGRAMS.md) | Visual workflow reference            |
