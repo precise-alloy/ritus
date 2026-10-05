@@ -1153,19 +1153,31 @@ def parse_test_output(text: str) -> dict:
 
 
 def run_checks(repo: Path, test_args=()) -> dict:
-    """Run build/test/lint in a throwaway copy of the repo so the run's own evidence files stay untouched."""
+    """Run build/test/lint in a throwaway copy of the repo so the run's own evidence files stay untouched.
+
+    A web world's `node_modules` is a junction to the shared install. The copy gets its own junction to that install,
+    so tests that use the project's declared devDependencies (Playwright, axe-core) resolve them there as well.
+    """
     with tempdir("tl-check-") as tmp:
         copy = Path(tmp) / "repo"
         shutil.copytree(repo, copy, ignore=shutil.ignore_patterns(".git", ".cache", "dist", "node_modules"))
-        result = {}
-        for name, cmd in (("build", "node scripts/build.mjs"), ("test", "node scripts/test.mjs " + " ".join(test_args)),
-                          ("lint", "node scripts/lint.mjs")):
-            proc = run(cmd, cwd=copy, check=False, timeout=600)
-            entry = {"code": proc.returncode, "tail": (proc.stdout + proc.stderr)[-1500:]}
-            if name == "test":
-                entry.update(parse_test_output(proc.stdout))
-            result[name] = entry
-        return result
+        modules = repo / "node_modules"
+        if is_junction(modules):
+            create_node_modules_junction(copy, Path(os.path.realpath(modules)).parent)
+        try:
+            result = {}
+            for name, cmd in (("build", "node scripts/build.mjs"),
+                              ("test", "node scripts/test.mjs " + " ".join(test_args)),
+                              ("lint", "node scripts/lint.mjs")):
+                proc = run(cmd, cwd=copy, check=False, timeout=600)
+                entry = {"code": proc.returncode, "tail": (proc.stdout + proc.stderr)[-1500:]}
+                if name == "test":
+                    entry.update(parse_test_output(proc.stdout))
+                result[name] = entry
+            return result
+        finally:
+            # Unlink before the temp dir is deleted, so the deletion can never reach the shared install.
+            unlink_junctions(copy)
 
 
 def powershell_json(script: str):
