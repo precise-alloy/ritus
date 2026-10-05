@@ -29,7 +29,7 @@ def parse_scenarios() -> int:
 
 
 def run_static_check() -> str:
-    proc = subprocess.run([sys.executable, str(ROOT / "static_check.py"), "--plugin-root", str(REPO_ROOT / "plugin"),
+    proc = subprocess.run([sys.executable, str(ROOT / "static_check.py"), "--plugin-root", str(REPO_ROOT / "plugins" / "ritus"),
                            "--repo-root", str(REPO_ROOT)], capture_output=True, text=True, encoding="utf-8",
                           errors="replace")
     if proc.returncode != 0 or "PROBLEMS (0)" not in proc.stdout:
@@ -58,7 +58,7 @@ def main() -> int:
         print(f"parsed {scenario_count} scenario files")
         print(static_line)
         print("built worker and main-thread worlds")
-        print("built git:fcbd5d5 and dir:plugin arms")
+        print("built git:fcbd5d5 and dir:<repo>\\plugins\\ritus arms")
         return 0
     finally:
         if workspace.exists():

@@ -1,0 +1,25 @@
+{
+  "name": "ritus-frontend",
+  "integrations": [
+    {
+      "skill": "e2e-plan",
+      "prompt": "When a task changes frontend files, after task-generation and figma-intake: dispatch the e2e-plan subagent."
+    },
+    {
+      "skill": "visual-verify",
+      "prompt": "When a task changes frontend files, before pr-review: load visual-verify inline so it can coordinate isolated verification workers or use its single-agent sequential fallback; block unless it reports VERIFY: PASS (i.e. on FAIL or BLOCKED)."
+    },
+    {
+      "skill": "a11y-verify",
+      "prompt": "When a task changes frontend files, before pr-review: dispatch the a11y-verify subagent; block unless it reports A11Y: PASS."
+    },
+    {
+      "skill": "figma-intake",
+      "prompt": "While ticket-review runs on a frontend ticket, after task-generation and before e2e-plan: load figma-intake."
+    },
+    {
+      "skill": "figma-implement",
+      "prompt": "When a task's CONTEXT names a Figma URL, at the start of execute-task: load figma-implement."
+    }
+  ]
+}

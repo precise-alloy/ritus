@@ -80,7 +80,7 @@ ROUNDS = {
         "iteration": 26,
         "runs": 3,
         "arms": ["old_skill", "new_skill"],
-        "arm_specs": {"old_skill": "git:fcbd5d5", "new_skill": f"dir:{REPO_ROOT / 'plugin'}"},
+        "arm_specs": {"old_skill": "git:fcbd5d5", "new_skill": "git:a610dc5"},
         "scenarios": V2_VS_V3_SCENARIO_KEYS,
         "groups": V2_VS_V3_GROUPS,
     },

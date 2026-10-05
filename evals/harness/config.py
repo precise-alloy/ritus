@@ -49,7 +49,7 @@ def default_skill_creator() -> Path | None:
 
 
 def default_arms() -> dict[str, str]:
-    return {"old_skill": "git:fcbd5d5", "new_skill": f"dir:{REPO_ROOT / 'plugin'}"}
+    return {"old_skill": "git:fcbd5d5", "new_skill": f"dir:{REPO_ROOT / 'plugins' / 'ritus'}"}
 
 
 def add_common_options(parser, *, arms: bool = False, skill_creator: bool = False):
@@ -62,7 +62,7 @@ def add_common_options(parser, *, arms: bool = False, skill_creator: bool = Fals
     if arms:
         parser.add_argument("--arm", action="append", default=[], metavar="<name>=<spec>",
                             help=("Arm plugin source; spec is dir:<path> or git:<ref>. May be repeated. "
-                                  "Defaults: old_skill=git:fcbd5d5, new_skill=dir:<repo>\\plugin."))
+                                  "Defaults: old_skill=git:fcbd5d5, new_skill=dir:<repo>\\plugins\\ritus."))
 
 
 def resolve_workspace(value: str | None) -> Path:

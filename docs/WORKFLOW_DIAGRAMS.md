@@ -16,7 +16,7 @@ flowchart TD
     InputType -->|"New user / unsure / resuming"| SR["start-ritus\n(setup check, resume, orient)"]
     SR -->|"hands off"| InputType
     InputType -->|"Vague idea"| BS["brainstorm"]
-    InputType -->|"Clear requirement / ticket"| TR["ticket-review\nsizes the work\n(plugin/skills/shared/levels.md)"]
+    InputType -->|"Clear requirement / ticket"| TR["ticket-review\nsizes the work\n(plugins/ritus/skills/shared/levels.md)"]
     InputType -->|"Bug report"| DB["debug"]
     InputType -->|"Review changes / PR"| CR["pr-review 🤖 standard model subagent"]
     InputType -->|"Fix PR review comments"| AF["address-feedback"]
@@ -190,7 +190,7 @@ flowchart TD
 ## 5. Context Architecture
 
 What runs in which context. Every subagent runs on the model the platform gives it - the session model unless the user
-configured subagents otherwise; Ritus doesn't pick models (`plugin/skills/shared/dispatch.md` "Models").
+configured subagents otherwise; Ritus doesn't pick models (`plugins/ritus/skills/shared/dispatch.md` "Models").
 
 ```mermaid
 flowchart LR
@@ -230,7 +230,7 @@ flowchart LR
 
 ## 6. Standards Loading Matrix
 
-Which shared standards (`plugin/skills/shared/standards/`) apply to which work. They are plain docs the workers
+Which shared standards (`plugins/ritus/skills/shared/standards/`) apply to which work. They are plain docs the workers
 read, not skills.
 
 ```mermaid
@@ -263,7 +263,7 @@ flowchart TD
         SK["the other 13 skills\n📦 workflow plugin"]
     end
 
-    subgraph "Subagent dispatch (defined in plugin/skills)"
+    subgraph "Subagent dispatch (defined in plugins/ritus/skills)"
         AN["analysis agent (ticket-review)\n📦 read-only"]
         VT["verify-task subagent\n📦 fresh after each task"]
         CR["pr-review subagent\n📦 fresh, whole change"]

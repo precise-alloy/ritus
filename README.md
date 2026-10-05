@@ -26,7 +26,7 @@ AI Agent Workflow = Primary rules + Core workflow + Project profile + Runtime co
 | Layer           | File(s)                                           | What it does                                                                                    |
 |-----------------|---------------------------------------------------|-------------------------------------------------------------------------------------------------|
 | Primary rules   | CLAUDE.md / copilot-instructions.md               | User's behavioral directives - highest authority                                                |
-| Core workflow   | Skills (via plugin)                               | On-demand pure-capability skills; the main thread dispatches subagents per `plugin/skills/shared/dispatch.md` |
+| Core workflow   | Skills (via plugin)                               | On-demand pure-capability skills; the main thread dispatches subagents per `plugins/ritus/skills/shared/dispatch.md` |
 | Project profile | `docs/profiles/*.yml` → `docs/PROJECT_CONTEXT.md` | Project facts rendered from YAML data                                                           |
 | Runtime context | Current task file + active skill                  | What to work on now                                                                             |
 
@@ -95,7 +95,7 @@ credentials and scratch stay out of version control while the committed template
 tracked `.ritus/` files remain in git.
 
 **Note for upgrading projects:** If you previously installed Ritus and have a `.ritus/scripts/` directory in your
-project, it can be safely deleted. These scripts now live in `plugin/scripts/` and are no longer copied
+project, it can be safely deleted. These scripts now live in `plugins/ritus/scripts/` and are no longer copied
 into consuming projects.
 
 For existing codebases, follow up with:
@@ -129,7 +129,7 @@ profiles, docs, and a run already in progress keep working.
    companion can name is `after task-generation` (once the task files exist). Move an integration that names `triage`
    or `requirement-analysis` there or later: planning itself no longer takes companion steps.
 4. Delete `.ritus/scripts/` if it is still in the project (see the note above).
-5. The plugin source now lives in `plugin/`; marketplace installs pick it up on update with nothing to do.
+5. The plugin source now lives in `plugins/ritus/`; marketplace installs pick it up on update with nothing to do.
 6. Model routing is gone: every subagent runs on the session model, or whatever your tool is set to use for
    subagents. `/setup` drops the `model_routing` key from `docs/profiles/runtime.yml` and the `## Model routing`
    section from `docs/PROJECT_CONTEXT.md`; until you run it, the agents ignore both.
@@ -138,14 +138,14 @@ profiles, docs, and a run already in progress keep working.
 
 | 2.x                                          | 3.0.0                                                                                                     |
 |----------------------------------------------|-----------------------------------------------------------------------------------------------------------|
-| `triage`                                     | `ticket-review` sizes the change; the levels are in `plugin/skills/shared/levels.md`                      |
-| `requirement-analysis`                       | The analysis subagent `ticket-review` dispatches for STANDARD and EPIC, briefed by `plugin/skills/ticket-review/references/analysis-brief.md` |
-| `task-generation`                            | `ticket-review` writes the task files once the plan is approved (`plugin/skills/ticket-review/references/task-generation.md`, `plugin/skills/ticket-review/templates/task.md`) |
-| `code-conventions`, `definition-of-done`     | `plugin/skills/shared/standards/engineering.md`                                                           |
-| `testing-policy`, `tdd`                      | `plugin/skills/shared/standards/testing.md`                                                               |
-| `security`                                   | `plugin/skills/shared/standards/security.md`                                                              |
-| `plugin/skills/ticket-review/templates/review-document.md` | `plugin/skills/ticket-review/templates/plan.md` - the plan keeps its path in your project       |
-| `plugin/skills/pr-review/templates/finding-types.md`       | `plugin/skills/pr-review/references/findings.md`                                                |
+| `triage`                                     | `ticket-review` sizes the change; the levels are in `plugins/ritus/skills/shared/levels.md`                      |
+| `requirement-analysis`                       | The analysis subagent `ticket-review` dispatches for STANDARD and EPIC, briefed by `plugins/ritus/skills/ticket-review/references/analysis-brief.md` |
+| `task-generation`                            | `ticket-review` writes the task files once the plan is approved (`plugins/ritus/skills/ticket-review/references/task-generation.md`, `plugins/ritus/skills/ticket-review/templates/task.md`) |
+| `code-conventions`, `definition-of-done`     | `plugins/ritus/skills/shared/standards/engineering.md`                                                           |
+| `testing-policy`, `tdd`                      | `plugins/ritus/skills/shared/standards/testing.md`                                                               |
+| `security`                                   | `plugins/ritus/skills/shared/standards/security.md`                                                              |
+| `plugins/ritus/skills/ticket-review/templates/review-document.md` | `plugins/ritus/skills/ticket-review/templates/plan.md` - the plan keeps its path in your project       |
+| `plugins/ritus/skills/pr-review/templates/finding-types.md`       | `plugins/ritus/skills/pr-review/references/findings.md`                                                |
 
 **What behaves differently:**
 
@@ -154,7 +154,7 @@ profiles, docs, and a run already in progress keep working.
 - **SIMPLE changes run inline.** The main thread implements the one task, and the `pr-review` subagent re-runs its
   acceptance commands in place of `verify-task`.
 - **"Just do it" lowers the level,** except for changes in the risk areas
-  `plugin/skills/shared/levels.md` lists, which never go below STANDARD. "Full process" raises it.
+  `plugins/ritus/skills/shared/levels.md` lists, which never go below STANDARD. "Full process" raises it.
 - **Plans lead with the decisions** that need you and the blocking questions, then the summary, acceptance criteria,
   and task breakdown.
 - **Task files are contracts** - goal, acceptance, constraints, non-goals - with a `Status` line, so a run can resume
@@ -201,7 +201,7 @@ profiles, docs, and a run already in progress keep working.
 Skills are self-contained SKILL.md files loaded on-demand. Each has YAML frontmatter (name + description) so the
 agent scans relevance without loading the full content. Skills are pure capabilities - they describe *what* to do,
 not who runs next; the main thread drives them via a TODO and dispatches subagents (inputs, tools, constraints)
-using the single contract in `plugin/skills/shared/dispatch.md`.
+using the single contract in `plugins/ritus/skills/shared/dispatch.md`.
 
 ### Workflow skills
 
@@ -226,10 +226,10 @@ using the single contract in `plugin/skills/shared/dispatch.md`.
 
 | File                                     | Applies when                                                                   |
 |------------------------------------------|--------------------------------------------------------------------------------|
-| `plugin/skills/shared/standards/engineering.md` | Any code change - what "done" means, and the few opinions that differ from defaults |
-| `plugin/skills/shared/standards/testing.md`     | Any code change - which tests a change needs, what makes a test count, and how a checker tests the tests |
-| `plugin/skills/shared/standards/security.md`    | Auth, user data, outside input, rendering, URL fetching, secrets or config, billing, migrations, shared contracts |
-| `plugin/skills/shared/standards/writing.md`     | Text people read or post as written - review replies, PR descriptions, entries promoted into the docs |
+| `plugins/ritus/skills/shared/standards/engineering.md` | Any code change - what "done" means, and the few opinions that differ from defaults |
+| `plugins/ritus/skills/shared/standards/testing.md`     | Any code change - which tests a change needs, what makes a test count, and how a checker tests the tests |
+| `plugins/ritus/skills/shared/standards/security.md`    | Auth, user data, outside input, rendering, URL fetching, secrets or config, billing, migrations, shared contracts |
+| `plugins/ritus/skills/shared/standards/writing.md`     | Text people read or post as written - review replies, PR descriptions, entries promoted into the docs |
 
 `execute-task` reads the first three before implementing; `verify-task` and `pr-review` apply them again.
 `address-feedback` and `wrap-up` follow `writing.md`. The project's own `docs/CODE_CONVENTIONS.md` and
@@ -269,7 +269,7 @@ that TODO:
 
 Because the main thread is the only dispatcher, subagents never spawn other subagents - the workflow behaves
 identically on Claude Code, GitHub Copilot, or any host, with no nested-subagent support required. The full dispatch
-contract lives in one place: [`plugin/skills/shared/dispatch.md`](./plugin/skills/shared/dispatch.md).
+contract lives in one place: [`plugins/ritus/skills/shared/dispatch.md`](./plugins/ritus/skills/shared/dispatch.md).
 
 ---
 
@@ -277,7 +277,7 @@ contract lives in one place: [`plugin/skills/shared/dispatch.md`](./plugin/skill
 
 ```text
 Write requirement (or run /start-ritus)
-  → ticket-review sizes it: TRIVIAL / SIMPLE / STANDARD / EPIC (plugin/skills/shared/levels.md)
+  → ticket-review sizes it: TRIVIAL / SIMPLE / STANDARD / EPIC (plugins/ritus/skills/shared/levels.md)
 
   TRIVIAL:                Agent implements directly - no plan, no task file, self-verifies
   SIMPLE:
@@ -311,64 +311,66 @@ For the full workflow diagram, see [docs/WORKFLOW_DIAGRAMS.md](./docs/WORKFLOW_D
 marketplace.json                 ← Copilot marketplace manifest
 .claude-plugin/
   marketplace.json               ← Claude marketplace manifest
-package.json                     ← npm package manifest (publishes plugin/, README.md, LICENSE)
+package.json                     ← npm package manifest (publishes plugins/ritus/, README.md, LICENSE)
 README.md                        ← this file
 docs/                            ← repository docs for maintainers; not installed with the plugin
   COMPANION_PLUGINS.md
   WORKFLOW_DIAGRAMS.md           ← visual workflow reference (human-only)
 evals/                           ← maintainer-only eval harness and results; not installed with the plugin
-plugin/                          ← installed plugin source
-  .claude-plugin/
-    plugin.json                  ← Claude Code plugin manifest
-  templates/.ritus/.env.example  ← remote API credentials template (scaffolded as .ritus/.env.example)
-  skills/
-    start-ritus/SKILL.md         ← front door: setup check, resume, orientation, hand-off
-    brainstorm/SKILL.md
-    ticket-review/SKILL.md       ← planning hub: size, analyze, plan, approve, task files, driving TODO
-      references/                ← analysis brief (read by the analysis subagent), task-generation rules
-      templates/                 ← plan, task, exploration, QA, EPIC memory templates
-    execute-task/SKILL.md
-    verify-task/SKILL.md
-    pr-review/SKILL.md
-      references/                ← review rubric; finding types, severities, and how they set the verdict
-    address-feedback/SKILL.md
-      templates/skip-reasons.md  ← the keep bar and skip categories for review comments
-    wrap-up/SKILL.md
-    comprehension/SKILL.md
-    shared/
-      dispatch.md                ← TODO dispatch contract (modes by level, outcomes, resume, models)
-      levels.md                  ← TRIVIAL / SIMPLE / STANDARD / EPIC, and never-below-STANDARD areas
-      remote-api-access.md       ← remote API rules (ticket-review + pr-review + address-feedback)
-      standards/                 ← engineering, testing, security, and writing standards
-    debug/SKILL.md
-      templates/case-file.md     ← the investigation case file, which is the fix's task file
-    setup/SKILL.md
-      references/                ← settings to detect or ask, derived values, PROJECT_CONTEXT rendering
-      templates/agent-routing.md ← routing block setup adds to CLAUDE.md / AGENTS.md
-    sync/SKILL.md
-      script/sync.ts             ← project file scaffolding script
-    repo-scan/SKILL.md
-    migrate-docs/SKILL.md
-  hooks/
-    hooks.json                   ← Claude Code hook wiring
-  scripts/                       ← remote API integration scripts (plugin-owned)
-    remote-api.ts                ← CLI dispatcher for remote API providers
-    companion-bootstrap.ts       ← companion discovery hook
-    providers/                   ← Jira, Azure DevOps, GitHub, and shared HTTP/provider types
+plugins/                         ← plugin sources
+  ritus/                         ← installed Ritus plugin source
+    .claude-plugin/
+      plugin.json                ← Claude Code plugin manifest
+    templates/.ritus/.env.example ← remote API credentials template (scaffolded as .ritus/.env.example)
+    skills/
+      start-ritus/SKILL.md       ← front door: setup check, resume, orientation, hand-off
+      brainstorm/SKILL.md
+      ticket-review/SKILL.md     ← planning hub: size, analyze, plan, approve, task files, driving TODO
+        references/              ← analysis brief (read by the analysis subagent), task-generation rules
+        templates/               ← plan, task, exploration, QA, EPIC memory templates
+      execute-task/SKILL.md
+      verify-task/SKILL.md
+      pr-review/SKILL.md
+        references/              ← review rubric; finding types, severities, and how they set the verdict
+      address-feedback/SKILL.md
+        templates/skip-reasons.md ← the keep bar and skip categories for review comments
+      wrap-up/SKILL.md
+      comprehension/SKILL.md
+      shared/
+        dispatch.md              ← TODO dispatch contract (modes by level, outcomes, resume, models)
+        levels.md                ← TRIVIAL / SIMPLE / STANDARD / EPIC, and never-below-STANDARD areas
+        remote-api-access.md     ← remote API rules (ticket-review + pr-review + address-feedback)
+        standards/               ← engineering, testing, security, and writing standards
+      debug/SKILL.md
+        templates/case-file.md   ← the investigation case file, which is the fix's task file
+      setup/SKILL.md
+        references/              ← settings to detect or ask, derived values, PROJECT_CONTEXT rendering
+        templates/agent-routing.md ← routing block setup adds to CLAUDE.md / AGENTS.md
+      sync/SKILL.md
+        script/sync.ts           ← project file scaffolding script
+      repo-scan/SKILL.md
+      migrate-docs/SKILL.md
+    hooks/
+      hooks.json                 ← Claude Code hook wiring
+    scripts/                     ← remote API integration scripts (plugin-owned)
+      remote-api.ts              ← CLI dispatcher for remote API providers
+      companion-bootstrap.ts     ← companion discovery hook
+      providers/                 ← Jira, Azure DevOps, GitHub, and shared HTTP/provider types
+  ritus-frontend/                ← frontend companion plugin; 0.2.0 baseline being rewritten (install 0.1.0 from precise-alloy/ritus-frontend until 1.0.0)
 ```
 
 ---
 
 ## Remote API - provider-agnostic dispatch
 
-The `plugin/scripts/remote-api.ts` CLI supports three providers (Jira, Azure DevOps, GitHub) and two invocation
+The `plugins/ritus/scripts/remote-api.ts` CLI supports three providers (Jira, Azure DevOps, GitHub) and two invocation
 modes: auto-detected and explicit.
 
 ### Auto-detected (recommended)
 
 In the examples, `<plugin-root>` is the installed plugin directory: Copilot CLI uses
 `~/.copilot/installed-plugins/<marketplace>/ritus`, Claude Code uses
-`~/.claude/plugins/cache/<marketplace>/ritus/<version>`, and a clone of this repository uses `plugin/`.
+`~/.claude/plugins/cache/<marketplace>/ritus/<version>`, and a clone of this repository uses `plugins/ritus/`.
 
 The dispatcher infers the provider from the target format:
 

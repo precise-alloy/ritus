@@ -11,12 +11,12 @@ You never patch a core skill or `dispatch.md` per companion — you write a mani
 
 ## How it works
 
-1. On `SessionStart`, Ritus runs `plugin/scripts/companion-bootstrap.ts` (wired through `plugin/hooks/hooks.json`).
+1. On `SessionStart`, Ritus runs `plugins/ritus/scripts/companion-bootstrap.ts` (wired through `plugins/ritus/hooks/hooks.json`).
 2. The hook discovers every `ritus-companion.json` it can find (see [Discovery](#discovery)).
 3. The hook returns one **Ritus Companion Registry** section as `additionalContext`: one line per
    companion with its manifest path - your prompts stay on disk, out of session-start context.
 4. When the agent builds or updates the workflow TODO, it reads each manifest and applies the
-   integrations at their workflow points (see "Companion weaving" in `plugin/skills/shared/dispatch.md`).
+   integrations at their workflow points (see "Companion weaving" in `plugins/ritus/skills/shared/dispatch.md`).
 
 > Requirements: [Bun](https://bun.sh) must be on `PATH`. The registry refreshes on each configured
 > `SessionStart` lifecycle event (`startup`, `resume`, `clear`, `compact`, `fork`) — i.e. at session

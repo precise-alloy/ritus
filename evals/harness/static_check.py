@@ -1,5 +1,6 @@
 """Static checks for the Ritus Phase 1-4 rewrite. Run from the repo root."""
 import argparse
+import json
 import pathlib
 import re
 import sys
@@ -12,11 +13,11 @@ from config import REPO_ROOT as DEFAULT_REPO_ROOT  # noqa: E402
 
 parser = argparse.ArgumentParser()
 parser.add_argument("legacy_plugin_root", nargs="?", help="Plugin root (legacy positional form)")
-parser.add_argument("--plugin-root", default=None, help="Plugin root; default <repo>\\plugin")
+parser.add_argument("--plugin-root", default=None, help="Plugin root; default <repo>\\plugins\\ritus")
 parser.add_argument("--repo-root", default=None, help="Repository root; default harness repository")
 args = parser.parse_args()
 REPO_ROOT = pathlib.Path(args.repo_root).resolve() if args.repo_root else DEFAULT_REPO_ROOT
-ROOT = pathlib.Path(args.plugin_root or args.legacy_plugin_root or (REPO_ROOT / "plugin")).resolve()
+ROOT = pathlib.Path(args.plugin_root or args.legacy_plugin_root or (REPO_ROOT / "plugins" / "ritus")).resolve()
 SKILLS = ROOT / "skills"
 problems: list[str] = []
 notes: list[str] = []
@@ -72,7 +73,10 @@ def rel_to_base(path: pathlib.Path) -> str:
 
 # The README's 2.x -> 3.0.0 migration section names the removed skills on purpose.
 def migration_lines() -> set[int]:
-    lines = (REPO_ROOT / "README.md").read_text(encoding="utf-8").splitlines()
+    readme = REPO_ROOT / "README.md"
+    if not readme.is_file():
+        return set()
+    lines = readme.read_text(encoding="utf-8").splitlines()
     inside, out = False, set()
     for n, line in enumerate(lines, 1):
         if line.startswith("### Upgrading from 2.x"):
@@ -231,6 +235,69 @@ corpus = "\n".join(p.read_text(encoding="utf-8", errors="replace") for p in md_f
 for f in sorted(SKILLS.glob("*/templates/*.md")) + sorted(SKILLS.glob("*/references/*.md")) + sorted((SKILLS / "shared").rglob("*.md")):
     if f.name not in corpus.replace(f.read_text(encoding="utf-8"), ""):
         problems.append(f"{f.relative_to(ROOT).as_posix()}: nothing points to it")
+
+# 9. Marketplace and package manifests stay aligned with the plugin metadata.
+def read_json(path: pathlib.Path):
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except FileNotFoundError:
+        problems.append(f"{path}: missing")
+    except json.JSONDecodeError as e:
+        problems.append(f"{path}: invalid JSON: {e}")
+    return None
+
+
+def stable(value) -> str:
+    return json.dumps(value, sort_keys=True, separators=(",", ":"))
+
+
+copilot_marketplace = REPO_ROOT / "marketplace.json"
+claude_marketplace = REPO_ROOT / ".claude-plugin" / "marketplace.json"
+package_json = REPO_ROOT / "package.json"
+copilot_data = read_json(copilot_marketplace)
+claude_data = read_json(claude_marketplace)
+package_data = read_json(package_json)
+
+copilot_plugins = copilot_data.get("plugins") if isinstance(copilot_data, dict) else None
+claude_plugins = claude_data.get("plugins") if isinstance(claude_data, dict) else None
+if not isinstance(copilot_plugins, list):
+    problems.append(f"{copilot_marketplace}: plugins is not a list")
+if not isinstance(claude_plugins, list):
+    problems.append(f"{claude_marketplace}: plugins is not a list")
+
+ritus_plugin_meta = None
+if isinstance(copilot_plugins, list) and isinstance(claude_plugins, list):
+    if len(copilot_plugins) != len(claude_plugins):
+        problems.append(f"{copilot_marketplace}: {len(copilot_plugins)} plugins != {claude_marketplace}: {len(claude_plugins)} plugins")
+    for i, (copilot_entry, claude_entry) in enumerate(zip(copilot_plugins, claude_plugins)):
+        if not isinstance(copilot_entry, dict) or not isinstance(claude_entry, dict):
+            problems.append(f"plugins[{i}]: entry is not an object in both marketplaces")
+            continue
+        for key in ("name", "version", "description", "source"):
+            if stable(copilot_entry.get(key)) != stable(claude_entry.get(key)):
+                problems.append(
+                    f"plugins[{i}].{key}: {copilot_marketplace} has {copilot_entry.get(key)!r}; "
+                    f"{claude_marketplace} has {claude_entry.get(key)!r}"
+                )
+        for manifest, entry in ((copilot_marketplace, copilot_entry), (claude_marketplace, claude_entry)):
+            source = entry.get("source")
+            if isinstance(source, str) and source.startswith("."):
+                plugin_json = (REPO_ROOT / source).resolve() / ".claude-plugin" / "plugin.json"
+                meta = read_json(plugin_json)
+                if isinstance(meta, dict):
+                    if meta.get("name") != entry.get("name"):
+                        problems.append(f"{manifest} source {source}: {plugin_json} name {meta.get('name')!r} != entry {entry.get('name')!r}")
+                    if meta.get("version") != entry.get("version"):
+                        problems.append(f"{manifest} source {source}: {plugin_json} version {meta.get('version')!r} != entry {entry.get('version')!r}")
+                    if entry.get("name") == "ritus":
+                        ritus_plugin_meta = meta
+
+if isinstance(package_data, dict) and isinstance(ritus_plugin_meta, dict):
+    if package_data.get("version") != ritus_plugin_meta.get("version"):
+        problems.append(
+            f"{package_json} version {package_data.get('version')!r} != "
+            f"{ROOT / '.claude-plugin' / 'plugin.json'} version {ritus_plugin_meta.get('version')!r}"
+        )
 
 print("NOTES")
 for n in notes:

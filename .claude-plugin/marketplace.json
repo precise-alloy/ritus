@@ -10,7 +10,7 @@
       "name": "ritus",
       "description": "AI-assisted development workflow - sizes and plans each change, implements it task by task, checks every task independently, and reviews the result adversarially",
       "version": "3.0.0",
-      "source": "./plugin"
+      "source": "./plugins/ritus"
     },
     {
       "name": "ritus-frontend",

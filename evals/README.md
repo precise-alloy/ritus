@@ -32,7 +32,7 @@ Every machine-specific value is supplied at run time. Flags override environment
 | Setting | Flag | Environment variable | Default | Used by |
 | --- | --- | --- | --- | --- |
 | Harness workspace | `--workspace <dir>` | `RITUS_EVAL_WORKSPACE` | `evals\workspace` | all harness scripts that read generated runs |
-| Arm source | `--arm <name>=<spec>` | none | `old_skill=git:fcbd5d5`, `new_skill=dir:<repo>\plugin` | `build.py`, `smoke.py`, `trigger.py` |
+| Arm source | `--arm <name>=<spec>` | none | `old_skill=git:fcbd5d5`, `new_skill=dir:<repo>\plugins\ritus` | `build.py`, `smoke.py`, `trigger.py` |
 | Copilot session events directory | `--session-dir <dir>` | `RITUS_EVAL_SESSION_DIR` | none; required for event collection | `build.py collect`, `collect-all`, `usage.py` main-thread timing, `contamination.py` |
 | Copilot session store database | `--session-store <file>` | `RITUS_EVAL_SESSION_STORE` | current user's Copilot session store | `usage.py` |
 | Copilot session id | `--session-id <id>` | `RITUS_EVAL_SESSION_ID` | none; required for usage collection | `usage.py` |
@@ -60,7 +60,7 @@ Every machine-specific value is supplied at run time. Flags override environment
 | `trigger.py` | `variant` | `name` | Creates a project variant such as `routing`, `routing2`, `setupblock`, or `setupblock2`. The setupblock variants read `skills/setup/templates/agent-routing.md` from the `new_skill` plugin copy. |
 | `trigger.py` | `summary` | `--variant` | Summarizes trigger results. |
 | `peek.py` | direct | `names...`, `--lines` | Shows the latest saved turn file for run agent names. |
-| `static_check.py` | direct | positional `legacy_plugin_root`, `--plugin-root`, `--repo-root` | Defaults to checking `<repo>\plugin` while reading root `README.md`. |
+| `static_check.py` | direct | positional `legacy_plugin_root`, `--plugin-root`, `--repo-root` | Defaults to checking `<repo>\plugins\ritus` while reading root `README.md`. |
 | `smoke.py` | direct | shared flags | Parses scenarios, runs the static check, builds one worker and one main-thread world, and verifies both default arms. |
 
 ### Trigger authentication and model environment
@@ -75,7 +75,7 @@ Run `python evals\install\check_install.py` to exercise local path and smart-HTT
 | --- | --- | --- |
 | `--copilot <command>` | Copilot CLI executable or shim. | `copilot` |
 | `--claude <command>` | Claude Code executable or shim. | `claude` |
-| `--old-ref <ref>` | Git ref used as the pre-3.0 old install. | `fcbd5d5` |
+| `--old-ref <ref>` | Git ref used as an old install source; repeat for multiple refs. | `fcbd5d5`, `a610dc5` |
 | `--git-http-backend <path>` | Explicit `git-http-backend` path for the smart-HTTP test server. | auto-detect |
 | `--github <owner/repo>` | Enable the post-push GitHub marketplace update case. | off |
 | `--github-ref <branch-or-ref>` | Ref used by the GitHub update case; required with `--github`. | none |

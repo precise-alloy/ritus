@@ -16,7 +16,7 @@
     "debugging"
   ],
   "files": [
-    "plugin/",
+    "plugins/ritus/",
     "README.md",
     "LICENSE"
   ],

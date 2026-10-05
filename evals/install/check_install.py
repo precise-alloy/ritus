@@ -31,7 +31,8 @@ WORK_ROOT = Path(__file__).resolve().parent / ".work"
 MARKETPLACE_NAME = "precise-alloy-marketplace"
 PLUGIN_NAME = "ritus"
 CURRENT_VERSION = "3.0.0"
-OLD_VERSION = "2.1.2"
+CLONE_STYLE_VERSION = "2.1.2"
+DEFAULT_OLD_REFS = ["fcbd5d5", "a610dc5"]
 EXPECTED_TOP = [".claude-plugin", "hooks", "scripts", "skills", "templates"]
 IGNORED_MARKERS = {".in_use", ".orphaned_at"}
 
@@ -48,8 +49,34 @@ def rmtree_force(path: Path) -> None:
         except FileNotFoundError:
             return
 
-    if path.exists():
-        shutil.rmtree(path, onerror=on_error)
+    if not path.exists():
+        return
+    targets = [path]
+    if sys.platform == "win32":
+        resolved = str(path.resolve())
+        if not resolved.startswith("\\\\?\\"):
+            targets.append(Path("\\\\?\\" + resolved))
+    last_error: OSError | None = None
+    for target in targets:
+        for _attempt in range(3):
+            try:
+                shutil.rmtree(target, onerror=on_error)
+                return
+            except FileNotFoundError:
+                return
+            except OSError as exc:
+                last_error = exc
+                time.sleep(1)
+    if sys.platform == "win32":
+        subprocess.run(
+            ["cmd.exe", "/c", "rmdir", "/s", "/q", str(targets[-1])],
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        if not path.exists():
+            return
+    if last_error:
+        raise last_error
 
 
 def remove_empty_work_root() -> None:
@@ -241,6 +268,26 @@ def make_old_repo(path: Path, old_ref: str) -> Path:
     return path
 
 
+def old_plugin_manifest(repo: Path) -> Path:
+    for candidate in (
+        repo / ".claude-plugin" / "plugin.json",
+        repo / "plugin" / ".claude-plugin" / "plugin.json",
+        repo / "plugins" / PLUGIN_NAME / ".claude-plugin" / "plugin.json",
+    ):
+        if candidate.is_file():
+            return candidate
+    raise CheckError(f"could not find {PLUGIN_NAME} plugin manifest in {repo}")
+
+
+def old_plugin_version(repo: Path) -> str:
+    manifest = old_plugin_manifest(repo)
+    data = json.loads(manifest.read_text(encoding="utf-8"))
+    version = data.get("version")
+    if not isinstance(version, str) or not version:
+        raise CheckError(f"{manifest} has no string version")
+    return version
+
+
 def replace_repo_contents(repo: Path, source: Path, message: str) -> None:
     for item in repo.iterdir():
         if item.name == ".git":
@@ -369,13 +416,16 @@ def find_git_http_backend(explicit: str | None) -> Path:
 def case_env(home: Path) -> dict[str, str]:
     copilot_home = home / "copilot-home"
     claude_home = home / "claude-home"
+    git_config = home / "gitconfig"
     copilot_home.mkdir(parents=True, exist_ok=True)
     claude_home.mkdir(parents=True, exist_ok=True)
+    git_config.write_text("[core]\n\tlongpaths = true\n", encoding="utf-8")
     env = os.environ.copy()
     env.update(
         {
             "COPILOT_HOME": str(copilot_home),
             "CLAUDE_CONFIG_DIR": str(claude_home),
+            "GIT_CONFIG_GLOBAL": str(git_config),
             "COPILOT_AUTO_UPDATE": "false",
             "NO_COLOR": "1",
         }
@@ -449,16 +499,86 @@ def install_both(case_name: str, copilot: str, claude: str, source: str, env: di
     run([claude, "plugin", "install", "-y", f"{PLUGIN_NAME}@{MARKETPLACE_NAME}"], env=env, input_text="y\n")
 
 
-def update_both(case_name: str, copilot: str, claude: str, env: dict[str, str]) -> None:
+def is_up_to_date_output(output: str) -> bool:
+    lower = output.lower()
+    return any(
+        marker in lower
+        for marker in (
+            "up to date",
+            "up-to-date",
+            "already up to date",
+            "already up-to-date",
+            "already latest",
+            "already at latest",
+            "nothing to update",
+            "no update available",
+            "no updates available",
+            "no updates found",
+        )
+    )
+
+
+def run_plugin_update(
+    step: str,
+    args: Iterable[str | os.PathLike[str]],
+    *,
+    env: dict[str, str],
+    allow_up_to_date: bool,
+    input_text: str | None = None,
+    access_denied_retries: int = 0,
+) -> CommandResult:
+    attempts = access_denied_retries + 1
+    last: CommandResult | None = None
+    for attempt in range(1, attempts + 1):
+        result = run(args, env=env, input_text=input_text, check=False)
+        if result.returncode == 0:
+            if attempt > 1:
+                print(f"{step}: passed after Access denied retry {attempt - 1}")
+            return result
+        output = result.output
+        if allow_up_to_date and is_up_to_date_output(output):
+            print(f"{step}: accepted up-to-date outcome")
+            return result
+        last = result
+        if "Access is denied. (os error 5)" in output and attempt < attempts:
+            print(f"{step}: Access denied on attempt {attempt}; retrying")
+            time.sleep(2 * attempt)
+            continue
+        raise CheckError(
+            "step failed: {step}\ncommand failed ({code}): {cmd}\n{out}".format(
+                step=step,
+                code=result.returncode,
+                cmd=" ".join(result.args),
+                out=output,
+            )
+        )
+    raise CheckError(f"step failed: {step}\n{last.output if last else ''}")
+
+
+def update_both(
+    case_name: str,
+    copilot: str,
+    claude: str,
+    env: dict[str, str],
+    *,
+    allow_up_to_date: bool,
+) -> None:
     copilot_marketplace_update(copilot, env)
     claude_marketplace_update(claude, env)
-    run_step(
+    run_plugin_update(
         f"{case_name} copilot update",
         [copilot, "plugin", "update", f"{PLUGIN_NAME}@{MARKETPLACE_NAME}"],
         env=env,
+        allow_up_to_date=allow_up_to_date,
         access_denied_retries=2,
     )
-    run([claude, "plugin", "update", "-y", f"{PLUGIN_NAME}@{MARKETPLACE_NAME}"], env=env, input_text="y\n")
+    run_plugin_update(
+        f"{case_name} claude update",
+        [claude, "plugin", "update", "-y", f"{PLUGIN_NAME}@{MARKETPLACE_NAME}"],
+        env=env,
+        input_text="y\n",
+        allow_up_to_date=allow_up_to_date,
+    )
 
 
 def print_entries(case_name: str, cli: str, entries: list[str]) -> None:
@@ -512,8 +632,8 @@ def verify_runtime_paths(copilot_dir: Path, case_work: Path, env: dict[str, str]
     print("runtime copilot: companion bootstrap and sync --check passed")
 
 
-def clone_old_into_install_dirs(old_source: str, env: dict[str, str]) -> None:
-    for install_dir in [copilot_install_dir(env), claude_install_dir(env, OLD_VERSION)]:
+def clone_old_into_install_dirs(old_source: str, old_version: str, env: dict[str, str]) -> None:
+    for install_dir in [copilot_install_dir(env), claude_install_dir(env, old_version)]:
         if install_dir.exists():
             rmtree_force(install_dir)
         install_dir.parent.mkdir(parents=True, exist_ok=True)
@@ -545,15 +665,17 @@ def run_update_case(
     copilot: str,
     claude: str,
     clone_style: bool,
+    old_version: str,
+    allow_up_to_date: bool,
     work: Path,
 ) -> None:
     clean_copilot_marketplace_cache()
     env = case_env(work / "homes")
     install_both(name, copilot, claude, source, env)
     if clone_style:
-        clone_old_into_install_dirs(old_clone_source, env)
+        clone_old_into_install_dirs(old_clone_source, old_version, env)
     replace_repo_contents(mutable_repo, current_repo, "update marketplace to current")
-    update_both(name, copilot, claude, env)
+    update_both(name, copilot, claude, env, allow_up_to_date=allow_up_to_date)
     verify_both(name, env)
 
 
@@ -583,7 +705,7 @@ def run_github_case(args: argparse.Namespace, old_ref: str) -> None:
     run([args.copilot, "plugin", "install", f"{PLUGIN_NAME}@{MARKETPLACE_NAME}"], env=env)
     run([args.claude, "plugin", "install", "-y", f"{PLUGIN_NAME}@{MARKETPLACE_NAME}"], env=env, input_text="y\n")
     configure_copilot_github_ref(env, args.github, args.github_ref)
-    update_both("github-update", args.copilot, args.claude, env)
+    update_both("github-update", args.copilot, args.claude, env, allow_up_to_date=False)
     verify_both("github-update", env)
     if not args.keep:
         rmtree_force(work)
@@ -594,15 +716,27 @@ def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser()
     parser.add_argument("--copilot", default="copilot")
     parser.add_argument("--claude", default="claude")
-    parser.add_argument("--old-ref", default="fcbd5d5")
+    parser.add_argument(
+        "--old-ref",
+        action="append",
+        help=(
+            "Git ref used as an old install source. Can be supplied more than once; "
+            f"default: {', '.join(DEFAULT_OLD_REFS)}"
+        ),
+    )
     parser.add_argument("--git-http-backend")
     parser.add_argument("--github")
     parser.add_argument("--github-ref")
     parser.add_argument("--keep", action="store_true")
     args = parser.parse_args()
+    args.old_ref = args.old_ref or DEFAULT_OLD_REFS
     if args.github and not args.github_ref:
         parser.error("--github-ref is required with --github")
     return args
+
+
+def safe_ref_name(ref: str) -> str:
+    return "".join(ch if ch.isalnum() or ch in ".-" else "-" for ch in ref)
 
 
 def main() -> int:
@@ -616,7 +750,10 @@ def main() -> int:
     work = WORK_ROOT / run_id
     repos = work / "repos"
     current_repo = make_current_repo(repos / "current")
-    old_repo = make_old_repo(repos / "old", args.old_ref)
+    old_repos = {
+        old_ref: make_old_repo(repos / f"old-{safe_ref_name(old_ref)}", old_ref)
+        for old_ref in args.old_ref
+    }
 
     try:
         run_fresh_case("fresh-local", str(current_repo), args.copilot, args.claude, True, work / "fresh-local")
@@ -631,67 +768,82 @@ def main() -> int:
                 work / "fresh-git",
             )
 
-            local_mutable = repos / "local-mutable"
-            copy_tree_contents(old_repo, local_mutable)
-            commit_all(local_mutable, "old mutable marketplace")
-            run_update_case(
-                "update-local",
-                str(local_mutable),
-                str(old_repo),
-                local_mutable,
-                current_repo,
-                args.copilot,
-                args.claude,
-                False,
-                work / "update-local",
-            )
+            for old_ref, old_repo in old_repos.items():
+                ref_name = safe_ref_name(old_ref)
+                old_version = old_plugin_version(old_repo)
+                allow_up_to_date = old_version == CURRENT_VERSION
+                print(f"update cases for {old_ref} ({old_version}):")
 
-            git_mutable = repos / "git-mutable"
-            copy_tree_contents(old_repo, git_mutable)
-            commit_all(git_mutable, "old git mutable marketplace")
-            run_update_case(
-                "update-git",
-                f"{base_url}/git-mutable/.git",
-                f"{base_url}/old/.git",
-                git_mutable,
-                current_repo,
-                args.copilot,
-                args.claude,
-                False,
-                work / "update-git",
-            )
+                local_mutable = repos / f"local-mutable-{ref_name}"
+                copy_tree_contents(old_repo, local_mutable)
+                commit_all(local_mutable, f"old mutable marketplace {old_ref}")
+                run_update_case(
+                    f"update-{ref_name}-local",
+                    str(local_mutable),
+                    str(old_repo),
+                    local_mutable,
+                    current_repo,
+                    args.copilot,
+                    args.claude,
+                    False,
+                    old_version,
+                    allow_up_to_date,
+                    work / f"update-{ref_name}-local",
+                )
 
-            local_clone_mutable = repos / "local-clone-mutable"
-            copy_tree_contents(old_repo, local_clone_mutable)
-            commit_all(local_clone_mutable, "old local clone mutable marketplace")
-            run_update_case(
-                "clone-update-local",
-                str(local_clone_mutable),
-                str(old_repo),
-                local_clone_mutable,
-                current_repo,
-                args.copilot,
-                args.claude,
-                True,
-                work / "clone-update-local",
-            )
+                git_mutable = repos / f"git-mutable-{ref_name}"
+                copy_tree_contents(old_repo, git_mutable)
+                commit_all(git_mutable, f"old git mutable marketplace {old_ref}")
+                run_update_case(
+                    f"update-{ref_name}-git",
+                    f"{base_url}/{git_mutable.name}/.git",
+                    f"{base_url}/{old_repo.name}/.git",
+                    git_mutable,
+                    current_repo,
+                    args.copilot,
+                    args.claude,
+                    False,
+                    old_version,
+                    allow_up_to_date,
+                    work / f"update-{ref_name}-git",
+                )
 
-            git_clone_mutable = repos / "git-clone-mutable"
-            copy_tree_contents(old_repo, git_clone_mutable)
-            commit_all(git_clone_mutable, "old git clone mutable marketplace")
-            run_update_case(
-                "clone-update-git",
-                f"{base_url}/git-clone-mutable/.git",
-                f"{base_url}/old/.git",
-                git_clone_mutable,
-                current_repo,
-                args.copilot,
-                args.claude,
-                True,
-                work / "clone-update-git",
-            )
+                if old_version == CLONE_STYLE_VERSION:
+                    local_clone_mutable = repos / f"local-clone-mutable-{ref_name}"
+                    copy_tree_contents(old_repo, local_clone_mutable)
+                    commit_all(local_clone_mutable, f"old local clone mutable marketplace {old_ref}")
+                    run_update_case(
+                        f"clone-update-{ref_name}-local",
+                        str(local_clone_mutable),
+                        str(old_repo),
+                        local_clone_mutable,
+                        current_repo,
+                        args.copilot,
+                        args.claude,
+                        True,
+                        old_version,
+                        allow_up_to_date,
+                        work / f"clone-update-{ref_name}-local",
+                    )
 
-        run_github_case(args, args.old_ref)
+                    git_clone_mutable = repos / f"git-clone-mutable-{ref_name}"
+                    copy_tree_contents(old_repo, git_clone_mutable)
+                    commit_all(git_clone_mutable, f"old git clone mutable marketplace {old_ref}")
+                    run_update_case(
+                        f"clone-update-{ref_name}-git",
+                        f"{base_url}/{git_clone_mutable.name}/.git",
+                        f"{base_url}/{old_repo.name}/.git",
+                        git_clone_mutable,
+                        current_repo,
+                        args.copilot,
+                        args.claude,
+                        True,
+                        old_version,
+                        allow_up_to_date,
+                        work / f"clone-update-{ref_name}-git",
+                    )
+
+        run_github_case(args, args.old_ref[0])
         print("all install checks passed")
         return 0
     finally:
