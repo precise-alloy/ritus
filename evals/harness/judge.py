@@ -1655,9 +1655,9 @@ NOTES.update({
 
 def ctx_up1() -> str:
     return """\
-The developer brought TLW-22 as a product-owner request: add an optional note field and a transfer-fee preview, make it work on phones, and create only the plan and task files. There is no design file, so the plan must use project docs and existing UI patterns.
+The developer brought TLW-22 as a product-owner request: add an optional note field and a transfer-fee preview (the ticket states the rule: 1% of the amount, rounded half-up to the cent, minimum $0.25, and the preview shows fee and total), make it work on phones, and create only the plan and task files. There is no design file, so the plan must use project docs and existing UI patterns.
 
-A good plan treats this as STANDARD, writes `docs/reviews/TLW-22-review.md` and task files under `docs/tasks/feature-TLW-22-transfer-note-fee/`, and names concrete UI acceptance: `/transfer` and the documented supported widths/breakpoints (375px, 768px, 1280px; 640px and 1024px), empty or invalid amount, From = To, success, fee edges 2549/2550/minimum, labels and keyboard/contrast against WCAG 2.2 AA, and design tokens/existing components. It writes no implementation."""
+A good plan treats this as STANDARD, writes `docs/reviews/TLW-22-review.md` and task files under `docs/tasks/feature-TLW-22-transfer-note-fee/`, and names concrete UI acceptance: `/transfer` and the documented supported widths/breakpoints (375px, 768px, 1280px; 640px and 1024px), empty or invalid amount, From = To, success, the fee rule's edges (the minimum, and a half-cent amount above it such as 2549/2550 cents), labels and keyboard/contrast against WCAG 2.2 AA, and design tokens/existing components. It writes no implementation."""
 
 
 def ctx_ug1() -> str:
@@ -1677,7 +1677,7 @@ The developer is outside the Ritus task flow and asks only for a check of the tr
 
 NOTES.update({
     "up1.ui_acceptance": "PASS when the plan or task acceptance names `/transfer` and concrete supported widths/breakpoints from the project docs: mobile at 375px, tablet around 768px, desktop around 1280px, including the 640px/1024px layout breakpoints. Vague 'responsive' fails.",
-    "up1.states": "PASS when acceptance covers empty or invalid amount, From = To, successful transfer, and fee-rule edges including 2549 cents, 2550 cents and the minimum fee.",
+    "up1.states": "PASS when acceptance covers empty or invalid amount, From = To, successful transfer, and the fee rule's edges: an amount where the minimum fee applies (for example 1000 cents -> 25), and an amount above the minimum where 1% is exactly half a cent (for example 2550 cents -> 26, against 2549 -> 25). Other amounts that decide the same edges are fine.",
     "up1.a11y": "PASS when acceptance covers the new field's accessible label, keyboard use, and contrast against WCAG 2.2 AA.",
     "up1.design_system": "PASS when the plan requires existing components and design tokens/project patterns, not bespoke raw CSS values.",
     "ug1.caught_overflow": "PASS when the overflow defect is reported before the session presents the change as ready or complete.",
