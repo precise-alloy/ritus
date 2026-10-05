@@ -2074,14 +2074,58 @@ def mcp_tool_base(tool: str) -> str:
     return re.split(r"__|-", tool)[-1]
 
 
+PLAYWRIGHT_IMPORT = re.compile(r"""['"](?:@playwright/test|playwright(?:-core)?)['"]""")
+TEST_COMMAND = re.compile(r"(?i)\bnpm(?:\.cmd)?\s+(?:run\s+)?test\b|scripts[\\/]test\.mjs|\bnode(?:\.exe)?\s+--test\b")
+SCRIPT_PATH = re.compile(r"""[\w.:\\/-]+\.(?:mjs|cjs|js|ts)\b""")
+
+
+def playwright_files(setup: dict) -> list[Path]:
+    """Files under the world repo that the run created or changed and that import Playwright."""
+    repo = Path(setup["repo"])
+    if not repo.is_dir():
+        return []
+    before = setup.get("snapshot", {})
+    found = []
+    for rel, digest in snapshot(repo).items():
+        if before.get(rel) == digest or not rel.endswith((".js", ".mjs", ".cjs", ".ts")):
+            continue
+        text = (repo / rel).read_text(encoding="utf-8", errors="replace")
+        if PLAYWRIGHT_IMPORT.search(text):
+            found.append(repo / rel)
+    return found
+
+
+def runs_playwright_file(command: str, repo: Path, files: list[Path]) -> bool:
+    """Whether a shell command runs a test suite or a script that drives a browser through Playwright."""
+    if files and TEST_COMMAND.search(command):
+        return True
+    for raw in SCRIPT_PATH.findall(command):
+        path = Path(raw.strip("'\""))
+        path = path if path.is_absolute() else repo / path
+        try:
+            if path.resolve() in {f.resolve() for f in files}:
+                return True
+            if path.is_file() and PLAYWRIGHT_IMPORT.search(path.read_text(encoding="utf-8", errors="replace")):
+                return True
+        except OSError:
+            continue
+    return False
+
+
 def collect_ui_events(setup: dict, events) -> tuple[list[str], list[str]]:
-    """Return arm-blind browser/design activity for one run agent and its descendants."""
+    """Return arm-blind browser/design activity for one run agent and its descendants.
+
+    Browser use is a browser tool call, a shell command that names Playwright, or a shell command that runs a test
+    suite or script using a Playwright-importing file the run wrote (its own browser tests).
+    """
     name = Path(setup["agent_root"]).name
     agent = None
     for attempt in [name, f"{name}-r", *(f"{name}-r{i}" for i in range(2, 10))]:
         agent = events.by_name(attempt) or agent
     if not agent:
         return [], []
+    repo = Path(setup["repo"])
+    pw_files = playwright_files(setup)
     browser_use, design_calls = [], []
     for node in events.tree(agent["id"]):
         for entry in events.tools.get(node["id"], []):
@@ -2093,6 +2137,8 @@ def collect_ui_events(setup: dict, events) -> tuple[list[str], list[str]]:
                 browser_use.append(f"{base} {json.dumps(args, ensure_ascii=False)[:220]}")
             elif tool == "powershell" and re.search(r"\bplaywright\b", command, re.I):
                 browser_use.append("$ " + command[:300])
+            elif tool == "powershell" and runs_playwright_file(command, repo, pw_files):
+                browser_use.append("$ " + command[:300] + "  [runs Playwright tests or script]")
             if base in DESIGN_TOOL_NAMES:
                 design_calls.append(base)
     return browser_use, design_calls
