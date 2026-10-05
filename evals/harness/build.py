@@ -831,7 +831,11 @@ def copy_tree_lf(src: Path, dest: Path, subst=None):
     for path in sorted(src.rglob("*")):
         if path.is_dir():
             continue
-        target = dest / path.relative_to(src)
+        rel = path.relative_to(src)
+        # Build output left in a fixture by running its scripts in place must never reach a world.
+        if rel.parts[0] in SKIP_SNAPSHOT:
+            continue
+        target = dest / rel
         target.parent.mkdir(parents=True, exist_ok=True)
         text = path.read_text(encoding="utf-8").replace("\r\n", "\n")
         if subst:
