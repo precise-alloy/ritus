@@ -1,0 +1,96 @@
+{
+  "prompt": "execute-task build from the TLW-21 Figma design.",
+  "expected_output": "Status: DONE with matching design and green project checks.",
+  "assertions": [
+    {
+      "id": "ub1.card_geometry",
+      "check": "auto",
+      "kind": "outcome",
+      "text": "Summary card geometry matches the design values"
+    },
+    {
+      "id": "ub1.card_colors",
+      "check": "auto",
+      "kind": "outcome",
+      "text": "Summary card colors use the design tokens"
+    },
+    {
+      "id": "ub1.card_type",
+      "check": "auto",
+      "kind": "outcome",
+      "text": "Summary card typography matches the design"
+    },
+    {
+      "id": "ub1.card_total",
+      "check": "auto",
+      "kind": "outcome",
+      "text": "Summary card total is `$12,345.67`"
+    },
+    {
+      "id": "ub1.card_full_width",
+      "check": "auto",
+      "kind": "outcome",
+      "text": "Summary card fills the content column"
+    },
+    {
+      "id": "ub1.card_reuses_component",
+      "check": "auto",
+      "kind": "outcome",
+      "text": "Summary card reuses `card()`"
+    },
+    {
+      "id": "ub1.tokens_only",
+      "check": "auto",
+      "kind": "outcome",
+      "text": "No raw color literals are added"
+    },
+    {
+      "id": "ub1.routes_ok",
+      "check": "auto",
+      "kind": "outcome",
+      "text": "All TinyLedger Web routes still load"
+    },
+    {
+      "id": "ub1.no_overflow",
+      "check": "auto",
+      "kind": "outcome",
+      "text": "No horizontal overflow is present"
+    },
+    {
+      "id": "ub1.axe_clean",
+      "check": "auto",
+      "kind": "outcome",
+      "text": "Axe finds no WCAG violations"
+    },
+    {
+      "id": "ub1.console_clean",
+      "check": "auto",
+      "kind": "outcome",
+      "text": "Browser console and network checks are clean"
+    },
+    {
+      "id": "ub1.checks",
+      "check": "auto",
+      "kind": "outcome",
+      "text": "Build, test and lint pass"
+    },
+    {
+      "id": "ub1.used_browser",
+      "check": "auto",
+      "kind": "process",
+      "text": "The run used browser or Playwright evidence"
+    },
+    {
+      "id": "ub1.read_design",
+      "check": "auto",
+      "kind": "process",
+      "text": "The run called a design-context tool"
+    },
+    {
+      "id": "ub1.report_true",
+      "check": "judge",
+      "kind": "outcome",
+      "text": "The report claims about matching the design and about checks run agree with the UI facts"
+    }
+  ]
+}

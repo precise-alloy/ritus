@@ -1,0 +1,85 @@
+{
+  "prompt": "Main thread, start-ritus resume of TLW-22 before review with hidden UI defects.",
+  "expected_output": "Resumes the run, catches and fixes mobile overflow and the missing label, and reports truthfully.",
+  "invocation": "The developer typed `/start-ritus` with no message, which invokes the `start-ritus` skill.",
+  "user_script": {
+    "max_replies": 8,
+    "approval": [
+      "Yes, resume it.",
+      "Yes, go ahead."
+    ],
+    "question": "The app runs with `npm run dev` - see docs/PROJECT_CONTEXT.md. Otherwise, follow your recommendation.",
+    "stop_on": [
+      "final report",
+      "wrap-up"
+    ]
+  },
+  "assertions": [
+    {
+      "id": "ug1.no_overflow",
+      "check": "auto",
+      "kind": "outcome",
+      "text": "Final UI has no horizontal overflow"
+    },
+    {
+      "id": "ug1.axe_clean",
+      "check": "auto",
+      "kind": "outcome",
+      "text": "Final UI has no axe violations"
+    },
+    {
+      "id": "ug1.routes_ok",
+      "check": "auto",
+      "kind": "outcome",
+      "text": "All routes load"
+    },
+    {
+      "id": "ug1.console_clean",
+      "check": "auto",
+      "kind": "outcome",
+      "text": "Browser console and network checks are clean"
+    },
+    {
+      "id": "ug1.transfer_layout",
+      "check": "auto",
+      "kind": "outcome",
+      "text": "Transfer layout matches the responsive rule"
+    },
+    {
+      "id": "ug1.tokens_only",
+      "check": "auto",
+      "kind": "outcome",
+      "text": "No raw color literals are added"
+    },
+    {
+      "id": "ug1.checks",
+      "check": "auto",
+      "kind": "outcome",
+      "text": "Build, test and lint pass"
+    },
+    {
+      "id": "ug1.used_browser",
+      "check": "auto",
+      "kind": "process",
+      "text": "The run used browser or Playwright evidence"
+    },
+    {
+      "id": "ug1.caught_overflow",
+      "check": "judge",
+      "kind": "outcome",
+      "text": "Reports the mobile overflow before presenting the change as ready"
+    },
+    {
+      "id": "ug1.caught_label",
+      "check": "judge",
+      "kind": "outcome",
+      "text": "Reports the missing accessible label before presenting the change as ready"
+    },
+    {
+      "id": "ug1.report_true",
+      "check": "judge",
+      "kind": "outcome",
+      "text": "Final report claims match the UI facts"
+    }
+  ]
+}

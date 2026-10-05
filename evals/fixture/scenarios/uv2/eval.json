@@ -1,0 +1,36 @@
+{
+  "prompt": "verify-task on TLW-22 with mobile overflow.",
+  "expected_output": "VERIFY: FAIL naming horizontal overflow at 375px.",
+  "assertions": [
+    {
+      "id": "uv2.fail",
+      "check": "auto",
+      "kind": "outcome",
+      "text": "Returns VERIFY: FAIL"
+    },
+    {
+      "id": "uv2.read_only",
+      "check": "auto",
+      "kind": "outcome",
+      "text": "Leaves the working tree exactly as it found it"
+    },
+    {
+      "id": "uv2.used_browser",
+      "check": "auto",
+      "kind": "process",
+      "text": "The run used browser or Playwright evidence"
+    },
+    {
+      "id": "uv2.named_overflow",
+      "check": "judge",
+      "kind": "outcome",
+      "text": "Names horizontal overflow at 375px caused by the fee panel"
+    },
+    {
+      "id": "uv2.no_false_defects",
+      "check": "judge",
+      "kind": "outcome",
+      "text": "Every other defect it reports is real"
+    }
+  ]
+}

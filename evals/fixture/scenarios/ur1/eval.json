@@ -1,0 +1,42 @@
+{
+  "prompt": "pr-review on TLW-21 with a raw hex color and a console error.",
+  "expected_output": "Request Changes naming the raw hex color and console/network failure.",
+  "assertions": [
+    {
+      "id": "ur1.request_changes",
+      "check": "auto",
+      "kind": "outcome",
+      "text": "Returns Request Changes"
+    },
+    {
+      "id": "ur1.read_only",
+      "check": "auto",
+      "kind": "outcome",
+      "text": "Leaves the working tree exactly as it found it"
+    },
+    {
+      "id": "ur1.used_browser",
+      "check": "auto",
+      "kind": "process",
+      "text": "The run used browser or Playwright evidence"
+    },
+    {
+      "id": "ur1.names_hex",
+      "check": "judge",
+      "kind": "outcome",
+      "text": "Names the raw `#1F2328` instead of `var(--color-text)`"
+    },
+    {
+      "id": "ur1.names_console",
+      "check": "judge",
+      "kind": "outcome",
+      "text": "Names the failing `/api/summary` request or the console error on `/accounts`"
+    },
+    {
+      "id": "ur1.no_false_defects",
+      "check": "judge",
+      "kind": "outcome",
+      "text": "Every other defect it reports is real"
+    }
+  ]
+}

@@ -96,7 +96,7 @@ line: `wrote <path>: <number of judgments> judgments`.
 """
 
 
-def harness_facts(col: dict, skill: str) -> str:
+def harness_facts(col: dict, skill: str, key: str | None = None) -> str:
     ev, ch = col["evidence"], col["changes"]
     ran = ", ".join(f"{n} {'yes' if ev[n]['ran'] else 'no'}" for n in ("build", "test", "lint"))
     files = sorted(set(ch["added"]) | set(ch["deleted"]) | set(ch["modified"]))
@@ -110,7 +110,26 @@ def harness_facts(col: dict, skill: str) -> str:
         counts = dict(re.findall(r"ℹ (tests|pass|fail) (\d+)", fc["test"].get("tail", "")))
         lines.append(f"- Final tree: build exit {fc['build']['code']}, test exit {fc['test']['code']} "
                      f"({counts.get('pass', '?')} pass / {counts.get('fail', '?')} fail), lint exit {fc['lint']['code']}")
+    if "ui" in col:
+        lines.append(ui_facts_block(col, key))
     return "\n".join(lines)
+
+
+def ui_facts_block(col: dict, key: str | None = None) -> str:
+    rows = build.ui_verdicts(col.get("ui") or {}, col.get("setup_files"), col.get("final_files"))
+    facts = ["UI facts (arm-blind):"]
+    names = build.scenario_ui_verdicts(key) if key else tuple(sorted(rows))
+    for name in names:
+        ok, evidence = rows[name]
+        facts.append(f"  - {name}: {'PASS' if ok else 'FAIL'} - {evidence}")
+    fc = col.get("final_checks") or {}
+    if fc:
+        facts.append("  - final commands: " + ", ".join(
+            f"{name} exit {fc.get(name, {}).get('code', '?')}" for name in ("build", "test", "lint")))
+    facts.append(f"  - browser actions: {len(col.get('browser_use', []))}")
+    called = sorted(set(col.get("design_calls", [])))
+    facts.append(f"  - design tools called: {', '.join(called) if called else 'none'}")
+    return "\n".join(facts)
 
 
 # ---------------------------------------------------------------- scenario context
@@ -530,6 +549,14 @@ def main_run_block(run_dir: Path, key: str) -> str:
             if rel.startswith("docs/reviews/") or (rel.startswith("docs/tasks/feature-TL-44-typed-amounts/")
                                                    and not rel.endswith("exploration.md")):
                 parts.append(f"File `{rel}` as the session left it:\n\n````markdown\n{docs[rel].strip()}\n````\n")
+    if key == "up1":
+        docs = col.get("docs_final", {})
+        for rel in sorted(docs):
+            if rel == "docs/reviews/TLW-22-review.md" or (rel.startswith("docs/tasks/feature-TLW-22-transfer-note-fee/")
+                                                          and not rel.endswith("exploration.md")):
+                parts.append(f"File `{rel}` as the session left it:\n\n````markdown\n{docs[rel].strip()}\n````\n")
+    if key in ("ug1", "us1", "uc1"):
+        parts.append(ui_facts_block(col, key) + "\n")
     return "\n".join(parts)
 
 
@@ -1533,9 +1560,173 @@ ROUTING_GROUPS = {
 }
 
 
+def ctx_ui_worker_shared() -> str:
+    return """\
+TinyLedger Web is a dependency-free browser-module app with routes `/accounts`, `/accounts/checking`,
+`/accounts/travel` and `/transfer`. Project conventions require design tokens for colors/spacing/type, reusable
+components before page-specific markup, support from 375px through desktop widths with breakpoints at 640px and 1024px,
+WCAG 2.2 AA, and no normal-operation console errors.
+
+The three tickets in these worker probes:
+
+- TLW-21 adds a total-balance summary card on `/accounts`: 16px padding and gap, 8px radius, surface/border/text
+  tokens, label `Total balance`, value `$12,345.67`, accessible name `Total balance`, full content-column width and no
+  horizontal overflow.
+- TLW-22 adds a visible-label note field with maxlength 140 and a transfer-fee preview: `transferFee(2550) -> 26`,
+  `transferFee(2549) -> 25`, minimum 25; panel beside the form from 1024px and below it under 1024px; WCAG 2.2 AA.
+- TLW-23 polishes account transactions: newest first, signed/colored amounts, and an empty account state with
+  `No transactions yet` and a transfer link instead of a table."""
+
+
+def ctx_ub1() -> str:
+    return """\
+The right outcome is a completed implementation whose rendered UI matches the TLW-21 design values: 16px padding and
+label-value gap, 8px radius, white surface, #D0D7DE border, muted 14/20 label, 24/32 semibold value, total
+`$12,345.67`, full content-column width, no overflow, no accessibility or console failures, and no raw color literals
+added outside the token file. Use the UI facts for what the final UI actually does."""
+
+
+def ctx_uv1() -> str:
+    return """\
+The planted defect is on the TLW-21 summary card: the rendered label-value gap is 12px, but the task requires 16px.
+Everything else about the card is intended to be correct. The right verifier result is FAIL naming that gap with a
+measured value or a precise CSS source, and no unrelated blocking defects."""
+
+
+def ctx_uv2() -> str:
+    return """\
+The planted defect is on the TLW-22 transfer page: at 375px wide the fee preview causes horizontal overflow. The right
+verifier result is FAIL naming mobile horizontal overflow caused by the fee panel, and no unrelated blocking defects."""
+
+
+def ctx_uv3() -> str:
+    return """\
+The planted defect is on the TLW-22 transfer page: the note input does not have an accessible label even though visible
+label text appears nearby. The right verifier result is FAIL naming the inaccessible note field label, and no unrelated
+blocking defects."""
+
+
+def ctx_uv4() -> str:
+    return """\
+The planted defect is on TLW-23 account detail: an account without transactions lacks the `No transactions yet` empty
+state and transfer link. The right verifier result is FAIL naming the missing empty state, and no unrelated blocking
+defects."""
+
+
+def ctx_uv5() -> str:
+    return """\
+This TLW-22 world is clean: the note field is labelled, the fee rule and responsive placement are correct, there is no
+mobile overflow, and accessibility checks are clean. The right verifier result is PASS with no blocking defects."""
+
+
+def ctx_ur1() -> str:
+    return """\
+The planted review defects are both on TLW-21. First, the implementation uses the raw color `#1F2328` instead of the
+text token for the total value. Second, visiting `/accounts` produces a failing `/api/summary` request or console
+error. The right review verdict is Request Changes naming both defects and no unrelated blocking findings."""
+
+
+_UI_FACT_NOTE = ("Use the UI facts block as the source of truth for what the final UI actually does; the report must "
+                 "name the real issue without inventing unrelated defects.")
+_UI_NOFALSE = ("Consider every finding the report treats as blocking. Check each one against the ground truth and the "
+               "UI facts block, which was measured on the tree the run checked. A claimed UI defect is false when the "
+               "facts contradict it, for example overflow at a width where the facts measure none, an accessibility "
+               "violation the facts don't list, or a geometry value the facts measure as matching. A claimed defect "
+               "outside what the facts measure is judged against the ground truth and the files. Non-blocking notes "
+               "count only if presented as a reason to block.")
+NOTES.update({
+    "ub1.report_true": "PASS when the report's design-match and command-check claims agree with the UI facts and final command facts. A report that claims a failed UI fact passed fails.",
+    "uv1.named_gap": _UI_FACT_NOTE + " PASS only when it identifies the TLW-21 label-value gap as 12px instead of 16px.",
+    "uv1.no_false_defects": _UI_NOFALSE,
+    "uv2.named_overflow": _UI_FACT_NOTE + " PASS only when it identifies horizontal overflow at 375px caused by the fee panel.",
+    "uv2.no_false_defects": _UI_NOFALSE,
+    "uv3.named_label": _UI_FACT_NOTE + " PASS only when it identifies the note input's missing accessible label.",
+    "uv3.no_false_defects": _UI_NOFALSE,
+    "uv4.named_empty": _UI_FACT_NOTE + " PASS only when it identifies the missing `No transactions yet` empty state and transfer link.",
+    "uv4.no_false_defects": _UI_NOFALSE,
+    "uv5.no_false_defects": _UI_NOFALSE,
+    "ur1.names_hex": _UI_FACT_NOTE + " PASS only when it names the raw `#1F2328` color instead of the text token.",
+    "ur1.names_console": _UI_FACT_NOTE + " PASS only when it names the `/api/summary` failure or console error on `/accounts`.",
+    "ur1.no_false_defects": _UI_NOFALSE,
+})
+
+
+
+
+def ctx_up1() -> str:
+    return """\
+The developer brought TLW-22 as a product-owner request: add an optional note field and a transfer-fee preview, make it work on phones, and create only the plan and task files. There is no design file, so the plan must use project docs and existing UI patterns.
+
+A good plan treats this as STANDARD, writes `docs/reviews/TLW-22-review.md` and task files under `docs/tasks/feature-TLW-22-transfer-note-fee/`, and names concrete UI acceptance: `/transfer` and the documented supported widths/breakpoints (375px, 768px, 1280px; 640px and 1024px), empty or invalid amount, From = To, success, fee edges 2549/2550/minimum, labels and keyboard/contrast against WCAG 2.2 AA, and design tokens/existing components. It writes no implementation."""
+
+
+def ctx_ug1() -> str:
+    return """\
+The branch already has TLW-22 implemented and verified, but the implementation still has two real UI defects: on mobile the fee preview causes horizontal overflow, and the note input lacks an accessible label. The right session catches both before saying the change is ready, fixes them, checks in a browser, and leaves a final tree whose UI facts pass for overflow, axe, routes, console, transfer layout and tokens."""
+
+
+def ctx_us1() -> str:
+    return """\
+The developer asked for a SIMPLE TLW-31 change: on an account page with no transactions, show `No transactions yet` with a transfer link instead of an empty table. A good run presents a short plan in chat before code, with acceptance that includes checking the page in a browser, then implements after one approval. The final UI has the empty state, no route/overflow/a11y/console regressions, token-only styling and passing project checks."""
+
+
+def ctx_uc1() -> str:
+    return """\
+The developer is outside the Ritus task flow and asks only for a check of the transfer page on mobile and accessibility. TLW-22 was merged yesterday and has two real defects: mobile horizontal overflow caused by the fee preview, and the note field has no accessible label. The right answer names both with observed evidence, edits nothing, and does not invent other blocking defects. A run that says it cannot check without first creating files, and creates none, has not found the defects."""
+
+
+NOTES.update({
+    "up1.ui_acceptance": "PASS when the plan or task acceptance names `/transfer` and concrete supported widths/breakpoints from the project docs: mobile at 375px, tablet around 768px, desktop around 1280px, including the 640px/1024px layout breakpoints. Vague 'responsive' fails.",
+    "up1.states": "PASS when acceptance covers empty or invalid amount, From = To, successful transfer, and fee-rule edges including 2549 cents, 2550 cents and the minimum fee.",
+    "up1.a11y": "PASS when acceptance covers the new field's accessible label, keyboard use, and contrast against WCAG 2.2 AA.",
+    "up1.design_system": "PASS when the plan requires existing components and design tokens/project patterns, not bespoke raw CSS values.",
+    "ug1.caught_overflow": "PASS when the overflow defect is reported before the session presents the change as ready or complete.",
+    "ug1.caught_label": "PASS when the note field's missing accessible label is reported before the session presents the change as ready or complete.",
+    "ug1.report_true": _UI_FACT_NOTE,
+    "us1.plan_in_chat": "Use the harness facts to see when code changed. PASS when a reply before source changes gives a short plan, asks for approval, and includes browser checking of the account page/empty state in acceptance.",
+    "us1.report_true": _UI_FACT_NOTE,
+    "uc1.named_overflow": _UI_FACT_NOTE + " PASS only when it names mobile horizontal overflow on the transfer page caused by the fee preview.",
+    "uc1.named_label": _UI_FACT_NOTE + " PASS only when it names the note input's missing accessible label.",
+    "uc1.evidence": "PASS when each named finding is backed by observed evidence such as a measurement, axe/accessibility rule, DOM snapshot or screenshot. Unsupported guesses fail.",
+    "uc1.no_false_defects": _UI_NOFALSE,
+})
+
+UI_MAIN_GROUPS = {
+    "G31": dict(
+        intro=MAIN_INTRO + " These scenarios are TinyLedger Web system-level UI runs: planning, resuming before review, a SIMPLE end-to-end ticket, and a standalone UI check.",
+        shared=None,
+        scenarios=[("up1", "UP1 - TLW-22 UI planning", ctx_up1),
+                   ("ug1", "UG1 - TLW-22 resume before review", ctx_ug1),
+                   ("us1", "US1 - TLW-31 simple empty state", ctx_us1),
+                   ("uc1", "UC1 - standalone transfer-page check", ctx_uc1)]),
+}
+
+UI_WORKER_GROUPS = {
+    "G29": dict(
+        worker=True,
+        intro="The reports were written by verification subagents following a workflow skill called `verify-task`. "
+              "Each independently checked one implemented TinyLedger Web task and wrote `VERIFY: PASS` or "
+              "`VERIFY: FAIL` with evidence. A wrong FAIL costs a fix loop; a wrong PASS lets a UI defect ship.",
+        shared=("Shared context", ctx_ui_worker_shared),
+        scenarios=[("uv1", "UV1 - TLW-21 summary-card spacing bug", ctx_uv1),
+                   ("uv2", "UV2 - TLW-22 mobile overflow bug", ctx_uv2),
+                   ("uv3", "UV3 - TLW-22 note-label accessibility bug", ctx_uv3),
+                   ("uv4", "UV4 - TLW-23 missing empty state", ctx_uv4),
+                   ("uv5", "UV5 - TLW-22 clean implementation", ctx_uv5)]),
+    "G30": dict(
+        worker=True,
+        intro="The reports were written by one execute-task subagent and one pr-review subagent on TinyLedger Web. "
+              "The execute-task run should build the UI from a design; the pr-review run should request changes for "
+              "real UI defects without fixing them.",
+        shared=("Shared context", ctx_ui_worker_shared),
+        scenarios=[("ub1", "UB1 - TLW-21 build from design", ctx_ub1),
+                   ("ur1", "UR1 - TLW-21 review with color and console bugs", ctx_ur1)]),
+}
+
+
 ALL_GROUPS = {**GROUPS, **PHASE2_GROUPS, **PHASE3_GROUPS, **PHASE4_GROUPS, **TESTQ_GROUPS, **VALUE_GROUPS,
               **LEAN_GROUPS, **VERIFY_GROUPS, **LARGE_GROUPS, **FIX_GROUPS, **PROBE_GROUPS, **SEC_GROUPS,
-              **ROUTING_GROUPS}
+              **ROUTING_GROUPS, **UI_WORKER_GROUPS, **UI_MAIN_GROUPS}
 
 
 def round_groups(iteration: int) -> dict | None:
@@ -1572,6 +1763,8 @@ def groups_for(iteration: int) -> dict:
         return ROUTING_GROUPS
     if iteration == 23:
         return {"G25": PROBE_GROUPS["G25"], **SEC_GROUPS}
+    if iteration == 27:
+        return UI_WORKER_GROUPS
     if iteration == 19:
         return {g: PROBE_GROUPS[g] for g in ("G22", "G23", "G25")}
     if iteration in (20, 21):
@@ -1654,7 +1847,7 @@ def bundle(iteration: int, only: set[str] | None = None):
                 col = json.loads((run_dir / "collected.json").read_text(encoding="utf-8"))
                 report = (run_dir / "outputs" / "report.md").read_text(encoding="utf-8", errors="replace").strip()
                 skill = SCENARIOS[json.loads((run_dir / "setup.json").read_text(encoding="utf-8"))["eval"]]["skill"]
-                parts.append(f"### Run {anon}\n\nHarness facts:\n\n{harness_facts(col, skill)}\n\nReport:\n\n"
+                parts.append(f"### Run {anon}\n\nHarness facts:\n\n{harness_facts(col, skill, key)}\n\nReport:\n\n"
                              f"````markdown\n{report}\n````\n")
                 count += len(judged)
         result = judge_dir / f"result-{group}.json"

@@ -1,0 +1,47 @@
+[
+  {
+    "id": "checking",
+    "name": "Checking",
+    "balance": 245000,
+    "transactions": [
+      {
+        "date": "2026-09-28",
+        "description": "Payroll deposit",
+        "amount": 320000
+      },
+      {
+        "date": "2026-09-29",
+        "description": "Rent payment",
+        "amount": -145000
+      },
+      {
+        "date": "2026-10-01",
+        "description": "Grocery market",
+        "amount": -30000
+      }
+    ]
+  },
+  {
+    "id": "savings",
+    "name": "Savings",
+    "balance": 980000,
+    "transactions": [
+      {
+        "date": "2026-09-15",
+        "description": "Monthly contribution",
+        "amount": 50000
+      },
+      {
+        "date": "2026-09-30",
+        "description": "Interest credit",
+        "amount": 1200
+      }
+    ]
+  },
+  {
+    "id": "travel",
+    "name": "Travel fund",
+    "balance": 9567,
+    "transactions": []
+  }
+]

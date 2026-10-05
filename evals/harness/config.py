@@ -15,6 +15,7 @@ ENV_SESSION_DIR = "RITUS_EVAL_SESSION_DIR"
 ENV_SESSION_STORE = "RITUS_EVAL_SESSION_STORE"
 ENV_SESSION_ID = "RITUS_EVAL_SESSION_ID"
 ENV_SKILL_CREATOR = "RITUS_EVAL_SKILL_CREATOR"
+ENV_WEB_MODULES = "RITUS_EVAL_WEB_MODULES"
 
 
 def path_from_env(name: str, default: Path | None = None) -> Path | None:
@@ -48,12 +49,18 @@ def default_skill_creator() -> Path | None:
     return path_from_env(ENV_SKILL_CREATOR)
 
 
+def default_web_modules() -> Path:
+    return path_from_env(ENV_WEB_MODULES, default_workspace() / "web-modules")
+
+
 def default_arms() -> dict[str, str]:
     return {"old_skill": "git:fcbd5d5", "new_skill": f"dir:{REPO_ROOT / 'plugins' / 'ritus'}"}
 
 
 def add_common_options(parser, *, arms: bool = False, skill_creator: bool = False):
     parser.add_argument("--workspace", default=None, help=f"Workspace directory (env {ENV_WORKSPACE}; default evals\\workspace)")
+    parser.add_argument("--web-modules", default=None,
+                        help=f"Shared web fixture node_modules install (env {ENV_WEB_MODULES}; default evals\\workspace\\web-modules)")
     parser.add_argument("--session-dir", default=None, help=f"Copilot session-state directory (env {ENV_SESSION_DIR})")
     parser.add_argument("--session-store", default=None, help=f"Copilot session store DB (env {ENV_SESSION_STORE})")
     parser.add_argument("--session-id", default=None, help=f"Copilot session id (env {ENV_SESSION_ID})")
@@ -61,12 +68,17 @@ def add_common_options(parser, *, arms: bool = False, skill_creator: bool = Fals
         parser.add_argument("--skill-creator", default=None, help=f"skill-creator root (env {ENV_SKILL_CREATOR})")
     if arms:
         parser.add_argument("--arm", action="append", default=[], metavar="<name>=<spec>",
-                            help=("Arm plugin source; spec is dir:<path> or git:<ref>. May be repeated. "
+                            help=("Arm plugin source; spec is dir:<path> or git:<ref>, or composite "
+                                  "dir:<path>|git:<ref>+dir:<path>|git:<ref>:<path in repo>. May be repeated. "
                                   "Defaults: old_skill=git:fcbd5d5, new_skill=dir:<repo>\\plugins\\ritus."))
 
 
 def resolve_workspace(value: str | None) -> Path:
     return Path(value).expanduser().resolve() if value else default_workspace()
+
+
+def resolve_web_modules(value: str | None) -> Path:
+    return Path(value).expanduser().resolve() if value else default_web_modules()
 
 
 def resolve_session_dir(value: str | None) -> Path | None:

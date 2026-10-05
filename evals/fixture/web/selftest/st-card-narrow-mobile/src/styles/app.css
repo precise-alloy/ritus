@@ -1,0 +1,224 @@
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-width: 0;
+  background: var(--color-bg);
+  color: var(--color-text);
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-md);
+}
+
+a {
+  color: var(--color-accent);
+}
+
+.site-header {
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.site-header__inner {
+  width: min(100%, 960px);
+  margin: 0 auto;
+  padding: var(--space-4);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  flex-wrap: wrap;
+}
+
+.site-name {
+  color: var(--color-text);
+  font-weight: var(--font-weight-semibold);
+  text-decoration: none;
+}
+
+nav {
+  display: flex;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+
+nav a {
+  border-radius: var(--radius-2);
+  padding: var(--space-1) var(--space-2);
+  text-decoration: none;
+}
+
+nav a[aria-current="page"] {
+  background: var(--color-accent);
+  color: var(--color-surface);
+}
+
+.content {
+  width: min(100%, 960px);
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-4);
+}
+
+h1 {
+  margin: 0 0 var(--space-4);
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-lg);
+}
+
+h2,
+h3 {
+  margin: 0;
+  font-size: var(--font-size-md);
+  line-height: var(--line-height-md);
+}
+
+p {
+  margin: 0;
+}
+
+.card {
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+  border-radius: var(--radius-2);
+  border: 1px solid var(--color-border);
+  background: var(--color-surface);
+}
+
+.account-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: var(--space-4);
+}
+
+.account-meta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.label {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-sm);
+}
+
+.amount {
+  font-weight: var(--font-weight-semibold);
+}
+
+.table-wrap {
+  overflow-x: auto;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+caption {
+  padding: var(--space-3) var(--space-4);
+  text-align: left;
+  font-weight: var(--font-weight-semibold);
+}
+
+th,
+td {
+  padding: var(--space-3) var(--space-4);
+  border-top: 1px solid var(--color-border);
+  text-align: left;
+}
+
+td:last-child,
+th:last-child {
+  text-align: right;
+}
+
+.form-panel {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2);
+  padding: var(--space-4);
+  display: grid;
+  gap: var(--space-4);
+}
+
+.field {
+  display: grid;
+  gap: var(--space-2);
+}
+
+input,
+select,
+button {
+  width: 100%;
+  min-height: 44px;
+  font: inherit;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-2);
+  padding: var(--space-2) var(--space-3);
+  background: var(--color-surface);
+  color: var(--color-text);
+}
+
+button {
+  width: fit-content;
+  background: var(--color-accent);
+  color: var(--color-surface);
+  border-color: var(--color-accent);
+  cursor: pointer;
+}
+
+.status {
+  min-height: var(--line-height-md);
+}
+
+.status--error {
+  color: var(--color-danger);
+}
+
+.status--success {
+  color: var(--color-success);
+}
+
+@media (min-width: 640px) {
+  .account-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1024px) {
+  .account-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.summary-card {
+  margin-bottom: var(--space-4);
+}
+
+.summary-card h2 {
+  color: var(--color-text-muted);
+  font-size: var(--font-size-sm);
+  line-height: var(--line-height-sm);
+  font-weight: var(--font-weight-regular);
+}
+
+.summary-card__value {
+  color: var(--color-text);
+  font-size: var(--font-size-lg);
+  line-height: var(--line-height-lg);
+  font-weight: var(--font-weight-semibold);
+}
+
+@media (max-width: 639.98px) {
+  .summary-card {
+    max-width: 90%;
+  }
+}

@@ -1,5 +1,6 @@
 # Tooling / test run artifacts
 /.playwright-mcp/
+/.playwright-cli/
 
 # --- ritus (managed) ---
 /.ritus/.env.local

@@ -1,0 +1,75 @@
+{
+  "prompt": "Main thread, ticket-review, STANDARD TLW-22 UI planning only.",
+  "expected_output": "Plans TLW-22 with concrete UI acceptance and writes plan/tasks without implementing.",
+  "invocation": "The developer typed `/ticket-review` followed by a message, which invokes the `ticket-review` skill with that message.",
+  "user_script": {
+    "max_replies": 4,
+    "approval": "Approved - I agree with your recommendations.",
+    "question": "There's no Figma design for this ticket. Follow your recommendation.",
+    "stop_on": [
+      "final report"
+    ]
+  },
+  "assertions": [
+    {
+      "id": "up1.level_standard",
+      "check": "auto",
+      "kind": "process",
+      "text": "The first reply sizes the ticket STANDARD"
+    },
+    {
+      "id": "up1.no_code_before_approval",
+      "check": "auto",
+      "kind": "process",
+      "text": "Changes no source or test file before approval"
+    },
+    {
+      "id": "up1.no_implementation",
+      "check": "auto",
+      "kind": "outcome",
+      "text": "No src/ or test/ file is changed by the end"
+    },
+    {
+      "id": "up1.plan_written",
+      "check": "auto",
+      "kind": "outcome",
+      "text": "Writes docs/reviews/TLW-22-review.md"
+    },
+    {
+      "id": "up1.task_files",
+      "check": "auto",
+      "kind": "outcome",
+      "text": "Writes task files under docs/tasks/feature-TLW-22-transfer-note-fee/"
+    },
+    {
+      "id": "up1.citations",
+      "check": "auto",
+      "kind": "outcome",
+      "text": "Every cited file:line in the plan and task files exists"
+    },
+    {
+      "id": "up1.ui_acceptance",
+      "check": "judge",
+      "kind": "outcome",
+      "text": "Acceptance names the routes and supported widths/breakpoints to check"
+    },
+    {
+      "id": "up1.states",
+      "check": "judge",
+      "kind": "outcome",
+      "text": "Acceptance covers empty/invalid amount, From = To, success and fee edge cases"
+    },
+    {
+      "id": "up1.a11y",
+      "check": "judge",
+      "kind": "outcome",
+      "text": "Acceptance covers labels, keyboard use and contrast against WCAG 2.2 AA"
+    },
+    {
+      "id": "up1.design_system",
+      "check": "judge",
+      "kind": "outcome",
+      "text": "Plan requires existing components and design tokens"
+    }
+  ]
+}

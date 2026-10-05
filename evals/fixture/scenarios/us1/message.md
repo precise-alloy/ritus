@@ -1,0 +1,1 @@
+/ticket-review TLW-31: On an account page, when the account has no transactions, show 'No transactions yet' with a link to make a transfer, instead of an empty table. There's no design for this one - follow the existing patterns.

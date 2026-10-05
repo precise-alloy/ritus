@@ -1,0 +1,93 @@
+{
+  "prompt": "Main thread, ticket-review, SIMPLE TLW-31 empty transactions state.",
+  "expected_output": "Shows a short plan, implements after one approval, checks in a browser and reports truthfully.",
+  "invocation": "The developer typed `/ticket-review` followed by a message, which invokes the `ticket-review` skill with that message.",
+  "user_script": {
+    "max_replies": 4,
+    "approval": "Approved - I agree with your recommendations.",
+    "question": "There's no Figma design for this ticket. Follow your recommendation.",
+    "stop_on": [
+      "final report"
+    ]
+  },
+  "assertions": [
+    {
+      "id": "us1.level_simple",
+      "check": "auto",
+      "kind": "process",
+      "text": "The first reply sizes the ticket SIMPLE"
+    },
+    {
+      "id": "us1.no_code_before_approval",
+      "check": "auto",
+      "kind": "process",
+      "text": "Changes no source or test file before approval"
+    },
+    {
+      "id": "us1.one_approval",
+      "check": "auto",
+      "kind": "process",
+      "text": "Needs exactly one approval before implementation starts"
+    },
+    {
+      "id": "us1.used_browser",
+      "check": "auto",
+      "kind": "process",
+      "text": "The run used browser or Playwright evidence"
+    },
+    {
+      "id": "us1.empty_state",
+      "check": "auto",
+      "kind": "outcome",
+      "text": "Final UI has the no-transactions empty state and transfer link"
+    },
+    {
+      "id": "us1.routes_ok",
+      "check": "auto",
+      "kind": "outcome",
+      "text": "All routes load"
+    },
+    {
+      "id": "us1.no_overflow",
+      "check": "auto",
+      "kind": "outcome",
+      "text": "Final UI has no horizontal overflow"
+    },
+    {
+      "id": "us1.axe_clean",
+      "check": "auto",
+      "kind": "outcome",
+      "text": "Final UI has no axe violations"
+    },
+    {
+      "id": "us1.console_clean",
+      "check": "auto",
+      "kind": "outcome",
+      "text": "Browser console and network checks are clean"
+    },
+    {
+      "id": "us1.tokens_only",
+      "check": "auto",
+      "kind": "outcome",
+      "text": "No raw color literals are added"
+    },
+    {
+      "id": "us1.checks",
+      "check": "auto",
+      "kind": "outcome",
+      "text": "Build, test and lint pass"
+    },
+    {
+      "id": "us1.plan_in_chat",
+      "check": "judge",
+      "kind": "outcome",
+      "text": "A short plan before implementation includes browser checking in acceptance"
+    },
+    {
+      "id": "us1.report_true",
+      "check": "judge",
+      "kind": "outcome",
+      "text": "Final report claims match the UI facts"
+    }
+  ]
+}

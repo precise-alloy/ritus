@@ -1,0 +1,36 @@
+{
+  "prompt": "verify-task on TLW-23 with no empty state.",
+  "expected_output": "VERIFY: FAIL naming the missing empty state.",
+  "assertions": [
+    {
+      "id": "uv4.fail",
+      "check": "auto",
+      "kind": "outcome",
+      "text": "Returns VERIFY: FAIL"
+    },
+    {
+      "id": "uv4.read_only",
+      "check": "auto",
+      "kind": "outcome",
+      "text": "Leaves the working tree exactly as it found it"
+    },
+    {
+      "id": "uv4.used_browser",
+      "check": "auto",
+      "kind": "process",
+      "text": "The run used browser or Playwright evidence"
+    },
+    {
+      "id": "uv4.named_empty",
+      "check": "judge",
+      "kind": "outcome",
+      "text": "Names the missing `No transactions yet` state for an account without transactions"
+    },
+    {
+      "id": "uv4.no_false_defects",
+      "check": "judge",
+      "kind": "outcome",
+      "text": "Every other defect it reports is real"
+    }
+  ]
+}

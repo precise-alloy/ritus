@@ -20,7 +20,7 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
-from build import SCENARIOS  # noqa: E402
+from build import SCENARIOS, ui_verdicts  # noqa: E402
 from config import FIXTURE_DIR, add_common_options, resolve_workspace  # noqa: E402
 
 WORKSPACE = resolve_workspace(None)
@@ -208,6 +208,58 @@ def auto_e11p(col, setup, report, v):
 
 
 AUTO = {"e1": auto_e1, "e2": auto_e2, "e3": auto_e3, "e13": auto_e13, "e7": auto_e7, "e11p": auto_e11p}
+
+
+def ui_rows(col: dict) -> dict[str, tuple[bool, str]]:
+    return ui_verdicts(col.get("ui") or {}, col.get("setup_files"), col.get("final_files"))
+
+
+AUTO_UI_VERDICTS = {
+    "ub1": ("card_geometry", "card_colors", "card_type", "card_total", "card_full_width",
+            "card_reuses_component", "tokens_only", "routes_ok", "no_overflow", "axe_clean", "console_clean"),
+    "ug1": ("no_overflow", "axe_clean", "routes_ok", "console_clean", "transfer_layout", "tokens_only"),
+    "us1": ("empty_state", "routes_ok", "no_overflow", "axe_clean", "console_clean", "tokens_only"),
+}
+
+
+def auto_ub1(col, setup, report, v):
+    rows = ui_rows(col)
+    ok_checks, checks_ev = checks_ok(col)
+    out = {f"ub1.{name}": rows[name] for name in AUTO_UI_VERDICTS["ub1"]}
+    out.update({
+        "ub1.checks": (ok_checks, checks_ev),
+        "ub1.used_browser": (bool(col.get("browser_use")), f"browser/playwright actions: {len(col.get('browser_use', []))}"),
+        "ub1.read_design": (bool(col.get("design_calls")),
+                            f"design tool calls: {', '.join(col.get('design_calls', [])) or 'none'}"),
+    })
+    return out
+
+
+def auto_uv(prefix: str, want: str):
+    def inner(col, setup, report, v):
+        ok, ev = untouched(col, setup)
+        return {
+            f"{prefix}.{want.lower()}": (v == want, f"verdict {v}"),
+            f"{prefix}.read_only": (ok, ev),
+            f"{prefix}.used_browser": (bool(col.get("browser_use")),
+                                       f"browser/playwright actions: {len(col.get('browser_use', []))}"),
+        }
+    return inner
+
+
+def auto_ur1(col, setup, report, v):
+    ok, ev = untouched(col, setup)
+    return {
+        "ur1.request_changes": (v == "Request Changes", f"verdict {v}"),
+        "ur1.read_only": (ok, ev),
+        "ur1.used_browser": (bool(col.get("browser_use")),
+                             f"browser/playwright actions: {len(col.get('browser_use', []))}"),
+    }
+
+
+AUTO.update({"ub1": auto_ub1, "uv1": auto_uv("uv1", "FAIL"), "uv2": auto_uv("uv2", "FAIL"),
+             "uv3": auto_uv("uv3", "FAIL"), "uv4": auto_uv("uv4", "FAIL"), "uv5": auto_uv("uv5", "PASS"),
+             "ur1": auto_ur1})
 
 # ---------------------------------------------------------------- main-thread scenarios (Phase 2)
 
@@ -635,8 +687,83 @@ def auto_p5(col, setup, turns_text):
     }
 
 
+
+
+def ui_auto_flags(prefix: str, col: dict, names: tuple[str, ...]) -> dict:
+    rows = ui_verdicts(col.get("ui") or {}, col.get("setup_files"), col.get("final_files"))
+    return {f"{prefix}.{name}": rows.get(name, (False, "missing UI verdict")) for name in names}
+
+
+def first_gate_and_code(col: dict):
+    turns = col["turns"]
+    first_gate = next((t for t in turns if t["kind"] in APPROVAL_KINDS + ("question",)), None)
+    code_turn = next((t for t in turns if t["code_changed"]), None)
+    return first_gate, code_turn
+
+
+def auto_up1(col, setup, turns_text):
+    level, level_turn = level_until_gate(col, turns_text)
+    first_gate, code_turn = first_gate_and_code(col)
+    docs = all_docs(col)
+    plans = sorted(rel for rel in docs if rel == "docs/reviews/TLW-22-review.md")
+    tasks = sorted(rel for rel in docs if rel.startswith("docs/tasks/feature-TLW-22-transfer-note-fee/")
+                   and not rel.endswith("exploration.md"))
+    code = sorted({f for t in col["turns"] for f in t["code_changed"]} |
+                  {f for f in all_changes(col) if f.startswith(("src/", "test/"))})
+    cites = col.get("citations", [])
+    bad = [c["cite"] + " in " + c["in"] for c in cites if not c["ok"]]
+    return {
+        "up1.level_standard": (level == "STANDARD", f"level stated (turn {level_turn}): {level}"),
+        "up1.no_code_before_approval": (first_gate is not None and not first_gate["code_changed"]
+                                         and (code_turn is None or code_turn["n"] > first_gate["n"]),
+                                         f"first gate: turn {first_gate['n'] if first_gate else None}; code first changed in turn {code_turn['n'] if code_turn else None}"),
+        "up1.no_implementation": (not code, f"source/test files changed: {code or 'none'}"),
+        "up1.plan_written": (bool(plans), f"plan files: {plans or 'none'}"),
+        "up1.task_files": (bool(tasks), f"task files: {tasks or 'none'}"),
+        "up1.citations": (bool(cites) and not bad, f"{len(cites)} file:line citations; broken: {bad or 'none'}"),
+    }
+
+
+def auto_ug1(col, setup, turns_text):
+    rows = ui_auto_flags("ug1", col, AUTO_UI_VERDICTS["ug1"])
+    ok_checks, checks_ev = checks_ok(col)
+    rows.update({
+        "ug1.checks": (ok_checks, checks_ev),
+        "ug1.used_browser": (bool(col.get("browser_use")), f"browser/playwright actions: {len(col.get('browser_use', []))}"),
+    })
+    return rows
+
+
+def auto_us1(col, setup, turns_text):
+    level, _ = level_until_gate(col, turns_text)
+    first_gate, code_turn = first_gate_and_code(col)
+    approvals_before_code = sum(1 for t in col["turns"] if t["kind"] in APPROVAL_KINDS
+                                and (code_turn is None or t["n"] < code_turn["n"]))
+    rows = ui_auto_flags("us1", col, AUTO_UI_VERDICTS["us1"])
+    ok_checks, checks_ev = checks_ok(col)
+    rows.update({
+        "us1.level_simple": (level == "SIMPLE", f"level stated before first gate: {level}"),
+        "us1.no_code_before_approval": (first_gate is not None and not first_gate["code_changed"]
+                                         and (code_turn is None or code_turn["n"] > first_gate["n"]),
+                                         f"first gate: turn {first_gate['n'] if first_gate else None}; code first changed in turn {code_turn['n'] if code_turn else None}"),
+        "us1.one_approval": (code_turn is not None and approvals_before_code == 1,
+                              f"approvals before code changed: {approvals_before_code}; code changed in turn {code_turn['n'] if code_turn else None}"),
+        "us1.used_browser": (bool(col.get("browser_use")), f"browser/playwright actions: {len(col.get('browser_use', []))}"),
+        "us1.checks": (ok_checks, checks_ev),
+    })
+    return rows
+
+
+def auto_uc1(col, setup, turns_text):
+    ok, ev = untouched_main(col)
+    return {
+        "uc1.read_only": (ok, ev),
+        "uc1.used_browser": (bool(col.get("browser_use")), f"browser/playwright actions: {len(col.get('browser_use', []))}"),
+    }
+
 AUTO_MAIN = {"s8": auto_s8, "s9": auto_s9, "s10": auto_s10, "s11": auto_s11, "s12": auto_s12,
-             "p4": auto_p4, "p5": auto_p5}
+             "p4": auto_p4, "p5": auto_p5, "up1": auto_up1, "ug1": auto_ug1, "us1": auto_us1,
+             "uc1": auto_uc1}
 
 
 def auto_s11r(col, setup, turns_text):

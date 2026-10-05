@@ -36,6 +36,8 @@ Every machine-specific value is supplied at run time. Flags override environment
 | Copilot session events directory | `--session-dir <dir>` | `RITUS_EVAL_SESSION_DIR` | none; required for event collection | `build.py collect`, `collect-all`, `usage.py` main-thread timing, `contamination.py` |
 | Copilot session store database | `--session-store <file>` | `RITUS_EVAL_SESSION_STORE` | current user's Copilot session store | `usage.py` |
 | Copilot session id | `--session-id <id>` | `RITUS_EVAL_SESSION_ID` | none; required for usage collection | `usage.py` |
+| Shared web fixture install | `--web-modules <dir>` | `RITUS_EVAL_WEB_MODULES` | `evals\workspace\web-modules` | `build.py`, `smoke.py`, UI checks |
+| Figma stub request log | none | `FIGMA_STUB_LOG` | none | `figma_stub.mjs` |
 | skill-creator checkout | `--skill-creator <dir>` | `RITUS_EVAL_SKILL_CREATOR` | none | aggregation/viewer steps |
 
 ### Harness script-specific flags
@@ -48,6 +50,8 @@ Every machine-specific value is supplied at run time. Flags override environment
 | `build.py` | `collect-all` | `--iteration` | Collects every run under the iteration. |
 | `build.py` | `turn` | `run`, `--n`, `--kind approval|review|question|final|quiz|other` | Records a scripted main-thread turn. |
 | `build.py` | `cleanup` | `--iteration` | Removes generated agent roots and plugin arm copies for an iteration. |
+| `build.py` | `web-modules` | `--web-modules` | Installs the shared TinyLedger Web browser tooling. |
+| `build.py` | `environment` | `--iteration`, `--guidance-skill`, `--playwright-mcp`, `--note`, `--web-modules` | Writes `environment.json` for a frontend round and verifies the installed guidance skill matches the fixture. |
 | `grade.py` | direct | `--iteration` | Writes each run's `grading.json`. |
 | `judge.py` | `bundle` | `--iteration`, `--groups` | Writes blind judge bundles; `--groups` rebuilds only selected comma-separated groups. For the iteration of a named round, each round scenario is bundled once, in the latest group that judged it, so it gets its latest ground truth. |
 | `judge.py` | `merge` | `--iteration` | Merges judge JSON back into `judge-results.json`. |
@@ -83,6 +87,106 @@ Run `python evals\install\check_install.py` to exercise local path and smart-HTT
 | `ProgramFiles` | Used only to find Windows `copilot.cmd` or `copilot.ps1` shims. | platform value |
 | `LOCALAPPDATA` | Used only to clear Copilot's marketplace cache for this marketplace before checks. | platform value |
 | inherited environment | The checker sets throwaway `COPILOT_HOME` and `CLAUDE_CONFIG_DIR`; other inherited variables are passed to subprocesses. | current shell |
+
+## Frontend eval
+
+The frontend eval adds TinyLedger Web, composite Ritus-plus-companion arms, an eval-only Figma stand-in and browser-based UI graders. It is still harness-only: never run a real frontend round from a session that has extra Ritus, ritus-jev, impeccable or frontend-design guidance enabled.
+
+### TinyLedger Web
+
+TinyLedger Web is a no-dependency HTML/CSS/ES-module app served by a small Node dev server. The base app is in `fixture\web\base`; planted bug layers are in `fixture\web\layers`; alternative self-test implementations are in `fixture\web\selftest`; Figma stand-in data, screenshots and the `figma-design-to-code` guidance skill are in `fixture\web\design`. The web scenarios live beside the other scenarios in `fixture\scenarios\u*/`.
+
+| Layer | Bug planted | Checked by |
+| --- | --- | --- |
+| `card-gap` | total-balance card spacing is 12px instead of the 16px design token | `uv1`, `ui_selftest.py` |
+| `card-hex-console` | raw hex color plus a console error | `ur1`, `ui_selftest.py` |
+| `transfer-overflow` | transfer page overflows at 375px | `ug1`, `uc1`, `uv2`, `ui_selftest.py` |
+| `transfer-nolabel` | visible label points at the wrong input id | `ug1`, `uc1`, `uv3`, `ui_selftest.py` |
+| `txn-noempty` | transactions page is missing its empty state | `uv4`, `ui_selftest.py` |
+
+### Shared install
+
+Run `python evals\harness\build.py web-modules` before building web worlds. The install location is resolved as: `--web-modules`, then `RITUS_EVAL_WEB_MODULES`, then `evals\workspace\web-modules`. Each web world gets a `node_modules` junction to that shared install after all fixture files are written; world rebuilds, smoke runs and cleanup remove the junction, not the install.
+
+### Composite arms
+
+Use `--arm name=<ritus>+<companion>`. The Ritus side accepts `dir:<path>` or `git:<ref>`; the companion side accepts `dir:<path>` or `git:<ref>:<path-in-repo>`. Composite copies are laid out as `rp-<hex>\plugins\ritus` and `rp-<hex>\plugins\<companion-name>` so the copied Ritus hook scans only its own companion, not another arm's copy. Main-thread briefs include the registry printed by that arm copy's own hook. `setup.json` records provenance for `ritus` and `companion`: spec, commit, version and tree hash. The arm-copy cache key includes the full arm spec plus the resolved Ritus and companion sources, so a re-pin or `dir:` content change creates a new copy.
+
+### Prior-step artifacts
+
+A scenario that starts mid-workflow receives the documents its own arm would already have produced. `common/` contains Ritus-core docs; `<arm>/` contains companion docs. In Phase 3 the old arm's docs include the figma-intake context marker and e2e-plan spec that 0.2.0 expects. `{{COMPANION}}` is substituted in per-arm `inputs.md` files when a worker must load a companion skill. Phase 4 adds the new arm's companion artifacts.
+
+### Figma stand-in and guidance skill
+
+The stand-in server is `evals\harness\figma_stub.mjs`. It serves file key `TLWEB0001`, node `12:34` (also accepted as `12-34` in URLs), the resource `skill://figma/figma-design-to-code/SKILL.md`, metadata, variables, screenshots and an empty code-connect map. Set `FIGMA_STUB_LOG` to a file path to log requests. Check it with `python evals\harness\figma_stub_check.py`; add `--installed-skill <path>` to compare an installed guidance skill with the fixture after newline normalization.
+
+### UI measurements and self-test
+
+`ui_measure.mjs` drives the web app with Playwright and axe-core. `ui_eval()` starts a copied web tree on an allocated port and runs the measurement script. `ui_verdicts()` turns those measurements into PASS/FAIL facts, and `ui_selftest.py` runs the matrix over the base, planted layers and self-test variants. Read the matrix by verdict name: the base and correct variants should pass the applicable feature checks, while the planted bug row should fail only the intended checks.
+
+### The `frontend-baseline` round
+
+`frontend-baseline` is iteration 27. It builds the old arm only, currently `git:6c03d3a+dir:<repo>\plugins\ritus-frontend`; before a real round, re-pin the companion to `git:<Phase 2 commit>:plugins/ritus-frontend`.
+
+| Key | Class | Scenario | What it measures |
+| --- | --- | --- | --- |
+| `up1` | system | `eval-70-ui-plan` | UI planning for TLW-22 without design data |
+| `ug1` | system | `eval-78-ui-gate` | gate checks find and fix mobile overflow and an unlabeled field |
+| `us1` | system | `eval-79-ui-simple-empty` | end-to-end simple empty-state implementation |
+| `uc1` | system | `eval-80-ui-check-standalone` | standalone mobile transfer check, a capability baseline |
+| `ub1` | step probe | `eval-71-ui-build-design` | building the summary card from Figma node `12:34` |
+| `uv1` | step probe | `eval-72-ui-verify-gap` | verify-task names the measured card spacing bug |
+| `uv2` | step probe | `eval-73-ui-verify-overflow` | verify-task names mobile overflow |
+| `uv3` | step probe | `eval-74-ui-verify-label` | verify-task names the unassociated label |
+| `uv4` | step probe | `eval-75-ui-verify-empty` | verify-task names the missing empty state |
+| `uv5` | step probe | `eval-76-ui-verify-clean` | verify-task passes clean UI without false defects |
+| `ur1` | step probe | `eval-77-ui-review-hex-console` | pr-review requests changes for raw color and console error |
+
+### Setting up a frontend round
+
+1. **Pin and commit.** Commit the harness and fixtures. Re-pin the round companion to `git:<Phase 2 commit>:plugins/ritus-frontend`.
+2. **Open a dedicated session** in this repository.
+3. **Disable conflicting plugins and skills** for the round: installed Ritus, ritus-jev and impeccable plugins, plus any user skill that bears on frontend work, for example `frontend-design`. A skill load other than `figma-design-to-code` flags the run.
+4. **Add two MCP servers** for the round, and remove them after. VS Code's current documentation says workspace `.vscode\mcp.json` uses a top-level `servers` object; the portable `.mcp.json` and Copilot portable user config use `mcpServers`. For VS Code format, the definitions are:
+
+   ```json
+   {
+     "servers": {
+       "playwright": {
+         "type": "stdio",
+         "command": "npx",
+         "args": [
+           "@playwright/mcp@0.0.78",
+           "--isolated",
+           "--caps=testing",
+           "--allowed-origins",
+           "http://localhost:*",
+           "--output-dir",
+           "<a folder under %TEMP%>"
+         ]
+       },
+       "figma": {
+         "type": "stdio",
+         "command": "node",
+         "args": ["<repo>\\evals\\harness\\figma_stub.mjs"]
+       }
+     }
+   }
+   ```
+
+   In portable format, put the same two server objects under top-level `mcpServers` instead of `servers`. In the Copilot app, use the **MCP servers** setting; no app-specific file path is documented here. In the round session, verify that `browser_*` tools and `get_design_context` are listed.
+5. **Install the guidance.** Copy `evals\fixture\web\design\figma-design-to-code\` as the user skill `figma-design-to-code`, then remove it after the round. In the Copilot app, user skills live in `%USERPROFILE%\.agents\skills\`; do not write there from the harness. This is required because this host exposes MCP tools but not MCP resources, and 0.2.0 blocks without the guidance.
+6. **Record and build.** Run `python evals\harness\build.py web-modules`, then `python evals\harness\build.py environment --iteration <n> --guidance-skill <path> --playwright-mcp "npx @playwright/mcp@0.0.78 --isolated --caps=testing --allowed-origins http://localhost:* --output-dir <a folder under %TEMP%>" --note "<model, host app and settings>"`, then build the round.
+7. **Run one run at a time,** every arm, with one model and one setting set throughout. After each run's collection, close the Playwright MCP browser with `browser_close` before the next run. The session's single MCP browser serves every subagent, so pages and console state would otherwise carry over.
+8. **Finish** as for other rounds: collect, grade, judge, then run `contamination.py` and `scores.py`.
+
+### Reading results
+
+System-level groups carry the comparison because each arm reaches UI checks at different workflow points. Step probes are reported apart: 0.2.0 checks UI at blocking gates before pr-review, while 1.0 loads a standard into execute-task, verify-task and pr-review.
+
+### Final comparison
+
+Phase 5 reruns 0.2.0 next to 1.0 in one session set up exactly as above. A deployment-profile benchmark, where each arm gets its own recommended environment, is not part of this comparison.
 
 ## Running a round
 
@@ -121,4 +225,4 @@ The generated `review.html` viewer and all raw run data belong under `workspace/
 
 ## Limits
 
-The harness is a reproducible reference for maintainers, not a portable product test suite. It depends on a Copilot CLI environment with accessible session logs and a compatible session store.
+The harness is a reproducible reference for maintainers, not a portable product test suite. It depends on a Copilot CLI environment with accessible session logs and a compatible session store. On Windows, deep `--workspace` paths can push generated web worlds past the 260-character path limit; keep workspaces short, for example under `evals\workspace\`.

@@ -1,0 +1,50 @@
+{
+  "prompt": "Main thread, standalone transfer-page mobile and accessibility check.",
+  "expected_output": "Checks the page, names the overflow and label defects with evidence, and changes nothing.",
+  "invocation": "The developer sent a plain message, not a slash command.",
+  "user_script": {
+    "max_replies": 3,
+    "question": "Just check and tell me what's wrong - don't change anything yet.",
+    "stop_on": [
+      "final report"
+    ]
+  },
+  "assertions": [
+    {
+      "id": "uc1.read_only",
+      "check": "auto",
+      "kind": "outcome",
+      "text": "Leaves the repository unchanged except for browser-tool output"
+    },
+    {
+      "id": "uc1.used_browser",
+      "check": "auto",
+      "kind": "process",
+      "text": "The run used browser or Playwright evidence"
+    },
+    {
+      "id": "uc1.named_overflow",
+      "check": "judge",
+      "kind": "outcome",
+      "text": "Names mobile horizontal overflow on the transfer page"
+    },
+    {
+      "id": "uc1.named_label",
+      "check": "judge",
+      "kind": "outcome",
+      "text": "Names the note field's missing accessible label"
+    },
+    {
+      "id": "uc1.evidence",
+      "check": "judge",
+      "kind": "outcome",
+      "text": "Each finding is backed by observed evidence"
+    },
+    {
+      "id": "uc1.no_false_defects",
+      "check": "judge",
+      "kind": "outcome",
+      "text": "Every other defect it reports is real"
+    }
+  ]
+}

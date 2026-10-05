@@ -35,6 +35,7 @@ SEARCH_TOOLS = ("grep", "glob", "rg")
 REFUSED = b"Maximum concurrent agent limit"
 COMPLETE = b'"tool.execution_complete"'
 CALL_ID_RE = re.compile(rb'"toolCallId"\s*:\s*"([^"]+)"')
+ENV_SKILLS = {"figma-design-to-code"}
 
 
 def norm(path: str | Path) -> str:
@@ -86,15 +87,24 @@ def check(iteration: int, workspace: Path, session_dir: Path | None) -> dict:
             missing.append(run_rel)
             continue
         allowed = [norm(setup["agent_root"]), norm(Path(setup["plugin"]).parent)]
-        info = {"agent_root": name, "skills": [], "outside": [], "unscoped_search": []}
+        companion = setup.get("companion")
+        if companion and companion.get("path"):
+            allowed.append(norm(companion["path"]))
+        if setup.get("web_modules"):
+            allowed.append(norm(setup["web_modules"]))
+        info = {"agent_root": name, "skills": [], "env_skills": [], "outside": [], "unscoped_search": []}
         for node in events.tree(agent["id"]):
             owner[node["id"]] = run_rel
             for call in events.tools.get(node["id"], []):
                 args = call["args"] if isinstance(call["args"], dict) else {"input": call["args"]}
                 if call["tool"] == "skill":
-                    entry = {"depth": node["depth"], "skill": args.get("skill"), "loaded": None}
+                    skill_name = args.get("skill")
+                    entry = {"depth": node["depth"], "skill": skill_name, "loaded": None}
                     skill_calls[call["call_id"]] = entry
-                    info["skills"].append(entry)
+                    if skill_name in ENV_SKILLS:
+                        info["env_skills"].append(entry)
+                    else:
+                        info["skills"].append(entry)
                 if call["tool"] in SEARCH_TOOLS and not (args.get("paths") or args.get("path")):
                     info["unscoped_search"].append({"depth": node["depth"], "tool": call["tool"],
                                                     "pattern": str(args.get("pattern", ""))[:80]})
@@ -121,11 +131,14 @@ def check(iteration: int, workspace: Path, session_dir: Path | None) -> dict:
     for run_rel, info in found.items():
         # A call with no completion recorded counts as a load: unknown is not clean.
         if any(s["loaded"] is not False for s in info["skills"]) or info["outside"] or info["unscoped_search"]:
-            flagged[run_rel] = {**info, "outside": info["outside"][:20],
-                                "unscoped_search": info["unscoped_search"][:20]}
+            entry = {"agent_root": info["agent_root"], "skills": info["skills"],
+                     "outside": info["outside"][:20], "unscoped_search": info["unscoped_search"][:20]}
+            if info["env_skills"]:
+                entry["env_skills"] = info["env_skills"]
+            flagged[run_rel] = entry
         elif info["skills"]:
             failed_skill_calls[run_rel] = [s["skill"] for s in info["skills"]]
-    return {"iteration": iteration, "runs": len(setups), "contaminated": flagged,
+    return {"iteration": iteration, "runs": len(setups), "details": found, "contaminated": flagged,
             "failed_skill_calls": failed_skill_calls, "refused_launches": dict(sorted(refused.items())),
             "agent_not_found": missing}
 
@@ -141,10 +154,11 @@ def main() -> int:
     out.write_text(json.dumps(result, indent=2, ensure_ascii=True), encoding="utf-8")
     flagged = result["contaminated"]
     loads = sum(1 for info in flagged.values() if any(s["loaded"] is not False for s in info["skills"]))
+    env_loads = sum(1 for info in result["details"].values() if any(s["loaded"] is not False for s in info.get("env_skills", [])))
     outside = sum(1 for info in flagged.values() if info["outside"])
     unscoped = sum(1 for info in flagged.values() if info["unscoped_search"])
-    print(f"{out}: {len(flagged)}/{result['runs']} runs contaminated (skill loads {loads}, outside paths "
-          f"{outside}, unscoped searches {unscoped}); failed skill calls only in "
+    print(f"{out}: {len(flagged)}/{result['runs']} runs contaminated (skill loads {loads}, env skill loads "
+          f"{env_loads}, outside paths {outside}, unscoped searches {unscoped}); failed skill calls only in "
           f"{len(result['failed_skill_calls'])} runs; refused launches in {len(result['refused_launches'])} runs; "
           f"agent not found for {len(result['agent_not_found'])}")
     return 0

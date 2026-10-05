@@ -1,0 +1,108 @@
+{
+  "fileKey": "TLWEB0001",
+  "name": "TinyLedger Web",
+  "variables": {
+    "color/surface": "#FFFFFF",
+    "color/border": "#D0D7DE",
+    "color/text": "#1F2328",
+    "color/text-muted": "#57606A",
+    "color/bg": "#F6F8FA",
+    "space/2": 8,
+    "space/3": 12,
+    "space/4": 16,
+    "radius/2": 8
+  },
+  "textStyles": {
+    "label/sm": {
+      "fontSize": 14,
+      "lineHeight": 20,
+      "fontWeight": 400
+    },
+    "heading/lg": {
+      "fontSize": 24,
+      "lineHeight": 32,
+      "fontWeight": 600
+    }
+  },
+  "nodes": {
+    "12:30": {
+      "id": "12:30",
+      "name": "Accounts - desktop",
+      "type": "FRAME",
+      "x": 0,
+      "y": 0,
+      "width": 1280,
+      "height": 800,
+      "children": [
+        "12:34"
+      ]
+    },
+    "12:34": {
+      "id": "12:34",
+      "name": "Total balance card",
+      "type": "FRAME",
+      "x": 176,
+      "y": 128,
+      "width": 928,
+      "height": 102,
+      "parent": "12:30",
+      "layoutMode": "VERTICAL",
+      "padding": {
+        "top": 16,
+        "right": 16,
+        "bottom": 16,
+        "left": 16
+      },
+      "itemSpacing": 16,
+      "cornerRadius": 8,
+      "fills": [
+        {
+          "type": "SOLID",
+          "variable": "color/surface",
+          "value": "#FFFFFF"
+        }
+      ],
+      "strokes": [
+        {
+          "type": "SOLID",
+          "variable": "color/border",
+          "value": "#D0D7DE",
+          "weight": 1
+        }
+      ],
+      "layoutSizingHorizontal": "FILL",
+      "children": [
+        {
+          "id": "12:35",
+          "name": "Total balance",
+          "type": "TEXT",
+          "x": 193,
+          "y": 145,
+          "width": 87,
+          "height": 20,
+          "characters": "Total balance",
+          "textStyle": "label/sm",
+          "fill": {
+            "variable": "color/text-muted",
+            "value": "#57606A"
+          }
+        },
+        {
+          "id": "12:36",
+          "name": "$12,345.67",
+          "type": "TEXT",
+          "x": 193,
+          "y": 181,
+          "width": 128,
+          "height": 32,
+          "characters": "$12,345.67",
+          "textStyle": "heading/lg",
+          "fill": {
+            "variable": "color/text",
+            "value": "#1F2328"
+          }
+        }
+      ]
+    }
+  }
+}
