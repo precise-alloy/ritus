@@ -2057,6 +2057,11 @@ DESIGN_TOOL_NAMES = {"get_design_context", "get_variable_defs", "get_metadata", 
                      "get_code_connect_map"}
 
 
+def mcp_tool_base(tool: str) -> str:
+    """A tool's own name without the MCP server prefix a host adds: `figma-get_metadata`, `mcp__figma__get_metadata`."""
+    return re.split(r"__|-", tool)[-1]
+
+
 def collect_ui_events(setup: dict, events) -> tuple[list[str], list[str]]:
     """Return arm-blind browser/design activity for one run agent and its descendants."""
     name = Path(setup["agent_root"]).name
@@ -2069,14 +2074,15 @@ def collect_ui_events(setup: dict, events) -> tuple[list[str], list[str]]:
     for node in events.tree(agent["id"]):
         for entry in events.tools.get(node["id"], []):
             tool = str(entry.get("tool") or "")
+            base = mcp_tool_base(tool)
             args = entry.get("args") if isinstance(entry.get("args"), dict) else {}
             command = str(args.get("command", ""))
-            if "playwright" in tool.lower() or tool.startswith("browser_"):
-                browser_use.append(f"{tool} {json.dumps(args, ensure_ascii=False)[:220]}")
+            if "playwright" in tool.lower() or base.startswith("browser_"):
+                browser_use.append(f"{base} {json.dumps(args, ensure_ascii=False)[:220]}")
             elif tool == "powershell" and re.search(r"\bplaywright\b", command, re.I):
                 browser_use.append("$ " + command[:300])
-            if tool in DESIGN_TOOL_NAMES:
-                design_calls.append(tool)
+            if base in DESIGN_TOOL_NAMES:
+                design_calls.append(base)
     return browser_use, design_calls
 
 
