@@ -126,7 +126,7 @@ The stand-in server is `evals\harness\figma_stub.mjs`. It serves file key `TLWEB
 
 ### The `frontend-baseline` round
 
-`frontend-baseline` is iteration 27. It builds the old arm only, currently `git:6c03d3a+dir:<repo>\plugins\ritus-frontend`; before a real round, re-pin the companion to `git:<Phase 2 commit>:plugins/ritus-frontend`.
+`frontend-baseline` is iteration 27. It builds the old arm only: Ritus 3.0.0 (`git:6c03d3a`) plus ritus-frontend 0.2.0 pinned to the commit that added it (`git:7e57273:plugins/ritus-frontend`), so the round measures 0.2.0 whatever `plugins/ritus-frontend/` holds in the working tree.
 
 | Key | Class | Scenario | What it measures |
 | --- | --- | --- | --- |
@@ -144,7 +144,7 @@ The stand-in server is `evals\harness\figma_stub.mjs`. It serves file key `TLWEB
 
 ### Setting up a frontend round
 
-1. **Pin and commit.** Commit the harness and fixtures. Re-pin the round companion to `git:<Phase 2 commit>:plugins/ritus-frontend`.
+1. **Commit and pin.** Build rounds from committed harness and fixtures. Pin every arm to a commit (`git:<ref>`, or `git:<ref>:<path>` for a companion), never to a working-tree folder that may change. `frontend-baseline` pins ritus-frontend 0.2.0 to `git:7e57273:plugins/ritus-frontend`.
 2. **Open a dedicated session** in this repository.
 3. **Disable conflicting plugins and skills** for the round: installed Ritus, ritus-jev and impeccable plugins, plus any user skill that bears on frontend work, for example `frontend-design`. A skill load other than `figma-design-to-code` flags the run.
 4. **Add two MCP servers** for the round, and remove them after. VS Code's current documentation says workspace `.vscode\mcp.json` uses a top-level `servers` object; the portable `.mcp.json` and Copilot portable user config use `mcpServers`. For VS Code format, the definitions are:

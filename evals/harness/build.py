@@ -107,9 +107,9 @@ ROUNDS = {
         "iteration": 27,
         "runs": 3,
         "arms": ["old_skill"],
-        # Re-pin the companion to git:<Phase 2 commit>:plugins/ritus-frontend before running,
-        # and before Phase 4 edits that folder.
-        "arm_specs": {"old_skill": f"git:6c03d3a+dir:{REPO_ROOT / 'plugins' / 'ritus-frontend'}"},
+        # ritus-frontend 0.2.0 is pinned to the commit that added it, so the round measures 0.2.0 whatever
+        # plugins/ritus-frontend holds in the working tree (the rewrite changes it).
+        "arm_specs": {"old_skill": "git:6c03d3a+git:7e57273:plugins/ritus-frontend"},
         "scenarios": FRONTEND_BASELINE_KEYS,
         "groups": FRONTEND_BASELINE_GROUPS,
     },
