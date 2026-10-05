@@ -3,55 +3,74 @@
 ## /transfer
 
 - name: transfer
-- preconditions: TinyLedger Web seed data is loaded; TinyLedger Web supports widths from 375px through 1440px with breakpoints at 640px and 1024px.
+- preconditions: TinyLedger Web seed data is loaded; supported widths are 375px to 1440px, with breakpoints at 640px and 1024px.
 - flow:
     1. navigate /transfer
-    2. wait for route content
+    2. wait for heading name="Transfer" and complementary name="Fee preview"
 - a11y:
     - axe: no violations
+    - name: textbox name="Note (optional)" takes its name from its visible label
     - tab-order: interactive controls follow DOM order
 
-### scenario: transfer-375
+### scenario: transfer-layout-narrow
 
-- viewport(s): 375px
-- state: ticket acceptance
+- viewport(s): 375px, 768px
+- state: empty form
 - setup:
-    1. navigate /transfer
-    2. wait for the route heading and layout readiness
-
+    1. reload route
+    2. wait for heading name="Transfer" and complementary name="Fee preview"
 - assertions:
-    - visible: textbox name="Note"
-    - attribute: textbox name="Note" maxlength="140"
-    - visible: region name="Transfer fee"
-    - geometry: fee panel is beside the form at 1280px and below the form at 375px and 768px
-    - functional: `transferFee(2550)` returns 26 and `transferFee(2549)` returns 25
+    - visible: textbox name="Note (optional)"
+    - attribute: textbox name="Note (optional)" maxlength="140"
+    - visible: complementary name="Fee preview"
+    - geometry: the top of complementary name="Fee preview" is at or below the bottom of the transfer form
+    - geometry: document scroll width is at most the viewport width
 
-### scenario: transfer-768
-
-- viewport(s): 768px
-- state: ticket acceptance
-- setup:
-    1. navigate /transfer
-    2. wait for the route heading and layout readiness
-
-- assertions:
-    - visible: textbox name="Note"
-    - attribute: textbox name="Note" maxlength="140"
-    - visible: region name="Transfer fee"
-    - geometry: fee panel is beside the form at 1280px and below the form at 375px and 768px
-    - functional: `transferFee(2550)` returns 26 and `transferFee(2549)` returns 25
-
-### scenario: transfer-1280
+### scenario: transfer-layout-wide
 
 - viewport(s): 1280px
-- state: ticket acceptance
+- state: empty form
 - setup:
-    1. navigate /transfer
-    2. wait for the route heading and layout readiness
-
+    1. reload route
+    2. wait for heading name="Transfer" and complementary name="Fee preview"
 - assertions:
-    - visible: textbox name="Note"
-    - attribute: textbox name="Note" maxlength="140"
-    - visible: region name="Transfer fee"
-    - geometry: fee panel is beside the form at 1280px and below the form at 375px and 768px
-    - functional: `transferFee(2550)` returns 26 and `transferFee(2549)` returns 25
+    - visible: textbox name="Note (optional)"
+    - visible: complementary name="Fee preview"
+    - geometry: complementary name="Fee preview" starts at or right of the transfer form's right edge, and their vertical ranges overlap
+    - geometry: document scroll width is at most the viewport width
+
+### scenario: transfer-fee-half-up
+
+- viewport(s): 1280px
+- state: amount 25.50 entered
+- setup:
+    1. reload route
+    2. wait for textbox name="Amount"
+    3. type "25.50" into textbox name="Amount"
+- assertions:
+    - text: complementary name="Fee preview" contains "$0.26"
+    - text: complementary name="Fee preview" contains "$25.76"
+
+### scenario: transfer-fee-below-half
+
+- viewport(s): 1280px
+- state: amount 25.49 entered
+- setup:
+    1. reload route
+    2. wait for textbox name="Amount"
+    3. type "25.49" into textbox name="Amount"
+- assertions:
+    - text: complementary name="Fee preview" contains "$0.25"
+    - text: complementary name="Fee preview" contains "$25.74"
+
+### scenario: transfer-fee-minimum
+
+- viewport(s): 1280px
+- state: amount 10.00 entered
+- setup:
+    1. reload route
+    2. wait for textbox name="Amount"
+    3. type "10.00" into textbox name="Amount"
+- assertions:
+    - text: complementary name="Fee preview" contains "$0.25"
+    - text: complementary name="Fee preview" contains "$10.25"

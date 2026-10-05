@@ -2,112 +2,49 @@
 
 ## /accounts/checking
 
-- name: accounts-checking
-- preconditions: TinyLedger Web seed data is loaded; TinyLedger Web supports widths from 375px through 1440px with breakpoints at 640px and 1024px.
+- name: account-checking
+- preconditions: TinyLedger Web seed data is loaded; the Checking account has three transactions.
 - flow:
     1. navigate /accounts/checking
-    2. wait for route content
+    2. wait for heading name="Checking" and table name="Checking transactions"
 - a11y:
     - axe: no violations
     - tab-order: interactive controls follow DOM order
 
-### scenario: accounts-checking-375
+### scenario: checking-transactions
 
-- viewport(s): 375px
-- state: ticket acceptance
+- viewport(s): 375px, 768px, 1280px
+- state: populated
 - setup:
-    1. navigate /accounts/checking
-    2. wait for the route heading and layout readiness
-
+    1. reload route
+    2. wait for table name="Checking transactions"
 - assertions:
-    - functional: transactions are ordered newest first
-    - text: amounts include signed values
-    - visible: text="No transactions yet" when the account has no transactions
-    - visible: link name="Make a transfer" when the account has no transactions
-    - hidden: table when the account has no transactions
-
-### scenario: accounts-checking-768
-
-- viewport(s): 768px
-- state: ticket acceptance
-- setup:
-    1. navigate /accounts/checking
-    2. wait for the route heading and layout readiness
-
-- assertions:
-    - functional: transactions are ordered newest first
-    - text: amounts include signed values
-    - visible: text="No transactions yet" when the account has no transactions
-    - visible: link name="Make a transfer" when the account has no transactions
-    - hidden: table when the account has no transactions
-
-### scenario: accounts-checking-1280
-
-- viewport(s): 1280px
-- state: ticket acceptance
-- setup:
-    1. navigate /accounts/checking
-    2. wait for the route heading and layout readiness
-
-- assertions:
-    - functional: transactions are ordered newest first
-    - text: amounts include signed values
-    - visible: text="No transactions yet" when the account has no transactions
-    - visible: link name="Make a transfer" when the account has no transactions
-    - hidden: table when the account has no transactions
+    - visible: table name="Checking transactions"
+    - count: body rows of table name="Checking transactions" = 3
+    - functional: row dates are in descending order (newest first)
+    - text: incoming amounts start with "+" and outgoing amounts start with "-"
+    - style: incoming amounts use the success color token; outgoing amounts use the text color token
 
 ## /accounts/travel
 
-- name: accounts-travel
-- preconditions: TinyLedger Web seed data is loaded; TinyLedger Web supports widths from 375px through 1440px with breakpoints at 640px and 1024px.
+- name: account-travel
+- preconditions: TinyLedger Web seed data is loaded; the Travel fund account has no transactions.
 - flow:
     1. navigate /accounts/travel
-    2. wait for route content
+    2. wait for heading name="Travel fund"
 - a11y:
     - axe: no violations
     - tab-order: interactive controls follow DOM order
 
-### scenario: accounts-travel-375
+### scenario: travel-empty
 
-- viewport(s): 375px
-- state: ticket acceptance
+- viewport(s): 375px, 768px, 1280px
+- state: no transactions
 - setup:
-    1. navigate /accounts/travel
-    2. wait for the route heading and layout readiness
-
+    1. reload route
+    2. wait for heading name="Travel fund"
 - assertions:
-    - functional: transactions are ordered newest first
-    - text: amounts include signed values
-    - visible: text="No transactions yet" when the account has no transactions
-    - visible: link name="Make a transfer" when the account has no transactions
-    - hidden: table when the account has no transactions
-
-### scenario: accounts-travel-768
-
-- viewport(s): 768px
-- state: ticket acceptance
-- setup:
-    1. navigate /accounts/travel
-    2. wait for the route heading and layout readiness
-
-- assertions:
-    - functional: transactions are ordered newest first
-    - text: amounts include signed values
-    - visible: text="No transactions yet" when the account has no transactions
-    - visible: link name="Make a transfer" when the account has no transactions
-    - hidden: table when the account has no transactions
-
-### scenario: accounts-travel-1280
-
-- viewport(s): 1280px
-- state: ticket acceptance
-- setup:
-    1. navigate /accounts/travel
-    2. wait for the route heading and layout readiness
-
-- assertions:
-    - functional: transactions are ordered newest first
-    - text: amounts include signed values
-    - visible: text="No transactions yet" when the account has no transactions
-    - visible: link name="Make a transfer" when the account has no transactions
-    - hidden: table when the account has no transactions
+    - visible: text="No transactions yet"
+    - visible: link name="Make a transfer"
+    - attribute: link name="Make a transfer" href="/transfer"
+    - hidden: table inside main
