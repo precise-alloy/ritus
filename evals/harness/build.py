@@ -123,6 +123,17 @@ ROUNDS = {
         "scenarios": FRONTEND_BASELINE_KEYS,
         "groups": FRONTEND_BASELINE_GROUPS,
     },
+    "frontend-v1b": {
+        "iteration": 30,
+        "runs": 3,
+        "arms": ["new_skill"],
+        # Second 1.0 iteration round, after the round-2 fixture and harness fixes.
+        "arm_specs": {
+            "new_skill": f"dir:{REPO_ROOT / 'plugins' / 'ritus'}+dir:{REPO_ROOT / 'plugins' / 'ritus-frontend'}",
+        },
+        "scenarios": FRONTEND_BASELINE_KEYS,
+        "groups": FRONTEND_BASELINE_GROUPS,
+    },
     "frontend-compare": {
         "iteration": 29,
         "runs": 3,
@@ -849,7 +860,19 @@ def remove_tree_entry(path: Path):
         path.unlink()
 
 
-def copy_tree_lf(src: Path, dest: Path, subst=None):
+def rewrite_web_doc_port(rel: Path, text: str, port: int | None) -> str:
+    if port is None:
+        return text
+    if rel.as_posix() != "README.md" and rel.parts[:1] != ("docs",):
+        return text
+    return (text
+            .replace("http://localhost:4173/", f"http://localhost:{port}/")
+            .replace("localhost:4173", f"localhost:{port}")
+            .replace("port is `4173`", f"port is `{port}`")
+            .replace("port `4173`", f"port `{port}`"))
+
+
+def copy_tree_lf(src: Path, dest: Path, subst=None, dev_port: int | None = None):
     for path in sorted(src.rglob("*")):
         if path.is_dir():
             continue
@@ -862,6 +885,7 @@ def copy_tree_lf(src: Path, dest: Path, subst=None):
         text = path.read_text(encoding="utf-8").replace("\r\n", "\n")
         if subst:
             text = subst(text)
+        text = rewrite_web_doc_port(rel, text, dev_port)
         target.write_text(text, encoding="utf-8", newline="\n")
 
 
@@ -1024,9 +1048,9 @@ def materialize(repo: Path, layers, spec: dict | None = None, dev_port: int | No
     base = WEB_BASE if fixture == "web" else BASE
     layer_root = WEB_LAYERS if fixture == "web" else LAYERS
     clear_worktree(repo)
-    copy_tree_lf(base, repo)
+    copy_tree_lf(base, repo, dev_port=dev_port)
     for layer in [*layers, *spec.get("world_layers", [])]:
-        copy_tree_lf(layer_root / layer, repo)
+        copy_tree_lf(layer_root / layer, repo, dev_port=dev_port)
     update_package_port(repo, dev_port)
     for rel in spec.get("drop", []):
         target = repo / rel
@@ -1036,6 +1060,43 @@ def materialize(repo: Path, layers, spec: dict | None = None, dev_port: int | No
         while parent != repo and parent.exists() and not any(parent.iterdir()):
             parent.rmdir()
             parent = parent.parent
+
+
+def doc_set_names(spec: dict, arm: str) -> list[str]:
+    doc_sets = spec.get("doc_sets", [])
+    if isinstance(doc_sets, dict):
+        doc_sets = doc_sets.get(arm, [])
+    return [*doc_sets, spec["key"]]
+
+
+def is_task_or_review_doc(rel: Path) -> bool:
+    text = rel.as_posix()
+    return text.startswith("docs/tasks/") or text.startswith("docs/reviews/")
+
+
+def committed_overlay_files(spec: dict, arm: str, subst, dev_port: int | None) -> dict[str, str]:
+    files = {}
+    for doc_set in doc_set_names(spec, arm):
+        docs = SCENARIOS_DIR / doc_set / arm / "repo"
+        if not docs.is_dir():
+            continue
+        for path in sorted(docs.rglob("*")):
+            if path.is_dir():
+                continue
+            rel = path.relative_to(docs)
+            if is_task_or_review_doc(rel):
+                continue
+            text = path.read_text(encoding="utf-8").replace("\r\n", "\n")
+            text = rewrite_web_doc_port(rel, subst(text), dev_port)
+            files[rel.as_posix()] = text
+    return files
+
+
+def write_overlay_files(repo: Path, files: dict[str, str]):
+    for rel, text in files.items():
+        target = repo / rel
+        target.parent.mkdir(parents=True, exist_ok=True)
+        target.write_text(text, encoding="utf-8", newline="\n")
 
 
 def dev_ports_file(workspace: Path) -> Path:
@@ -1077,7 +1138,7 @@ def allocate_dev_port(workspace: Path, owner: str) -> int:
     start = 41000 + (int(hashlib.sha256(owner.encode("utf-8")).hexdigest()[:8], 16) % 8000)
     for offset in range(8000):
         port = 41000 + ((start - 41000 + offset) % 8000)
-        if port not in held and port_is_free(port):
+        if "4173" not in str(port) and port not in held and port_is_free(port):
             ports[str(port)] = owner
             write_dev_ports(workspace, ports)
             return port
@@ -1453,6 +1514,11 @@ def build_run(eval_name: str, arm: str, run_idx: int, iteration: int, now: datet
     repo, origin, outputs = agent_root / repo_name, agent_root / "origin.git", agent_root / "out"
     repo.mkdir(parents=True)
     outputs.mkdir()
+    companion = companion_root(plugins[arm])
+    early_subst = make_subst(now, {"REPO": str(repo), "OUTPUTS": str(outputs),
+                                   "STANDARDS_LINE": standards_line(iteration, arm),
+                                   "COMPANION": str(companion) if companion else ""})
+    committed_docs = committed_overlay_files(spec, arm, early_subst, dev_port if web else None)
 
     git(repo, "init", "-q", "-b", "main")
     for key, value in (("core.autocrlf", "false"), ("user.name", "Dev"), ("user.email", "dev@example.com"),
@@ -1463,6 +1529,13 @@ def build_run(eval_name: str, arm: str, run_idx: int, iteration: int, now: datet
         materialize(repo, commit["layers"], spec, dev_port)
         git(repo, "add", "-A")
         git(repo, "commit", "-q", "-m", commit["msg"], env=commit_env(commit["days"], commit["author"], now))
+    if committed_docs:
+        write_overlay_files(repo, committed_docs)
+        git(repo, "add", "-A", "--", *committed_docs.keys())
+        if git(repo, "diff", "--cached", "--quiet", check=False).returncode != 0:
+            last = COMMITS[spec["main"][-1]]
+            git(repo, "commit", "-q", "-m", "docs: add project frontend guide",
+                env=commit_env(last["days"], last["author"], now))
     git(repo, "init", "-q", "--bare", str(origin))
     git(repo, "remote", "add", "origin", str(origin))
     git(repo, "push", "-q", "-u", "origin", "main")
@@ -1470,6 +1543,7 @@ def build_run(eval_name: str, arm: str, run_idx: int, iteration: int, now: datet
         git(repo, "checkout", "-q", "-b", spec["branch"])
     for commit in spec["branch_commits"]:
         materialize(repo, commit["layers"], spec, dev_port)
+        write_overlay_files(repo, committed_docs)
         git(repo, "add", "-A")
         git(repo, "commit", "-q", "-m", commit["msg"], env=commit_env(commit["days"], commit["author"], now))
     if spec["push_branch"]:
@@ -1479,23 +1553,20 @@ def build_run(eval_name: str, arm: str, run_idx: int, iteration: int, now: datet
         git(repo, "remote", "set-url", "origin", spec["remote_url"])
     if spec["worktree"] is not None:
         materialize(repo, spec["worktree"], spec, dev_port)
+        write_overlay_files(repo, committed_docs)
 
     checks = run_checks(repo)
-    companion = companion_root(plugins[arm])
     registry = run_companion_hook(plugins[arm], repo)
     extra = {"TESTS_PASS": checks["test"].get("pass"), "TESTS_TOTAL": checks["test"].get("tests"),
              "REPO": str(repo), "OUTPUTS": str(outputs), "STANDARDS_LINE": standards_line(iteration, arm),
              "COMPANION": str(companion) if companion else ""}
     subst = make_subst(now, extra)
     scen = SCENARIOS_DIR / spec["key"]
-    doc_sets = spec.get("doc_sets", [])
-    if isinstance(doc_sets, dict):
-        doc_sets = doc_sets.get(arm, [])
-    for doc_set in [*doc_sets, spec["key"]]:
+    for doc_set in doc_set_names(spec, arm):
         for part in ("common", arm):
             docs = SCENARIOS_DIR / doc_set / part / "repo"
             if docs.is_dir():
-                copy_tree_lf(docs, repo, subst)
+                copy_tree_lf(docs, repo, subst, dev_port if web else None)
                 update_package_port(repo, dev_port)
     if web:
         create_node_modules_junction(repo, web_modules)

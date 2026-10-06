@@ -144,7 +144,7 @@ The stand-in server is `evals\harness\figma_stub.mjs`. It serves file key `TLWEB
 
 ### The `frontend-v1` and `frontend-compare` rounds
 
-`frontend-v1` is iteration 28 and runs the new arm only for the 1.0 iteration loop. `frontend-compare` is iteration 29 and reruns the old and new arms side by side for the final comparison; Phase 5 pins the new arm to the ritus-frontend 1.0 release commit before that round runs.
+`frontend-v1` is iteration 28 and runs the new arm only for the 1.0 iteration loop. `frontend-v1b` is iteration 30, the second 1.0 iteration round after the round-2 fixture and harness fixes. `frontend-compare` is iteration 29 and reruns the old and new arms side by side for the final comparison; Phase 5 pins the new arm to the ritus-frontend 1.0 release commit before that round runs.
 
 ### Setting up a frontend round
 

@@ -3,7 +3,7 @@
   "integrations": [
     {
       "skill": "frontend",
-      "prompt": "While ticket-review task-generation writes task files for a task that touches UI files or UI behaviour: load the frontend skill and apply references/plan.md so Acceptance names route/component x viewport x state, docs/FRONTEND.md facts, accessibility, design-system use, and Figma links/values when available."
+      "prompt": "While ticket-review task-generation writes task files for a task that touches UI files or UI behaviour: load the frontend skill and apply references/plan.md, ending with its 'Before writing the task file' check, so Acceptance names route/component x viewport x state, docs/FRONTEND.md facts, accessibility, design-system use, and Figma links/values when available."
     },
     {
       "skill": "frontend",
@@ -11,11 +11,11 @@
     },
     {
       "skill": "frontend",
-      "prompt": "While verify-task runs on a task that touches UI files or UI behaviour: load the frontend skill and independently verify each UI Acceptance item in a browser with references/verify.md and references/browser.md; keep verify-task's read-only verdict format."
+      "prompt": "While verify-task runs on a task that touches UI files or UI behaviour: load the frontend skill and independently verify each UI Acceptance item in a browser with references/verify.md and references/browser.md; keep verify-task's read-only verdict format, and when the check finds a UI defect, have the main thread show the user the findings with evidence before dispatching a fix."
     },
     {
       "skill": "frontend",
-      "prompt": "While pr-review runs on a change that touches UI files or UI behaviour: load the frontend skill and independently review the UI in a browser for rendered behaviour, accessibility, console/network evidence, and design-system use before the pr-review verdict."
+      "prompt": "While pr-review runs on a change that touches UI files or UI behaviour: load the frontend skill and independently review the UI in a browser for rendered behaviour, accessibility, console/network evidence, and design-system use before the pr-review verdict, and when the check finds a UI defect, have the main thread show the user the findings with evidence before dispatching a fix."
     },
     {
       "skill": "frontend",

@@ -16,7 +16,7 @@ Staff can scan account activity quickly, and an account with no transactions get
 - [ ] [AC5] At `/accounts/checking`, viewports 375px, 639px, 640px, 1023px, 1024px, 1280px and 1440px, default state: transaction rows remain readable, use the documented breakpoints, and create no document-level horizontal overflow - check: browser geometry and document scroll width at each width
 - [ ] [AC6] At `/accounts/checking`, viewports 375px and 1280px, default state: signed amount colors meet WCAG 2.2 AA contrast and use project tokens - check: browser computed styles and contrast measurement
 - [ ] [AC7] At `/accounts/travel`, viewports 375px and 1280px, empty state: the message and transfer link are visible, the link's focus indicator is visible by keyboard, and axe reports no violations for `main` - check: browser keyboard, accessibility snapshot and axe scope `main`
-- [ ] [AC8] The list and empty-state UI reuse `src/components/` and `src/styles/tokens.css` rather than raw values where tokens or components exist - check: code review plus browser computed styles
+- [ ] [AC8] The list and the empty state use the project's tokens from `src/styles/tokens.css` for colour, spacing, radius and type, with no raw values where a token exists; check by browser computed styles against the token values, and by the diff
 
 ## Constraints
 

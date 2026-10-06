@@ -18,7 +18,7 @@ Staff can write an optional note before submitting a transfer and see the fee ru
 - [ ] [AC7] At `/transfer`, viewports 375px, 639px, 640px, 1023px, 1024px, 1280px and 1440px, default state: the form and fee preview use the documented breakpoints and maintain no document-level horizontal overflow - check: browser geometry and document scroll width at each width
 - [ ] [AC8] At `/transfer`, viewport 375px, keyboard state: the note field has a visible programmatic label, focus remains visible, and tab order follows the form before submit - check: browser keyboard and accessibility snapshot
 - [ ] [AC9] At `/transfer`, viewports 375px and 1280px, default state: changed controls and fee-preview text meet WCAG 2.2 AA contrast and axe reports no violations for `main` - check: browser contrast measurement and axe scope `main`
-- [ ] [AC10] The transfer form and fee preview use existing tokens and components from `src/styles/tokens.css` and `src/components/` instead of raw layout or color values where tokens or components exist - check: code review plus browser computed styles
+- [ ] [AC10] The note field and fee preview use the project's tokens from `src/styles/tokens.css` for colour, spacing, radius and type, with no raw values where a token exists; check by browser computed styles against the token values, and by the diff
 
 ## Constraints
 

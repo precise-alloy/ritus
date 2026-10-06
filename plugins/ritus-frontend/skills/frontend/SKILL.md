@@ -47,10 +47,10 @@ Console and network evidence must be clean for the audited flow, or the report s
 
 Live browser and axe evidence recorded in the report satisfies UI Acceptance unless the task explicitly asks for
 committed UI tests. A missing durable UI test nobody asked for is a note or follow-up, not a defect and not a reason to
-fail the check.
+fail the check. For what counts as a UI defect during verify-task and pr-review, use `references/verify.md`.
 
-When a UI check finds a defect, report it with evidence before repairing it. Silent repair hides the issue from the
-workflow's fix loop and from the user.
+This binds the main thread too: show the user UI findings with evidence before dispatching a fix, then continue on
+their go-ahead.
 
 ## Human review at wrap-up
 
