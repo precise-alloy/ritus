@@ -118,11 +118,12 @@ next run.
 ## Companions
 
 The session context can carry a **Ritus Companion Registry**: one line per companion, naming its manifest on disk.
-When you build or update the driving TODO, read every listed manifest and make sure each integration has an item at
-the workflow point its `prompt` names - "after task-generation" means once the task files exist, "before pr-review"
-means before the review item. Add a missing item; never duplicate one. A `dispatch` integration follows this contract;
-a `load` integration attaches the companion skill as a standard to the named worker, passed in its dispatch input. An
-empty or absent registry changes nothing.
+When you build or update the driving TODO, read every listed manifest and make sure each integration is applied at the
+workflow point its `prompt` names - "after task-generation" means once the task files exist, "before pr-review" means
+before the review item. Add a missing item; never duplicate one. A `dispatch` integration becomes a TODO
+item. A `load` integration can name task generation, where `ticket-review` applies it as a standard while it writes
+task files, or any worker, where it is passed in that worker's dispatch input. For `verify-task` and `pr-review`, a
+loaded standard adds checks; it never relaxes the read-only rule. An empty or absent registry changes nothing.
 
 ## Handoff convention
 
@@ -142,8 +143,9 @@ The driving TODO is the one control surface, and only the main thread changes it
 | Worker | Inputs | Tools | Notes |
 |---|---|---|---|
 | `execute-task` | Task or case file path; for a fix, the findings; companion `load` items and extra standards | All | - |
-| `verify-task` | Task file path, the executor's report | Read, search, shell | Read-only apart from build/test/lint and the spot check it undoes (`testing.md`); never fixes |
-| `pr-review` | Review mode (local change or PR URL), requirement source and the approved plan path or debug case file if there is one, base branch if not the default; whether per-task verification ran, and the `Outside the task` notes it left; for a re-review, the previous report | Read, search, shell, web fetch | Never fixes; compares against `origin/` refs |
+| `verify-task` | Task file path, the executor's report, companion `load` items and extra standards | Read, search, shell | Read-only apart from build/test/lint and the spot check it undoes (`testing.md`); loaded standards add checks, never fixes |
+| `pr-review` | Review mode (local change or PR URL), requirement source and the approved plan path or debug case file if there is one, base branch if not the default; whether per-task verification ran, and the `Outside the task` notes it left; for a re-review, the previous report; companion `load` items and extra standards | Read, search, shell, web fetch | Never fixes; compares against `origin/` refs; loaded standards add checks |
+| `wrap-up` | Approved review or user approval, branch or task folder, task reports and exploration log, companion `load` items and extra standards for inline wrap-up | All | Main-thread step; updates docs and drafts the PR description |
 | Analysis agent | Full path of `skills/ticket-review/references/analysis-brief.md`; the requirement; what the user said that changes the work; the level and specific questions; branch slug; for an EPIC split, the code area | Read, search, shell, web fetch; writes only downloaded attachments | Non-interactive - open questions come back as `[NEEDS CLARIFICATION]`; continue it for follow-up questions |
 
 Tool names are capabilities; map them to your platform's equivalents.

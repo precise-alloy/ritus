@@ -3,8 +3,8 @@
 Companion plugins and skills extend the Ritus workflow **without editing any core Ritus files**.
 You ship a small `ritus-companion.json` manifest; at the start of every session a Ritus hook
 discovers it and injects a compact **Ritus Companion Registry** into the agent's context - one line
-per companion, pointing at the manifest on disk. When the agent builds the workflow TODO it reads
-each manifest and applies your instructions at the workflow points you describe.
+per companion, pointing at the manifest on disk. When the agent writes task files and builds the
+workflow TODO it reads each manifest and applies your instructions at the workflow points you describe.
 
 Core rule: **Ritus core owns the workflow; companion manifests own their registrations.**
 You never patch a core skill or `dispatch.md` per companion — you write a manifest.
@@ -15,8 +15,8 @@ You never patch a core skill or `dispatch.md` per companion — you write a mani
 2. The hook discovers every `ritus-companion.json` it can find (see [Discovery](#discovery)).
 3. The hook returns one **Ritus Companion Registry** section as `additionalContext`: one line per
    companion with its manifest path - your prompts stay on disk, out of session-start context.
-4. When the agent builds or updates the workflow TODO, it reads each manifest and applies the
-   integrations at their workflow points (see "Companion weaving" in `plugins/ritus/skills/shared/dispatch.md`).
+4. When the agent writes task files or builds the workflow TODO, it reads each manifest and applies the
+   integrations at their workflow points (see "Companions" in `plugins/ritus/skills/shared/dispatch.md`).
 
 > Requirements: [Bun](https://bun.sh) must be on `PATH`. The registry refreshes on each configured
 > `SessionStart` lifecycle event (`startup`, `resume`, `clear`, `compact`, `fork`) — i.e. at session
@@ -43,9 +43,10 @@ Create a file named `ritus-companion.json`:
 | `name`                  | string | yes      | Short companion name; used as the registry heading.               |
 | `integrations`          | array (nonempty) | yes | One entry per skill you want to wire into the workflow (at least one entry). |
 | `integrations[].skill`  | string | yes      | The skill's name — identifies the integration.                    |
-| `integrations[].prompt` | string | yes      | A short instruction, read verbatim from the manifest when the agent builds the workflow TODO (the where / when / what). |
+| `integrations[].prompt` | string | yes      | A short instruction, read verbatim from the manifest when task files are written or the workflow TODO is built (the where / when / what). |
 
-Each `prompt` is **read verbatim** from your manifest when the TODO is built - keep it short. Two common shapes:
+Each `prompt` is **read verbatim** from your manifest when task files are written or the TODO is built - keep it short.
+Two common shapes:
 
 - **Add a step** at a boundary —
   `When <condition>, <before/after a step>: dispatch the <skill> subagent.`
@@ -53,9 +54,9 @@ Each `prompt` is **read verbatim** from your manifest when the TODO is built - k
   `While <worker skill> runs<, on <condition>>: load the <skill> skill and apply it.`
 
 Use Ritus's own step names so the agent can place your step precisely:
-`ticket-review → task-generation (task files written) → execute-task → verify-task → pr-review → wrap-up`.
-The TODO is built once the plan is approved, so the earliest point is after task-generation: sizing and the analysis
-agent inside `ticket-review` take no companion steps.
+`ticket-review → task-generation (task files being written) → execute-task → verify-task → pr-review → wrap-up`.
+Task generation can take a `load` standard while `ticket-review` writes task files; sizing and the analysis agent
+inside `ticket-review` still take no companion steps.
 
 ## Discovery
 
@@ -77,19 +78,31 @@ All discovered manifests are merged; up to 25 are used.
 
 ## Example: ritus-frontend
 
-The `ritus-frontend` companion wires browser verification into the workflow:
+The `ritus-frontend` companion wires UI standards into task generation and the worker checks:
 
 ```json
 {
   "name": "ritus-frontend",
   "integrations": [
     {
-      "skill": "e2e-plan",
-      "prompt": "When a task changes frontend files, after task-generation: dispatch the e2e-plan subagent."
+      "skill": "frontend",
+      "prompt": "While ticket-review task generation writes UI task files: load the frontend skill and apply its planning standard to Acceptance."
     },
     {
-      "skill": "visual-verify",
-      "prompt": "When a task changes frontend files, before pr-review: dispatch the visual-verify subagent; block on failure."
+      "skill": "frontend",
+      "prompt": "While execute-task runs on UI work: load the frontend skill and follow its implementation rules."
+    },
+    {
+      "skill": "frontend",
+      "prompt": "While verify-task runs on UI work: load the frontend skill and apply its browser and accessibility checks."
+    },
+    {
+      "skill": "frontend",
+      "prompt": "During pr-review for UI changes: load the frontend skill and apply its UI review checklist."
+    },
+    {
+      "skill": "frontend",
+      "prompt": "While wrap-up runs after UI changes: load the frontend skill and show the main states to the user when a host browser is available."
     }
   ]
 }
@@ -98,10 +111,10 @@ The `ritus-frontend` companion wires browser verification into the workflow:
 Its registry entry renders as:
 
 ```text
-- ritus-frontend (2 integrations): <plugin-root>/ritus-companion.json
+- ritus-frontend (5 integrations): <plugin-root>/ritus-companion.json
 ```
 
-The agent reads the manifest itself when it builds the workflow TODO, so the full prompts reach
+The agent reads the manifest itself when it writes task files and builds the workflow TODO, so the full prompts reach
 context only in sessions that actually run the Ritus workflow.
 
 ## Example: adding knowledge to a worker skill

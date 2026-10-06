@@ -113,6 +113,28 @@ ROUNDS = {
         "scenarios": FRONTEND_BASELINE_KEYS,
         "groups": FRONTEND_BASELINE_GROUPS,
     },
+    "frontend-v1": {
+        "iteration": 28,
+        "runs": 3,
+        "arms": ["new_skill"],
+        "arm_specs": {
+            "new_skill": f"dir:{REPO_ROOT / 'plugins' / 'ritus'}+dir:{REPO_ROOT / 'plugins' / 'ritus-frontend'}",
+        },
+        "scenarios": FRONTEND_BASELINE_KEYS,
+        "groups": FRONTEND_BASELINE_GROUPS,
+    },
+    "frontend-compare": {
+        "iteration": 29,
+        "runs": 3,
+        "arms": ["old_skill", "new_skill"],
+        # Phase 5 pins new_skill to the ritus-frontend 1.0 release commit before running this comparison.
+        "arm_specs": {
+            "old_skill": "git:6c03d3a+git:7e57273:plugins/ritus-frontend",
+            "new_skill": f"dir:{REPO_ROOT / 'plugins' / 'ritus'}+dir:{REPO_ROOT / 'plugins' / 'ritus-frontend'}",
+        },
+        "scenarios": FRONTEND_BASELINE_KEYS,
+        "groups": FRONTEND_BASELINE_GROUPS,
+    },
 }
 
 AUTHORS = {
@@ -1250,7 +1272,10 @@ def stop_dev_servers(setup: dict) -> list[dict]:
             parts = line.split()
             if len(parts) >= 2 and parts[0].isdigit() and parts[1].isdigit():
                 pidfile_pairs.append((int(parts[0]), int(parts[1])))
-    facts = process_facts([pid for pid, _port in pidfile_pairs] + [row.get("OwningProcess") for row in listeners])
+    # Only the pidfile's processes and this run's port matter; querying every listener costs ~20s per world.
+    facts = process_facts([pid for pid, _port in pidfile_pairs]
+                          + [row.get("OwningProcess") for row in listeners
+                             if dev_port is not None and int(row.get("LocalPort") or 0) == int(dev_port)])
     covered = set()
     for pid, port in pidfile_pairs:
         if (pid, port) in by_pid_port:

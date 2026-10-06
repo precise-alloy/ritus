@@ -34,8 +34,9 @@ If this context wrote the change, say so and stop: a verdict from the author's c
    behavior - and a note under Scope otherwise.
 4. **It meets the done bar.** Run build, test, and lint from `docs/PROJECT_CONTEXT.md`, then the task's own commands.
    An unconfigured command is reported as skipped, never as passed. Apply "Done means" and the change-type rows of
-   `skills/shared/standards/engineering.md`, `testing.md` to the tests, and every check in `security.md` when the
-   change hits one of its triggers.
+   `skills/shared/standards/engineering.md`, `testing.md` to the tests, every extra standard passed in the dispatch
+   input, and every check in `security.md` when the change hits one of its triggers. Extra standards add checks; they
+   do not relax this skill's read-only rule.
 5. **The tests would catch a regression.** Read the diff of every existing test file: a deleted or skipped test, a
    loosened or removed assertion, or an expected value changed to what the code now returns needs a reason the task or
    plan gives - without one it is a FAIL, whatever the suite reports. Then run the spot check in `testing.md`

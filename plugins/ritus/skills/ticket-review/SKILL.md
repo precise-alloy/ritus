@@ -77,9 +77,11 @@ People approve what they read first; a decision below the summary gets approved 
 
 ## 6. Write the tasks
 
-Read `references/task-generation.md`, then write the task files from `templates/task.md`; executors append to the
-exploration log as they go. For an EPIC, also create the memory file, which you keep current as each task passes, and
-present the task files for the second approval.
+Read `references/task-generation.md`, then, if a Ritus Companion Registry is present, read its manifests before
+writing task files. Apply any companion `load` integration whose prompt names task generation as a standard for the
+task files; keep `dispatch` integrations for the TODO in step 7. With no registry, nothing changes. Executors append
+to the exploration log as they go. For an EPIC, also create the memory file, which you keep current as each task
+passes, and present the task files for the second approval.
 
 ## 7. Build the driving TODO
 

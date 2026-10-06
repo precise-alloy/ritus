@@ -35,9 +35,9 @@ burying one real defect under ten speculative ones.
   in an older task file, DONE WHEN and VERIFY are the acceptance.
 - **What the project expects.** `docs/PROJECT_CONTEXT.md` (commands, testing, conventions, project constraints);
   `skills/shared/standards/engineering.md` "Done means", `testing.md`, and `security.md` for every trigger the change
-  hits; `docs/LESSONS.md` entries for the files it touches; and `docs/tasks/{branch-slug}/exploration.md`, whose
-  flagged entries reach the docs at wrap-up, after you approve - a doc update only such an entry would make is not
-  missing.
+  hits; any extra standard passed in the dispatch input, which adds checks without relaxing read-only; `docs/LESSONS.md`
+  entries for the files it touches; and `docs/tasks/{branch-slug}/exploration.md`, whose flagged entries reach the docs
+  at wrap-up, after you approve - a doc update only such an entry would make is not missing.
 
 | Scope | Diff |
 |---|---|

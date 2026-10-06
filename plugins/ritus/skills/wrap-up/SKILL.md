@@ -12,6 +12,7 @@ from zero and the reviewer approves a change they only half understand.
 
 Run it once the change is approved - by `pr-review` in a Ritus run, or by the user. When nothing has reviewed the
 change, offer `pr-review` first, and wrap up without it only if the user says so - then say so at the top of the report.
+Apply any companion standard passed for inline wrap-up while you check docs and draft the PR description.
 
 ## 1. Check the promised doc updates
 

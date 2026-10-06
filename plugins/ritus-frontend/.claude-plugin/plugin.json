@@ -1,7 +1,7 @@
 {
   "name": "ritus-frontend",
-  "description": "Figma design-to-code plus objective, re-runnable browser visual verification via Figma + Playwright MCP - runs standalone or alongside ritus",
-  "version": "0.2.0",
+  "description": "Ritus frontend 1.0 UI companion: loads a UI standard into Ritus steps and adds a read-only UI checker with browser evidence through playwright-cli or host browsers.",
+  "version": "1.0.0",
   "skills": "./skills/",
   "author": {
     "name": "eshn"
@@ -9,11 +9,12 @@
   "keywords": [
     "AI",
     "workflow",
-    "design-to-code",
+    "frontend",
+    "ui",
+    "accessibility",
     "figma",
-    "visual verification",
     "playwright",
     "browser",
-    "mcp"
+    "verification"
   ]
 }

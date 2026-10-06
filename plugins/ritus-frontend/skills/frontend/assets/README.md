@@ -1,0 +1,1 @@
+axe.min.js is axe-core 4.13.0 from evals\workspace\web-modules\node_modules\axe-core, licensed MPL-2.0.

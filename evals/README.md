@@ -142,6 +142,10 @@ The stand-in server is `evals\harness\figma_stub.mjs`. It serves file key `TLWEB
 | `uv5` | step probe | `eval-76-ui-verify-clean` | verify-task passes clean UI without false defects |
 | `ur1` | step probe | `eval-77-ui-review-hex-console` | pr-review requests changes for raw color and console error |
 
+### The `frontend-v1` and `frontend-compare` rounds
+
+`frontend-v1` is iteration 28 and runs the new arm only for the 1.0 iteration loop. `frontend-compare` is iteration 29 and reruns the old and new arms side by side for the final comparison; Phase 5 pins the new arm to the ritus-frontend 1.0 release commit before that round runs.
+
 ### Setting up a frontend round
 
 1. **Commit and pin.** Build rounds from committed harness and fixtures. Pin every arm to a commit (`git:<ref>`, or `git:<ref>:<path>` for a companion), never to a working-tree folder that may change. `frontend-baseline` pins ritus-frontend 0.2.0 to `git:7e57273:plugins/ritus-frontend`.

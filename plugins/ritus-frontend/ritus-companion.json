@@ -2,24 +2,24 @@
   "name": "ritus-frontend",
   "integrations": [
     {
-      "skill": "e2e-plan",
-      "prompt": "When a task changes frontend files, after task-generation and figma-intake: dispatch the e2e-plan subagent."
+      "skill": "frontend",
+      "prompt": "While ticket-review task-generation writes task files for a task that touches UI files or UI behaviour: load the frontend skill and apply references/plan.md so Acceptance names route/component x viewport x state, docs/FRONTEND.md facts, accessibility, design-system use, and Figma links/values when available."
     },
     {
-      "skill": "visual-verify",
-      "prompt": "When a task changes frontend files, before pr-review: load visual-verify inline so it can coordinate isolated verification workers or use its single-agent sequential fallback; block unless it reports VERIFY: PASS (i.e. on FAIL or BLOCKED)."
+      "skill": "frontend",
+      "prompt": "While execute-task runs on a task that touches UI files or UI behaviour: load the frontend skill and follow its implementation rules from references/design-system.md, references/figma.md when a design is linked, and references/browser.md for browser self-checks."
     },
     {
-      "skill": "a11y-verify",
-      "prompt": "When a task changes frontend files, before pr-review: dispatch the a11y-verify subagent; block unless it reports A11Y: PASS."
+      "skill": "frontend",
+      "prompt": "While verify-task runs on a task that touches UI files or UI behaviour: load the frontend skill and independently verify each UI Acceptance item in a browser with references/verify.md and references/browser.md; keep verify-task's read-only verdict format."
     },
     {
-      "skill": "figma-intake",
-      "prompt": "While ticket-review runs on a frontend ticket, after task-generation and before e2e-plan: load figma-intake."
+      "skill": "frontend",
+      "prompt": "While pr-review runs on a change that touches UI files or UI behaviour: load the frontend skill and independently review the UI in a browser for rendered behaviour, accessibility, console/network evidence, and design-system use before the pr-review verdict."
     },
     {
-      "skill": "figma-implement",
-      "prompt": "When a task's CONTEXT names a Figma URL, at the start of execute-task: load figma-implement."
+      "skill": "frontend",
+      "prompt": "While wrap-up runs after a change that touches UI files or UI behaviour: load the frontend skill and offer a host-browser human review of the main routes, states, and viewports; the human review is advisory, not a gate."
     }
   ]
 }
