@@ -149,10 +149,10 @@ ROUNDS = {
         "iteration": 29,
         "runs": 3,
         "arms": ["old_skill", "new_skill"],
-        # Phase 5 pins new_skill to the ritus-frontend 1.0 release commit before running this comparison.
+        # new_skill is pinned to the ritus-frontend 1.0.0 release commit.
         "arm_specs": {
             "old_skill": "git:6c03d3a+git:7e57273:plugins/ritus-frontend",
-            "new_skill": f"dir:{REPO_ROOT / 'plugins' / 'ritus'}+dir:{REPO_ROOT / 'plugins' / 'ritus-frontend'}",
+            "new_skill": "git:4aa5e31+git:4aa5e31:plugins/ritus-frontend",
         },
         "scenarios": FRONTEND_BASELINE_KEYS,
         "groups": FRONTEND_BASELINE_GROUPS,
