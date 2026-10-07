@@ -16,8 +16,8 @@ Coordinates are:
 
 - **Route or component.** Use the app route when the feature is route-level; use the component and fixture/story/state
   when the task is component-only.
-- **Viewport.** Take widths from `docs/FRONTEND.md` when present. Otherwise derive them from project breakpoints and
-  supported widths.
+- **Viewport.** Take widths from `docs/FRONTEND.md` when present, including the common widths it lists. Otherwise
+  derive them from project breakpoints, supported widths, and the common widths the project names.
 - **State.** Name loading, empty, error, disabled, long content, success, selected, open/closed, authenticated, or
   unauthenticated states when they matter to the change.
 
@@ -59,26 +59,31 @@ amount, capped count, truncation limit, or breakpoint switch gets an example at 
 Check the UI task's Acceptance against this list. For an item that does not apply, put the reason in the non-goals;
 silence is not a reason.
 
-- The narrowest supported width and the widest common width.
+- The narrowest supported width, the widest common width, and every common width between them that
+  `docs/FRONTEND.md` lists or, without that file, the project names.
 - Both sides of every documented breakpoint, one pixel apart, when the change adds or alters layout, spacing, or
   visibility.
 - A WCAG 2.2 AA contrast line for each changed text, control, meaningful icon, and focus indicator.
 - Visible labels, accessible names, keyboard and focus, and axe with its scope, for changed controls.
 - Tokens named; a component named only where its role matches.
+- Each line checked in a browser.
+
+A short chat plan (SIMPLE) states the same must-haves in its acceptance summary, including that UI lines are checked in
+a browser.
 
 ## Example
 
 Good UI Acceptance for a made-up notification settings panel:
 
-- [AC1] At `/settings/notifications`, viewport 360, loading state: the panel keeps the save button visible below the
-  loading rows with no horizontal overflow - check: browser at 360px, document scroll width equals viewport width and
-  the button's accessible name is `Save notification settings`.
+- [AC1] At `/settings/notifications`, viewports 360, 768, and 1280, loading state: the panel keeps the save button
+  visible below the loading rows with no horizontal overflow - check: browser at each width, document scroll width
+  equals viewport width and the button's accessible name is `Save notification settings`.
 - [AC1] At `/settings/notifications`, viewports 639 and 640: delivery options change from one column to two columns at
   the project `md` breakpoint, using `Card` and the spacing token documented in `docs/FRONTEND.md` - check: browser at
   both widths, measure option card columns and gap.
-- [AC1] At `/settings/notifications`, error state: the error summary is announced before the invalid fields, each field
-  has a visible label, and focus moves to the first invalid field after submit - check: keyboard submit, accessibility
-  snapshot, focus target.
+- [AC1] At `/settings/notifications`, viewports 360 and 1280, error state: the error summary is announced before the
+  invalid fields, each field has a visible label, and focus moves to the first invalid field after submit - check:
+  browser at 360 and 1280, keyboard submit, accessibility snapshot, focus target.
 - [AC1] At `/settings/notifications`, viewport 1280, success state: axe reports no violations for the settings form
-  scope and changed text meets WCAG 2.2 AA contrast - check: axe on `main form`, contrast measured for changed text and
-  focus ring.
+  scope and changed text meets WCAG 2.2 AA contrast - check: browser at 1280, axe on `main form`, contrast measured for
+  changed text and focus ring.

@@ -134,6 +134,17 @@ ROUNDS = {
         "scenarios": FRONTEND_BASELINE_KEYS,
         "groups": FRONTEND_BASELINE_GROUPS,
     },
+    "frontend-v1c": {
+        "iteration": 31,
+        "runs": 3,
+        "arms": ["new_skill"],
+        # Third and last 1.0 iteration round, after the round-3 skill fixes.
+        "arm_specs": {
+            "new_skill": f"dir:{REPO_ROOT / 'plugins' / 'ritus'}+dir:{REPO_ROOT / 'plugins' / 'ritus-frontend'}",
+        },
+        "scenarios": FRONTEND_BASELINE_KEYS,
+        "groups": FRONTEND_BASELINE_GROUPS,
+    },
     "frontend-compare": {
         "iteration": 29,
         "runs": 3,

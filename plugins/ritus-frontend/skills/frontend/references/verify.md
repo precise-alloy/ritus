@@ -15,13 +15,23 @@ viewports, states, and flows you checked.
 
 ## What counts as a defect
 
+- **Judge what the change introduced.** A problem the changed UI inherits from styles, rules, or browser defaults the
+  change did not write - a shared input border, a default heading weight - is a note for the user naming the rule or
+  token, not a defect of the task, unless the Acceptance asks the change to fix it. A general contrast or token line
+  does not ask that. A declaration the change writes, including which existing token it picks, is judged in full
+  against the contract that applies to it. Record notes under core's `Outside the task`, naming the Acceptance line
+  they touch.
 - **Project docs outside the change.** A wrong or stale fact in a project doc the change did not touch, such as
   `docs/FRONTEND.md`, README, or `PROJECT_CONTEXT`, is a note for the user, not a defect of the task. Use the observed
   fact, such as the URL the dev command printed, and say so. A doc file present in the tree but outside the diff under
   review is not a scope violation.
+- **A finding needs a contract.** A blocking finding names the Acceptance line, project rule, or standard check it
+  breaks, and the measurement that breaks it. A judgement with no measured contract is a note, even under a loose
+  Acceptance word such as "readable": text that wraps but stays legible and unclipped, or spacing that "looks" off.
 - **Component reuse.** Missing reuse is a defect only when an existing component has the same role - same purpose,
-  semantics, and interaction - and the Acceptance names it, or a project rule requires it. Otherwise judge tokens and
-  rendered behaviour; raw values where a token exists are defects.
+  semantics, and interaction - **and** the Acceptance names it or a project rule requires reuse. Same role is required
+  in both cases; a general "reuse components" rule does not make a component with a different role mandatory.
+  Otherwise judge tokens and rendered behaviour; raw values the change writes where a token exists are defects.
 - **Tests for rendered UI.** For rendered behaviour, including markup, styles, layout, visibility, empty states, and
   error rendering, browser evidence recorded in the report is the UI spot check for core's done bar unless the task asks
   for committed UI tests. A rendering break that no committed test catches is a note in that case. Logic the change
@@ -53,7 +63,7 @@ flex gap, and grid gap can all produce the same rendered spacing; the geometry i
 specific implementation.
 
 Check design-system expectations with `design-system.md`: existing components, tokens, CSS variables, and rendered token
-outputs. A raw value is a defect when a project token or component covers the same meaning.
+outputs. A raw value the change writes is a defect when a project token covers the same meaning.
 
 ## Accessibility
 

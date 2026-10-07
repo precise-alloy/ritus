@@ -18,7 +18,7 @@ for example, component props before utility classes, semantic tokens before raw 
 
 ## Build with it
 
-- Reuse an existing component before writing a new one.
+- Reuse an existing component with the same role - purpose, semantics, interaction - before writing a new one.
 - Extend a component through its documented props, variants, slots, or composition pattern before editing its internals.
 - Use tokens for colour, spacing, typography, radius, shadow, motion, and breakpoints.
 - Do not add a raw hex, rgb, px, rem, font family, font weight, shadow, or duration where a token exists.

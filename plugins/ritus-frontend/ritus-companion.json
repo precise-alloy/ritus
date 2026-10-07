@@ -3,7 +3,7 @@
   "integrations": [
     {
       "skill": "frontend",
-      "prompt": "While ticket-review task-generation writes task files for a task that touches UI files or UI behaviour: load the frontend skill and apply references/plan.md, ending with its 'Before writing the task file' check, so Acceptance names route/component x viewport x state, docs/FRONTEND.md facts, accessibility, design-system use, and Figma links/values when available."
+      "prompt": "While ticket-review task-generation writes task files for a task that touches UI files or UI behaviour: load the frontend skill and apply references/plan.md; Acceptance needs docs/FRONTEND.md widths (narrowest, its common widths, both sides of each touched breakpoint), a WCAG 2.2 AA contrast line, visible labels, keyboard, axe with its scope, and tokens, each line checked in a browser; non-goals explain any skipped."
     },
     {
       "skill": "frontend",
