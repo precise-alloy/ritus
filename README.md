@@ -75,6 +75,22 @@ and `AGENTS.md` or `.github/copilot-instructions.md` (Copilot) naming which Ritu
 bug, or a review. Without it, models tend to start reading and editing code instead of invoking the skill; the block
 sits between `ritus:routing` markers, and setup refreshes only what is between them.
 
+### ritus-frontend (UI companion)
+
+`ritus-frontend` adds UI standards and browser checks to Ritus's own steps, plus a standalone read-only UI checker; see
+the [Ritus Frontend guide](./docs/RITUS_FRONTEND.md). It ships from the same marketplace; install it next to Ritus.
+
+**Claude Code:**
+
+```text
+/plugin marketplace add precise-alloy/ritus
+/plugin install ritus-frontend@precise-alloy-marketplace
+```
+
+**GitHub Copilot:** in VS Code and the GitHub Copilot app, add the `precise-alloy/ritus` marketplace in the host's agent
+plugin settings and install `ritus` and `ritus-frontend` from it. Copilot CLI is not a supported host for ritus-frontend
+(see [Supported hosts](./docs/RITUS_FRONTEND.md#supported-hosts)).
+
 ## What gets installed
 
 The `/sync` skill copies template files into your project. Files are never overwritten once they exist.
@@ -125,9 +141,11 @@ profiles, docs, and a run already in progress keep working.
    review skills rarely start on their own.
 2. If you invoked a removed skill directly, see the table below: planning starts with `ticket-review` now, and the
    standards are docs the workers read on their own, with nothing to invoke.
-3. Companion manifests are read when the driving TODO is built, once the plan is approved, so the earliest point a
-   companion can name is `after task-generation` (once the task files exist). Move an integration that names `triage`
-   or `requirement-analysis` there or later: planning itself no longer takes companion steps.
+3. Companion manifests are read when task files are written and when the driving TODO is built. Companions can now load
+   standards at task generation, `verify-task`, `pr-review`, and `wrap-up` (see
+   [docs/COMPANION_PLUGINS.md](./docs/COMPANION_PLUGINS.md)); a dispatched step still goes no earlier than
+   `after task-generation`. Move an integration that names `triage` or `requirement-analysis` to one of those points:
+   sizing and analysis take no companion steps.
 4. Delete `.ritus/scripts/` if it is still in the project (see the note above).
 5. The plugin source now lives in `plugins/ritus/`; marketplace installs pick it up on update with nothing to do.
 6. Model routing is gone: every subagent runs on the session model, or whatever your tool is set to use for
@@ -313,8 +331,10 @@ marketplace.json                 ← Copilot marketplace manifest
   marketplace.json               ← Claude marketplace manifest
 package.json                     ← npm package manifest (publishes plugins/ritus/, README.md, LICENSE)
 README.md                        ← this file
-docs/                            ← repository docs for maintainers; not installed with the plugin
+docs/                            ← repository docs and the ritus-frontend guide; not installed with the plugins
   COMPANION_PLUGINS.md
+  RITUS_FRONTEND.md              ← ritus-frontend user guide
+  RITUS_FRONTEND_CHANGELOG.md    ← ritus-frontend version history
   WORKFLOW_DIAGRAMS.md           ← visual workflow reference (human-only)
 evals/                           ← maintainer-only eval harness and results; not installed with the plugin
 plugins/                         ← plugin sources
@@ -356,7 +376,7 @@ plugins/                         ← plugin sources
       remote-api.ts              ← CLI dispatcher for remote API providers
       companion-bootstrap.ts     ← companion discovery hook
       providers/                 ← Jira, Azure DevOps, GitHub, and shared HTTP/provider types
-  ritus-frontend/                ← frontend companion plugin; 0.2.0 baseline being rewritten (install 0.1.0 from precise-alloy/ritus-frontend until 1.0.0)
+  ritus-frontend/                ← ritus-frontend 1.0.0 plugin source: the UI companion (frontend standard, ui-verify)
 ```
 
 ---

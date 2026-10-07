@@ -41,7 +41,7 @@ When Ritus starts a session, it finds `ritus-companion.json` next to it and list
 the Ritus Companion Registry. `ui-verify` also works without Ritus installed; `frontend` only adds to Ritus's steps.
 
 Version 1.0.0 is the first release from this marketplace. Earlier versions came from `precise-alloy/ritus-frontend`,
-which now points here.
+which now points here. What changed in each version is in [RITUS_FRONTEND_CHANGELOG.md](./RITUS_FRONTEND_CHANGELOG.md).
 
 ## Supported hosts
 

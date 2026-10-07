@@ -20,7 +20,7 @@ This directory is a maintainer reference for the benchmark harness used while re
 
 - `harness/` contains the build, collection, grading, judging, usage, contamination, scoring, publishing, trigger, static-check, generator, validation, peek, and smoke scripts.
 - `fixture/` contains TinyLedger base files, layers, scenarios, mutants, reference tests, stubs, trigger queries, and the iteration-15 design note.
-- `install/` contains a marketplace install/update checker. It creates throwaway marketplaces and CLI homes, installs or updates Ritus through Copilot CLI and Claude Code, and verifies that the installed plugin contains only `.claude-plugin`, `hooks`, `scripts`, `skills`, and `templates`.
+- `install/` contains a marketplace install/update checker. It creates throwaway marketplaces and CLI homes, installs or updates Ritus through Copilot CLI and Claude Code, and verifies that the installed plugin contains only `.claude-plugin`, `hooks`, `scripts`, `skills`, and `templates`. It also installs ritus-frontend 1.0.0 and checks that the installed Ritus hook finds it, and updates a ritus-frontend 0.1.0 install through the old repository's pointer patch (`install\ritus-frontend-pointer.patch`).
 - `workspace/` is created locally for generated runs, judge bundles, temporary arm copies, and generated viewers. It is git-ignored.
 
 ## Configuration
@@ -75,6 +75,11 @@ Every machine-specific value is supplied at run time. Flags override environment
 
 Run `python evals\install\check_install.py` to exercise local path and smart-HTTP git marketplace installs and updates for both CLIs. After pushing a layout change, maintainers run `python evals\install\check_install.py --github <owner/repo> --github-ref <branch>` to repeat the GitHub update case.
 
+The ritus-frontend cases run in the same pass:
+
+- `fresh-local` and `fresh-git` also install `ritus-frontend`. The installed copy must be version 1.0.0 with exactly the files of `plugins\ritus-frontend` (`.claude-plugin`, `ritus-companion.json`, `skills\frontend`, `skills\ui-verify`). Then the installed Ritus copy's `scripts\companion-bootstrap.ts` runs as the hook does, with `CLAUDE_PLUGIN_ROOT` set to the installed Ritus directory, once per CLI layout; its registry must list `ritus-frontend (5 integrations)` with the installed manifest path.
+- `frontend-pointer` serves two stand-ins through the local git server: precise-alloy/ritus (`main` is the working tree) and precise-alloy/ritus-frontend (`main` is the 0.1.0 commit read from `--frontend-old-repo`). The case's git config rewrites `https://github.com/precise-alloy/` and the SSH forms to that server. It installs 0.1.0 from `ritus-frontend-marketplace`, applies `--frontend-pointer-patch` to the stand-in and commits it, then runs marketplace update and plugin update in each CLI. Each CLI must fetch precise-alloy/ritus from the local server and end with the same 1.0.0 install as the fresh cases.
+
 | Flag or environment | Meaning | Default |
 | --- | --- | --- |
 | `--copilot <command>` | Copilot CLI executable or shim. | `copilot` |
@@ -83,10 +88,12 @@ Run `python evals\install\check_install.py` to exercise local path and smart-HTT
 | `--git-http-backend <path>` | Explicit `git-http-backend` path for the smart-HTTP test server. | auto-detect |
 | `--github <owner/repo>` | Enable the post-push GitHub marketplace update case. | off |
 | `--github-ref <branch-or-ref>` | Ref used by the GitHub update case; required with `--github`. | none |
+| `--frontend-old-repo <path>` | Clone of precise-alloy/ritus-frontend, read only through `git archive`. | `..\ritus-frontend` next to this repository |
+| `--frontend-old-ref <ref>` | The ritus-frontend 0.1.0 commit in that clone (`origin/main` before the pointer). | `dd05c63` |
+| `--frontend-pointer-patch <path>` | Pointer patch for the old repository, applied in the `frontend-pointer` case. | `evals\install\ritus-frontend-pointer.patch` |
 | `--keep` | Keep throwaway work directories for debugging. | off |
 | `ProgramFiles` | Used only to find Windows `copilot.cmd` or `copilot.ps1` shims. | platform value |
-| `LOCALAPPDATA` | Used only to clear Copilot's marketplace cache for this marketplace before checks. | platform value |
-| inherited environment | The checker sets throwaway `COPILOT_HOME` and `CLAUDE_CONFIG_DIR`; other inherited variables are passed to subprocesses. | current shell |
+| inherited environment | The checker sets throwaway `COPILOT_HOME`, `COPILOT_CACHE_HOME` (Copilot's marketplace cache), `CLAUDE_CONFIG_DIR` and `GIT_CONFIG_GLOBAL` per case; other inherited variables are passed to subprocesses. | current shell |
 
 ## Frontend eval
 

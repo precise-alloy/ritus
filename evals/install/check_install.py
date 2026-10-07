@@ -3,7 +3,9 @@
 
 The script builds throwaway marketplace repositories under evals/install/.work,
 drives Copilot CLI and Claude Code with throwaway homes, and asserts that the
-installed plugin contains only the distributable plugin tree.
+installed plugin contains only the distributable plugin tree. It also checks
+ritus-frontend: a fresh install, sibling discovery by the installed Ritus hook,
+and an update from 0.1.0 through the old repository's pointer patch.
 """
 
 from __future__ import annotations
@@ -35,6 +37,19 @@ CLONE_STYLE_VERSION = "2.1.2"
 DEFAULT_OLD_REFS = ["fcbd5d5", "a610dc5"]
 EXPECTED_TOP = [".claude-plugin", "hooks", "scripts", "skills", "templates"]
 IGNORED_MARKERS = {".in_use", ".orphaned_at"}
+FRONTEND_PLUGIN = "ritus-frontend"
+FRONTEND_VERSION = "1.0.0"
+FRONTEND_TOP = [".claude-plugin", "ritus-companion.json", "skills"]
+FRONTEND_SKILLS = ["frontend", "ui-verify"]
+FRONTEND_INTEGRATIONS = 5
+# The old repository, precise-alloy/ritus-frontend: origin/main at 0.1.0 and the
+# pointer patch that turns its marketplace into a pointer at precise-alloy/ritus.
+GITHUB_OWNER = "precise-alloy"
+FRONTEND_OLD_MARKETPLACE = "ritus-frontend-marketplace"
+FRONTEND_OLD_VERSION = "0.1.0"
+DEFAULT_FRONTEND_OLD_REPO = REPO_ROOT.parent / "ritus-frontend"
+DEFAULT_FRONTEND_OLD_REF = "dd05c63"
+DEFAULT_FRONTEND_POINTER_PATCH = Path(__file__).resolve().parent / "ritus-frontend-pointer.patch"
 
 
 class CheckError(RuntimeError):
@@ -245,11 +260,11 @@ def make_current_repo(path: Path) -> Path:
     return path
 
 
-def make_old_repo(path: Path, old_ref: str) -> Path:
+def make_old_repo(path: Path, old_ref: str, source: Path = REPO_ROOT) -> Path:
     path.mkdir(parents=True, exist_ok=True)
     archive = subprocess.run(
         ["git", "archive", old_ref],
-        cwd=str(REPO_ROOT),
+        cwd=str(source),
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
     )
@@ -325,6 +340,7 @@ def replace_repo_contents(repo: Path, source: Path, message: str) -> None:
 class GitHttpHandler(http.server.BaseHTTPRequestHandler):
     backend: Path
     project_root: Path
+    requests: list[str]
 
     def do_GET(self) -> None:  # noqa: N802 - stdlib hook name
         self._serve()
@@ -336,6 +352,7 @@ class GitHttpHandler(http.server.BaseHTTPRequestHandler):
         return
 
     def _serve(self) -> None:
+        self.requests.append(self.path)
         body = self.rfile.read(int(self.headers.get("Content-Length", "0") or "0"))
         env = os.environ.copy()
         env.update(
@@ -382,11 +399,11 @@ class GitHttpHandler(http.server.BaseHTTPRequestHandler):
 
 
 @contextlib.contextmanager
-def git_http_server(project_root: Path, backend: Path):
+def git_http_server(project_root: Path, backend: Path, requests: list[str] | None = None):
     handler = type(
         "RitusGitHttpHandler",
         (GitHttpHandler,),
-        {"backend": backend, "project_root": project_root},
+        {"backend": backend, "project_root": project_root, "requests": requests if requests is not None else []},
     )
     with socketserver.TCPServer(("127.0.0.1", 0), handler) as server:
         thread = threading.Thread(target=server.serve_forever, daemon=True)
@@ -415,15 +432,18 @@ def find_git_http_backend(explicit: str | None) -> Path:
 
 def case_env(home: Path) -> dict[str, str]:
     copilot_home = home / "copilot-home"
+    copilot_cache = home / "copilot-cache"
     claude_home = home / "claude-home"
     git_config = home / "gitconfig"
     copilot_home.mkdir(parents=True, exist_ok=True)
+    copilot_cache.mkdir(parents=True, exist_ok=True)
     claude_home.mkdir(parents=True, exist_ok=True)
     git_config.write_text("[core]\n\tlongpaths = true\n", encoding="utf-8")
     env = os.environ.copy()
     env.update(
         {
             "COPILOT_HOME": str(copilot_home),
+            "COPILOT_CACHE_HOME": str(copilot_cache),
             "CLAUDE_CONFIG_DIR": str(claude_home),
             "GIT_CONFIG_GLOBAL": str(git_config),
             "COPILOT_AUTO_UPDATE": "false",
@@ -433,22 +453,33 @@ def case_env(home: Path) -> dict[str, str]:
     return env
 
 
-def clean_copilot_marketplace_cache() -> None:
-    local_app_data = os.environ.get("LOCALAPPDATA")
-    if not local_app_data:
-        return
-    cache = Path(local_app_data) / "copilot" / "marketplaces"
-    for path in [cache / MARKETPLACE_NAME, cache / f"{MARKETPLACE_NAME}.git"]:
-        if path.exists():
-            rmtree_force(path)
+def redirect_github_owner(env: dict[str, str], base_url: str) -> None:
+    """Send this case's git traffic for the GitHub owner to the local server."""
+    git_config = Path(env["GIT_CONFIG_GLOBAL"])
+    lines = [f'[url "{base_url}/{GITHUB_OWNER}/"]']
+    for prefix in (
+        f"https://github.com/{GITHUB_OWNER}/",
+        f"git@github.com:{GITHUB_OWNER}/",
+        f"ssh://git@github.com/{GITHUB_OWNER}/",
+    ):
+        lines.append(f"\tinsteadOf = {prefix}")
+    with git_config.open("a", encoding="utf-8") as handle:
+        handle.write("\n".join(lines) + "\n")
 
 
-def copilot_install_dir(env: dict[str, str]) -> Path:
-    return Path(env["COPILOT_HOME"]) / "installed-plugins" / MARKETPLACE_NAME / PLUGIN_NAME
+def copilot_install_dir(
+    env: dict[str, str], plugin: str = PLUGIN_NAME, marketplace: str = MARKETPLACE_NAME
+) -> Path:
+    return Path(env["COPILOT_HOME"]) / "installed-plugins" / marketplace / plugin
 
 
-def claude_install_dir(env: dict[str, str], version: str = CURRENT_VERSION) -> Path:
-    base = Path(env["CLAUDE_CONFIG_DIR"]) / "plugins" / "cache" / MARKETPLACE_NAME / PLUGIN_NAME
+def claude_install_dir(
+    env: dict[str, str],
+    version: str = CURRENT_VERSION,
+    plugin: str = PLUGIN_NAME,
+    marketplace: str = MARKETPLACE_NAME,
+) -> Path:
+    base = Path(env["CLAUDE_CONFIG_DIR"]) / "plugins" / "cache" / marketplace / plugin
     exact = base / version
     if exact.exists():
         return exact
@@ -483,20 +514,29 @@ def claude_marketplace_add(claude: str, source: str, env: dict[str, str]) -> Non
     run([claude, "plugin", "marketplace", "add", source], env=env, input_text="y\n")
 
 
-def claude_marketplace_update(claude: str, env: dict[str, str]) -> None:
-    run([claude, "plugin", "marketplace", "update", MARKETPLACE_NAME], env=env)
+def claude_marketplace_update(claude: str, env: dict[str, str], marketplace: str = MARKETPLACE_NAME) -> None:
+    run([claude, "plugin", "marketplace", "update", marketplace], env=env)
 
 
-def install_both(case_name: str, copilot: str, claude: str, source: str, env: dict[str, str]) -> None:
+def install_both(
+    case_name: str,
+    copilot: str,
+    claude: str,
+    source: str,
+    env: dict[str, str],
+    plugins: Iterable[str] = (PLUGIN_NAME,),
+    marketplace: str = MARKETPLACE_NAME,
+) -> None:
     copilot_marketplace_add(copilot, source, env)
     claude_marketplace_add(claude, source, env)
-    run_step(
-        f"{case_name} copilot install",
-        [copilot, "plugin", "install", f"{PLUGIN_NAME}@{MARKETPLACE_NAME}"],
-        env=env,
-        access_denied_retries=2,
-    )
-    run([claude, "plugin", "install", "-y", f"{PLUGIN_NAME}@{MARKETPLACE_NAME}"], env=env, input_text="y\n")
+    for plugin in plugins:
+        run_step(
+            f"{case_name} copilot install {plugin}",
+            [copilot, "plugin", "install", f"{plugin}@{marketplace}"],
+            env=env,
+            access_denied_retries=2,
+        )
+        run([claude, "plugin", "install", "-y", f"{plugin}@{marketplace}"], env=env, input_text="y\n")
 
 
 def is_up_to_date_output(output: str) -> bool:
@@ -555,6 +595,44 @@ def run_plugin_update(
     raise CheckError(f"step failed: {step}\n{last.output if last else ''}")
 
 
+def update_copilot(
+    case_name: str,
+    copilot: str,
+    env: dict[str, str],
+    *,
+    allow_up_to_date: bool,
+    plugin: str = PLUGIN_NAME,
+    marketplace: str = MARKETPLACE_NAME,
+) -> None:
+    copilot_marketplace_update(copilot, env)
+    run_plugin_update(
+        f"{case_name} copilot update",
+        [copilot, "plugin", "update", f"{plugin}@{marketplace}"],
+        env=env,
+        allow_up_to_date=allow_up_to_date,
+        access_denied_retries=2,
+    )
+
+
+def update_claude(
+    case_name: str,
+    claude: str,
+    env: dict[str, str],
+    *,
+    allow_up_to_date: bool,
+    plugin: str = PLUGIN_NAME,
+    marketplace: str = MARKETPLACE_NAME,
+) -> None:
+    claude_marketplace_update(claude, env, marketplace)
+    run_plugin_update(
+        f"{case_name} claude update",
+        [claude, "plugin", "update", "-y", f"{plugin}@{marketplace}"],
+        env=env,
+        input_text="y\n",
+        allow_up_to_date=allow_up_to_date,
+    )
+
+
 def update_both(
     case_name: str,
     copilot: str,
@@ -563,22 +641,8 @@ def update_both(
     *,
     allow_up_to_date: bool,
 ) -> None:
-    copilot_marketplace_update(copilot, env)
-    claude_marketplace_update(claude, env)
-    run_plugin_update(
-        f"{case_name} copilot update",
-        [copilot, "plugin", "update", f"{PLUGIN_NAME}@{MARKETPLACE_NAME}"],
-        env=env,
-        allow_up_to_date=allow_up_to_date,
-        access_denied_retries=2,
-    )
-    run_plugin_update(
-        f"{case_name} claude update",
-        [claude, "plugin", "update", "-y", f"{PLUGIN_NAME}@{MARKETPLACE_NAME}"],
-        env=env,
-        input_text="y\n",
-        allow_up_to_date=allow_up_to_date,
-    )
+    update_copilot(case_name, copilot, env, allow_up_to_date=allow_up_to_date)
+    update_claude(case_name, claude, env, allow_up_to_date=allow_up_to_date)
 
 
 def print_entries(case_name: str, cli: str, entries: list[str]) -> None:
@@ -591,6 +655,98 @@ def verify_both(case_name: str, env: dict[str, str]) -> tuple[Path, Path]:
     print_entries(case_name, "copilot", assert_top(copilot_dir))
     print_entries(case_name, "claude", assert_top(claude_dir))
     return copilot_dir, claude_dir
+
+
+def plugin_version(install_dir: Path) -> str:
+    manifest = install_dir / ".claude-plugin" / "plugin.json"
+    if not manifest.is_file():
+        raise CheckError(f"plugin manifest missing: {manifest}")
+    return str(json.loads(manifest.read_text(encoding="utf-8")).get("version"))
+
+
+def relative_files(root: Path) -> set[str]:
+    files: set[str] = set()
+    for path in root.rglob("*"):
+        rel = path.relative_to(root)
+        if path.is_file() and rel.parts[0] != ".git" and path.name not in IGNORED_MARKERS:
+            files.add(rel.as_posix())
+    return files
+
+
+def frontend_source_files() -> set[str]:
+    prefix = f"plugins/{FRONTEND_PLUGIN}/"
+    result = run(["git", "ls-files", "-co", "--exclude-standard", "--", prefix], cwd=REPO_ROOT)
+    return {line[len(prefix) :] for line in result.stdout.splitlines() if line.startswith(prefix)}
+
+
+def frontend_install_dirs(env: dict[str, str], marketplace: str = MARKETPLACE_NAME) -> dict[str, Path]:
+    claude_cache = Path(env["CLAUDE_CONFIG_DIR"]) / "plugins" / "cache" / marketplace / FRONTEND_PLUGIN
+    return {
+        "copilot": copilot_install_dir(env, FRONTEND_PLUGIN, marketplace),
+        "claude": claude_cache / FRONTEND_VERSION,
+    }
+
+
+def verify_frontend(case_name: str, cli: str, install_dir: Path, expected_files: set[str]) -> None:
+    entries = top_entries(install_dir)
+    if entries != FRONTEND_TOP:
+        raise CheckError(f"{install_dir} has top-level entries {entries}, expected {FRONTEND_TOP}")
+    skills = sorted(item.name for item in (install_dir / "skills").iterdir() if item.is_dir())
+    if skills != FRONTEND_SKILLS:
+        raise CheckError(f"{install_dir} has skills {skills}, expected {FRONTEND_SKILLS}")
+    version = plugin_version(install_dir)
+    if version != FRONTEND_VERSION:
+        raise CheckError(f"{install_dir} has {FRONTEND_PLUGIN} {version}, expected {FRONTEND_VERSION}")
+    installed = relative_files(install_dir)
+    if installed != expected_files:
+        raise CheckError(
+            "{dir} differs from plugins/{plugin}: missing {missing}, unexpected {extra}".format(
+                dir=install_dir,
+                plugin=FRONTEND_PLUGIN,
+                missing=sorted(expected_files - installed),
+                extra=sorted(installed - expected_files),
+            )
+        )
+    print(f"{case_name} {cli} {FRONTEND_PLUGIN}: PASS {version}, {', '.join(entries)}; skills {', '.join(skills)}")
+
+
+def verify_sibling_discovery(
+    case_name: str, cli: str, ritus_dir: Path, frontend_dir: Path, case_work: Path, env: dict[str, str]
+) -> None:
+    project = case_work / "empty-project"
+    project.mkdir(parents=True, exist_ok=True)
+    hook_env = env.copy()
+    for key in ("PLUGIN_ROOT", "CLAUDE_PROJECT_DIR", "RITUS_COMPANION_PATHS", "COPILOT_CLI"):
+        hook_env.pop(key, None)
+    hook_env["CLAUDE_PLUGIN_ROOT"] = str(ritus_dir)
+    if cli == "copilot":
+        hook_env["COPILOT_CLI"] = "1"
+    result = run(
+        ["bun", str(ritus_dir / "scripts" / "companion-bootstrap.ts")],
+        cwd=project,
+        env=hook_env,
+        input_text=json.dumps({"cwd": str(project)}),
+    )
+    if not result.stdout.strip():
+        raise CheckError(f"{case_name} {cli}: companion bootstrap found no companions from {ritus_dir}")
+    try:
+        output = json.loads(result.stdout)
+        context = output["additionalContext"] if cli == "copilot" else output["hookSpecificOutput"]["additionalContext"]
+    except (ValueError, KeyError, TypeError) as exc:
+        raise CheckError(f"{case_name} {cli}: unexpected companion bootstrap output ({exc})\n{result.output}")
+    manifest = os.path.realpath(frontend_dir / "ritus-companion.json")
+    expected = f"- {FRONTEND_PLUGIN} ({FRONTEND_INTEGRATIONS} integrations): {manifest}"
+    if not any(os.path.normcase(line) == os.path.normcase(expected) for line in context.splitlines()):
+        raise CheckError(f"{case_name} {cli}: companion registry lacks '{expected}'\n{context}")
+    print(f"{case_name} {cli} sibling discovery: PASS {expected[2:]}")
+
+
+def verify_fresh_frontend(case_name: str, env: dict[str, str], case_work: Path) -> None:
+    expected_files = frontend_source_files()
+    ritus_dirs = {"copilot": copilot_install_dir(env), "claude": claude_install_dir(env)}
+    for cli, frontend_dir in frontend_install_dirs(env).items():
+        verify_frontend(case_name, cli, frontend_dir, expected_files)
+        verify_sibling_discovery(case_name, cli, ritus_dirs[cli], frontend_dir, case_work, env)
 
 
 def verify_runtime_paths(copilot_dir: Path, case_work: Path, env: dict[str, str]) -> None:
@@ -648,10 +804,10 @@ def run_fresh_case(
     run_runtime_assertions: bool,
     work: Path,
 ) -> None:
-    clean_copilot_marketplace_cache()
     env = case_env(work / "homes")
-    install_both(name, copilot, claude, source, env)
+    install_both(name, copilot, claude, source, env, plugins=(PLUGIN_NAME, FRONTEND_PLUGIN))
     copilot_dir, _ = verify_both(name, env)
+    verify_fresh_frontend(name, env, work)
     if run_runtime_assertions:
         verify_runtime_paths(copilot_dir, work, env)
 
@@ -669,7 +825,6 @@ def run_update_case(
     allow_up_to_date: bool,
     work: Path,
 ) -> None:
-    clean_copilot_marketplace_cache()
     env = case_env(work / "homes")
     install_both(name, copilot, claude, source, env)
     if clone_style:
@@ -677,6 +832,80 @@ def run_update_case(
     replace_repo_contents(mutable_repo, current_repo, "update marketplace to current")
     update_both(name, copilot, claude, env, allow_up_to_date=allow_up_to_date)
     verify_both(name, env)
+
+
+def make_github_repos(repos: Path, current_repo: Path, frontend_old_repo: Path, frontend_old_ref: str) -> Path:
+    """Serve stand-ins for precise-alloy/ritus (main = the working tree) and
+    precise-alloy/ritus-frontend (main = the old 0.1.0 ref); return the latter."""
+    try:
+        run(["git", "rev-parse", "--verify", f"{frontend_old_ref}^{{commit}}"], cwd=frontend_old_repo)
+    except (CheckError, OSError) as exc:
+        raise CheckError(
+            f"cannot read {frontend_old_ref} from {frontend_old_repo}; pass --frontend-old-repo with a clone "
+            f"of {GITHUB_OWNER}/ritus-frontend\n{exc}"
+        )
+    owner = repos / GITHUB_OWNER
+    ritus = owner / "ritus.git"
+    run(["git", "clone", "-q", str(current_repo), str(ritus)])
+    run(["git", "checkout", "-q", "-B", "main"], cwd=ritus)
+    frontend = make_old_repo(owner / "ritus-frontend.git", frontend_old_ref, source=frontend_old_repo)
+    run(["git", "checkout", "-q", "-B", "main"], cwd=frontend)
+    old_version = plugin_version(frontend)
+    if old_version != FRONTEND_OLD_VERSION:
+        raise CheckError(f"{frontend_old_ref} has {FRONTEND_PLUGIN} {old_version}, expected {FRONTEND_OLD_VERSION}")
+    return frontend
+
+
+def run_frontend_pointer_case(
+    copilot: str,
+    claude: str,
+    frontend_repo: Path,
+    patch: Path,
+    base_url: str,
+    requests: list[str],
+    work: Path,
+) -> None:
+    name = "frontend-pointer"
+    print(f"{name} case: {FRONTEND_PLUGIN} {FRONTEND_OLD_VERSION} from {GITHUB_OWNER}/ritus-frontend, then {patch.name}:")
+    env = case_env(work / "homes")
+    redirect_github_owner(env, base_url)
+    source = f"{base_url}/{GITHUB_OWNER}/{frontend_repo.name}"
+    install_both(
+        name, copilot, claude, source, env, plugins=(FRONTEND_PLUGIN,), marketplace=FRONTEND_OLD_MARKETPLACE
+    )
+    old_dirs = {
+        "copilot": copilot_install_dir(env, FRONTEND_PLUGIN, FRONTEND_OLD_MARKETPLACE),
+        "claude": claude_install_dir(env, FRONTEND_OLD_VERSION, FRONTEND_PLUGIN, FRONTEND_OLD_MARKETPLACE),
+    }
+    for cli, install_dir in old_dirs.items():
+        version = plugin_version(install_dir)
+        if version != FRONTEND_OLD_VERSION:
+            raise CheckError(f"{name} {cli}: installed {version}, expected {FRONTEND_OLD_VERSION}")
+        print(f"{name} {cli}: installed {FRONTEND_PLUGIN} {version}")
+
+    run(["git", "apply", str(patch)], cwd=frontend_repo)
+    commit_all(frontend_repo, f"apply {patch.name}")
+
+    expected_files = frontend_source_files()
+    ritus_paths = (f"/{GITHUB_OWNER}/ritus.git/", f"/{GITHUB_OWNER}/ritus/")
+    for cli in ("copilot", "claude"):
+        start = len(requests)
+        if cli == "copilot":
+            update_copilot(
+                name, copilot, env, allow_up_to_date=False, plugin=FRONTEND_PLUGIN, marketplace=FRONTEND_OLD_MARKETPLACE
+            )
+        else:
+            update_claude(
+                name, claude, env, allow_up_to_date=False, plugin=FRONTEND_PLUGIN, marketplace=FRONTEND_OLD_MARKETPLACE
+            )
+        if not any(path.startswith(ritus_paths) for path in requests[start:]):
+            raise CheckError(f"{name} {cli}: the update did not fetch {GITHUB_OWNER}/ritus from the local server")
+        new_dir = frontend_install_dirs(env, FRONTEND_OLD_MARKETPLACE)[cli]
+        verify_frontend(name, cli, new_dir, expected_files)
+        print(
+            f"{name} {cli} update: PASS {FRONTEND_OLD_VERSION} -> {plugin_version(new_dir)} "
+            f"from {GITHUB_OWNER}/ritus plugins/{FRONTEND_PLUGIN} (local server)"
+        )
 
 
 def configure_copilot_github_ref(env: dict[str, str], github: str, github_ref: str) -> None:
@@ -693,7 +922,6 @@ def run_github_case(args: argparse.Namespace, old_ref: str) -> None:
     if not args.github:
         return
     print("github update case:")
-    clean_copilot_marketplace_cache()
     work = WORK_ROOT / f"github-{uuid.uuid4().hex}"
     env = case_env(work / "homes")
     old_source = args.github
@@ -727,11 +955,30 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--git-http-backend")
     parser.add_argument("--github")
     parser.add_argument("--github-ref")
+    parser.add_argument(
+        "--frontend-old-repo",
+        type=Path,
+        default=DEFAULT_FRONTEND_OLD_REPO,
+        help=f"Clone of {GITHUB_OWNER}/ritus-frontend, read only; default: {DEFAULT_FRONTEND_OLD_REPO}",
+    )
+    parser.add_argument(
+        "--frontend-old-ref",
+        default=DEFAULT_FRONTEND_OLD_REF,
+        help=f"{FRONTEND_PLUGIN} {FRONTEND_OLD_VERSION} commit in that clone; default: {DEFAULT_FRONTEND_OLD_REF}",
+    )
+    parser.add_argument(
+        "--frontend-pointer-patch",
+        type=Path,
+        default=DEFAULT_FRONTEND_POINTER_PATCH,
+        help=f"Pointer patch for the old repository; default: {DEFAULT_FRONTEND_POINTER_PATCH.name}",
+    )
     parser.add_argument("--keep", action="store_true")
     args = parser.parse_args()
     args.old_ref = args.old_ref or DEFAULT_OLD_REFS
     if args.github and not args.github_ref:
         parser.error("--github-ref is required with --github")
+    if not args.frontend_pointer_patch.is_file():
+        parser.error(f"--frontend-pointer-patch not found: {args.frontend_pointer_patch}")
     return args
 
 
@@ -754,11 +1001,13 @@ def main() -> int:
         old_ref: make_old_repo(repos / f"old-{safe_ref_name(old_ref)}", old_ref)
         for old_ref in args.old_ref
     }
+    requests: list[str] = []
 
     try:
+        frontend_old_repo = make_github_repos(repos, current_repo, args.frontend_old_repo, args.frontend_old_ref)
         run_fresh_case("fresh-local", str(current_repo), args.copilot, args.claude, True, work / "fresh-local")
 
-        with git_http_server(repos, backend) as base_url:
+        with git_http_server(repos, backend, requests) as base_url:
             run_fresh_case(
                 "fresh-git",
                 f"{base_url}/current/.git",
@@ -766,6 +1015,15 @@ def main() -> int:
                 args.claude,
                 False,
                 work / "fresh-git",
+            )
+            run_frontend_pointer_case(
+                args.copilot,
+                args.claude,
+                frontend_old_repo,
+                args.frontend_pointer_patch.resolve(),
+                base_url,
+                requests,
+                work / "fe-ptr",
             )
 
             for old_ref, old_repo in old_repos.items():
@@ -847,7 +1105,6 @@ def main() -> int:
         print("all install checks passed")
         return 0
     finally:
-        clean_copilot_marketplace_cache()
         if args.keep:
             print(f"kept work directory: {work}")
         else:

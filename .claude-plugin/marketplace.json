@@ -14,14 +14,9 @@
     },
     {
       "name": "ritus-frontend",
-      "description": "Objective, re-runnable browser visual verification via Playwright MCP - runs standalone or alongside ritus",
-      "version": "0.1.0",
-      "source": {
-        "source": "github",
-        "repo": "precise-alloy/ritus-frontend",
-        "ref": "main",
-        "path": "./"
-      }
+      "description": "Ritus frontend 1.0 UI companion: loads a UI standard into Ritus steps and adds a read-only UI checker with browser evidence through playwright-cli or host browsers.",
+      "version": "1.0.0",
+      "source": "./plugins/ritus-frontend"
     }
   ]
 }
