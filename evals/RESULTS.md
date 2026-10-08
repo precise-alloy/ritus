@@ -169,7 +169,7 @@ The clean runs point the same way and by about as much. Per group they are too f
 
 ## ritus-frontend 0.2.0 vs 1.0.0
 
-The `frontend-compare` round (`python evals\harness\build.py round --show frontend-compare`; iteration 29 in the harness workspace) ran 11 TinyLedger Web scenarios in 7 groups, ritus-frontend 0.2.0 on Ritus 3.0.0 before D4 (`git:6c03d3a+git:7e57273:plugins/ritus-frontend`; D4 is the core change that adds companion load points at task generation, verify-task, pr-review and wrap-up) against ritus-frontend 1.0.0 on Ritus 3.0.0 with D4, both at the release commit (`git:4aa5e31+git:4aa5e31:plugins/ritus-frontend`), 3 runs each - 66 runs, graded by scripts, by Playwright and axe measurements of each built app, and by 3 blind judge bundles that mix both arms. Run agents and judges were gpt-5.5. All runs went one at a time in one dedicated Copilot app session, where both arms had the Playwright MCP, `playwright-cli`, the Figma stand-in and its `figma-design-to-code` guidance skill. 1.0 was iterated against a 0.2.0 baseline before this round, which reran both arms side by side. Every number below comes from [`results/frontend-compare/scores.md`](results/frontend-compare/scores.md), which also has each scenario, and from [`benchmark.json`](results/frontend-compare/benchmark.json); [`analyst.json`](results/frontend-compare/analyst.json) has the full reading.
+The `frontend-compare` round (`python evals\harness\build.py round --show frontend-compare`; iteration 29 in the harness workspace) ran 11 TinyLedger Web scenarios in 7 groups, ritus-frontend 0.2.0 on Ritus 3.0.0 before D4 (`git:6c03d3a+git:7e57273:plugins/ritus-frontend`; D4 is the core change that adds companion load points at task generation, verify-task, pr-review and wrap-up) against ritus-frontend 1.0.0 on Ritus 3.0.0 with D4, both at the release-candidate commit `4aa5e31` (`git:4aa5e31+git:4aa5e31:plugins/ritus-frontend`; see Caveats for how the shipped 1.0.0 differs), 3 runs each - 66 runs, graded by scripts, by Playwright and axe measurements of each built app, and by 3 blind judge bundles that mix both arms. Run agents and judges were gpt-5.5. All runs went one at a time in one dedicated Copilot app session, where both arms had the Playwright MCP, `playwright-cli`, the Figma stand-in and its `figma-design-to-code` guidance skill. 1.0 was iterated against a 0.2.0 baseline before this round, which reran both arms side by side. Every number below comes from [`results/frontend-compare/scores.md`](results/frontend-compare/scores.md), which also has each scenario, and from [`benchmark.json`](results/frontend-compare/benchmark.json); [`analyst.json`](results/frontend-compare/analyst.json) has the full reading.
 
 ### All groups
 
@@ -265,6 +265,10 @@ The step probes start one workflow step from prepared documents and are reported
 
 - Prompts and the scripted developer replies are in English.
 - n = 3 runs per scenario and arm.
+- The new arm is the release candidate `4aa5e31`. The shipped 1.0.0 differs from it in two places, neither of which
+  these scenarios exercise. The `frontend` SKILL.md restores a sentence that states the report-before-repair rule; the
+  same rule was already in `verify.md` and the manifest prompts. The Ritus hook skips Claude version folders marked
+  `.orphaned_at`, and the eval worlds have none.
 - Run agents and judges are gpt-5.5, named explicitly on each launch because the host app's default subagent model changed during the 1.0 work; every run's usage lists gpt-5.5 as its only model.
 - Every harness step of this round ran on Python 3.13.13; the switch from 3.13.12 happened in an earlier, unpublished 1.0 round.
 - The 0.2.0 arm pins Ritus 3.0.0 at `git:6c03d3a`, before D4, the core change that lets a companion load its standard at task generation and names companion load items for verify-task, pr-review and wrap-up workers. 0.2.0's companion has fewer load points by design.

@@ -1,7 +1,7 @@
 {
   "metadata": {
     "skill_name": "ritus-frontend",
-    "skill_path": "plugins/ritus-frontend (new_skill = ritus-frontend 1.0.0 on Ritus 3.0.0 with D4, both at the release commit git:4aa5e31; old_skill = ritus-frontend 0.2.0 at git:7e57273 on Ritus 3.0.0 at git:6c03d3a, before D4)",
+    "skill_path": "plugins/ritus-frontend (new_skill = ritus-frontend 1.0.0 on Ritus 3.0.0 with D4, both at the release-candidate commit git:4aa5e31; old_skill = ritus-frontend 0.2.0 at git:7e57273 on Ritus 3.0.0 at git:6c03d3a, before D4)",
     "executor_model": "gpt-5.5, named explicitly on each run agent (Copilot app subagents, one run at a time in one dedicated session; main-thread scenarios run multi-turn with a scripted developer)",
     "analyzer_model": "claude-opus-5.5 (analyst); judges = 3 blind grader subagents (gpt-5.5, named explicitly), each bundle mixing both arms"
   },

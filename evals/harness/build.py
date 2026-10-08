@@ -149,7 +149,7 @@ ROUNDS = {
         "iteration": 29,
         "runs": 3,
         "arms": ["old_skill", "new_skill"],
-        # new_skill is pinned to the ritus-frontend 1.0.0 release commit.
+        # new_skill is pinned to the ritus-frontend 1.0.0 release candidate that RESULTS.md reports.
         "arm_specs": {
             "old_skill": "git:6c03d3a+git:7e57273:plugins/ritus-frontend",
             "new_skill": "git:4aa5e31+git:4aa5e31:plugins/ritus-frontend",
