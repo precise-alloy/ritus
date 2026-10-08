@@ -14,7 +14,7 @@ This directory is a maintainer reference for the benchmark harness used while re
 
 ## Results
 
-- [Evaluation results](RESULTS.md) - the 2.1.2 vs 3.0.0 comparison round behind the 3.0.0 release, per scenario group; its scrubbed summary files are in `results/v2-vs-v3/`.
+- [Evaluation results](RESULTS.md) - the 2.1.2 vs 3.0.0 comparison round behind the 3.0.0 release and the ritus-frontend 0.2.0 vs 1.0.0 round, per scenario group; their scrubbed summary files are in `results/v2-vs-v3/` and `results/frontend-compare/`.
 
 ## Layout
 
@@ -198,6 +198,8 @@ System-level groups carry the comparison because each arm reaches UI checks at d
 ### Final comparison
 
 Phase 5 reruns 0.2.0 next to 1.0 in one session set up exactly as above. A deployment-profile benchmark, where each arm gets its own recommended environment, is not part of this comparison.
+
+The published result is the "ritus-frontend 0.2.0 vs 1.0.0" section of [`RESULTS.md`](RESULTS.md), with its data in [`results/frontend-compare/`](results/frontend-compare/).
 
 ## Running a round
 

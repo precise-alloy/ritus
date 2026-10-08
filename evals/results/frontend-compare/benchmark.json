@@ -1,0 +1,4843 @@
+{
+  "metadata": {
+    "skill_name": "ritus-frontend",
+    "skill_path": "plugins/ritus-frontend (new_skill = ritus-frontend 1.0.0 on Ritus 3.0.0 with D4, both at the release commit git:4aa5e31; old_skill = ritus-frontend 0.2.0 at git:7e57273 on Ritus 3.0.0 at git:6c03d3a, before D4)",
+    "executor_model": "gpt-5.5, named explicitly on each run agent (Copilot app subagents, one run at a time in one dedicated session; main-thread scenarios run multi-turn with a scripted developer)",
+    "analyzer_model": "claude-opus-5.5 (analyst); judges = 3 blind grader subagents (gpt-5.5, named explicitly), each bundle mixing both arms",
+    "timestamp": "2026-10-08T05:21:14Z",
+    "evals_run": [
+      70,
+      71,
+      72,
+      73,
+      74,
+      75,
+      76,
+      77,
+      78,
+      79,
+      80
+    ],
+    "runs_per_configuration": 3
+  },
+  "runs": [
+    {
+      "eval_id": 70,
+      "configuration": "new_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 10,
+        "failed": 0,
+        "total": 10,
+        "time_seconds": 335.3,
+        "tokens": 1817057,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "up1.level_standard",
+          "check": "auto",
+          "text": "The first reply sizes the ticket STANDARD",
+          "passed": true,
+          "evidence": "level stated (turn 1): STANDARD"
+        },
+        {
+          "id": "up1.no_code_before_approval",
+          "check": "auto",
+          "text": "Changes no source or test file before approval",
+          "passed": true,
+          "evidence": "first gate: turn 1; code first changed in turn None"
+        },
+        {
+          "id": "up1.no_implementation",
+          "check": "auto",
+          "text": "No src/ or test/ file is changed by the end",
+          "passed": true,
+          "evidence": "source/test files changed: none"
+        },
+        {
+          "id": "up1.plan_written",
+          "check": "auto",
+          "text": "Writes docs/reviews/TLW-22-review.md",
+          "passed": true,
+          "evidence": "plan files: ['docs/reviews/TLW-22-review.md']"
+        },
+        {
+          "id": "up1.task_files",
+          "check": "auto",
+          "text": "Writes task files under docs/tasks/feature-TLW-22-transfer-note-fee/",
+          "passed": true,
+          "evidence": "task files: ['docs/tasks/feature-TLW-22-transfer-note-fee/001-tlw-22-money-helpers.md', 'docs/tasks/feature-TLW-22-transfer-note-fee/002-tlw-22-transfer-note-fee-preview.md']"
+        },
+        {
+          "id": "up1.citations",
+          "check": "auto",
+          "text": "Every cited file:line in the plan and task files exists",
+          "passed": true,
+          "evidence": "33 file:line citations; broken: none"
+        },
+        {
+          "id": "up1.ui_acceptance",
+          "check": "judge",
+          "text": "Acceptance names the routes and supported widths/breakpoints to check",
+          "passed": true,
+          "evidence": "[judge] AC5 names /transfer and widths 375, 639, 640, 768, 1023, 1024, 1280, 1440."
+        },
+        {
+          "id": "up1.states",
+          "check": "judge",
+          "text": "Acceptance covers empty/invalid amount, From = To, success and fee edge cases",
+          "passed": true,
+          "evidence": "[judge] AC1-AC4 cover empty/invalid/zero/negative/over-precision, same-account, success, and fee edges 1,2449,2450,2549,2550,10000."
+        },
+        {
+          "id": "up1.a11y",
+          "check": "judge",
+          "text": "Acceptance covers labels, keyboard use and contrast against WCAG 2.2 AA",
+          "passed": true,
+          "evidence": "[judge] AC6 requires labels/access names, keyboard order, axe, WCAG 2.2 AA contrast, console/network checks."
+        },
+        {
+          "id": "up1.design_system",
+          "check": "judge",
+          "text": "Plan requires existing components and design tokens",
+          "passed": true,
+          "evidence": "[judge] AC6 and constraints require design-system rules, existing components/patterns, and CSS tokens."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 70,
+      "configuration": "new_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 10,
+        "failed": 0,
+        "total": 10,
+        "time_seconds": 273.0,
+        "tokens": 1261473,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "up1.level_standard",
+          "check": "auto",
+          "text": "The first reply sizes the ticket STANDARD",
+          "passed": true,
+          "evidence": "level stated (turn 1): STANDARD"
+        },
+        {
+          "id": "up1.no_code_before_approval",
+          "check": "auto",
+          "text": "Changes no source or test file before approval",
+          "passed": true,
+          "evidence": "first gate: turn 1; code first changed in turn None"
+        },
+        {
+          "id": "up1.no_implementation",
+          "check": "auto",
+          "text": "No src/ or test/ file is changed by the end",
+          "passed": true,
+          "evidence": "source/test files changed: none"
+        },
+        {
+          "id": "up1.plan_written",
+          "check": "auto",
+          "text": "Writes docs/reviews/TLW-22-review.md",
+          "passed": true,
+          "evidence": "plan files: ['docs/reviews/TLW-22-review.md']"
+        },
+        {
+          "id": "up1.task_files",
+          "check": "auto",
+          "text": "Writes task files under docs/tasks/feature-TLW-22-transfer-note-fee/",
+          "passed": true,
+          "evidence": "task files: ['docs/tasks/feature-TLW-22-transfer-note-fee/001-TLW-22-transfer-fee-helper.md', 'docs/tasks/feature-TLW-22-transfer-note-fee/002-TLW-22-transfer-note-fee-preview.md']"
+        },
+        {
+          "id": "up1.citations",
+          "check": "auto",
+          "text": "Every cited file:line in the plan and task files exists",
+          "passed": true,
+          "evidence": "28 file:line citations; broken: none"
+        },
+        {
+          "id": "up1.ui_acceptance",
+          "check": "judge",
+          "text": "Acceptance names the routes and supported widths/breakpoints to check",
+          "passed": true,
+          "evidence": "[judge] AC5 names /transfer and widths 375, 639, 640, 768, 1023, 1024, 1280; covers route and breakpoints."
+        },
+        {
+          "id": "up1.states",
+          "check": "judge",
+          "text": "Acceptance covers empty/invalid amount, From = To, success and fee edge cases",
+          "passed": true,
+          "evidence": "[judge] AC2 covers invalid/missing/zero/negative; AC4 different-account and success; AC3 has fee examples 1,2449,2450,2550 cents."
+        },
+        {
+          "id": "up1.a11y",
+          "check": "judge",
+          "text": "Acceptance covers labels, keyboard use and contrast against WCAG 2.2 AA",
+          "passed": true,
+          "evidence": "[judge] AC6 requires visible labels, keyboard focus order, aria-live/status, axe no violations, and contrast meets AA."
+        },
+        {
+          "id": "up1.design_system",
+          "check": "judge",
+          "text": "Plan requires existing components and design tokens",
+          "passed": true,
+          "evidence": "[judge] Plan says reuse .form-panel/.field/card/status patterns and changed styles use tokens.css values."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 70,
+      "configuration": "new_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 10,
+        "failed": 0,
+        "total": 10,
+        "time_seconds": 213.0,
+        "tokens": 1151769,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "up1.level_standard",
+          "check": "auto",
+          "text": "The first reply sizes the ticket STANDARD",
+          "passed": true,
+          "evidence": "level stated (turn 1): STANDARD"
+        },
+        {
+          "id": "up1.no_code_before_approval",
+          "check": "auto",
+          "text": "Changes no source or test file before approval",
+          "passed": true,
+          "evidence": "first gate: turn 1; code first changed in turn None"
+        },
+        {
+          "id": "up1.no_implementation",
+          "check": "auto",
+          "text": "No src/ or test/ file is changed by the end",
+          "passed": true,
+          "evidence": "source/test files changed: none"
+        },
+        {
+          "id": "up1.plan_written",
+          "check": "auto",
+          "text": "Writes docs/reviews/TLW-22-review.md",
+          "passed": true,
+          "evidence": "plan files: ['docs/reviews/TLW-22-review.md']"
+        },
+        {
+          "id": "up1.task_files",
+          "check": "auto",
+          "text": "Writes task files under docs/tasks/feature-TLW-22-transfer-note-fee/",
+          "passed": true,
+          "evidence": "task files: ['docs/tasks/feature-TLW-22-transfer-note-fee/001-add-transfer-fee-helpers-and-tests.md', 'docs/tasks/feature-TLW-22-transfer-note-fee/002-add-note-field-and-live-fee-preview.md']"
+        },
+        {
+          "id": "up1.citations",
+          "check": "auto",
+          "text": "Every cited file:line in the plan and task files exists",
+          "passed": true,
+          "evidence": "29 file:line citations; broken: none"
+        },
+        {
+          "id": "up1.ui_acceptance",
+          "check": "judge",
+          "text": "Acceptance names the routes and supported widths/breakpoints to check",
+          "passed": true,
+          "evidence": "[judge] AC5 names /transfer and widths 375, 639, 640, 768, 1023, 1024, 1280."
+        },
+        {
+          "id": "up1.states",
+          "check": "judge",
+          "text": "Acceptance covers empty/invalid amount, From = To, success and fee edge cases",
+          "passed": true,
+          "evidence": "[judge] AC3 covers empty/non-numeric/non-positive stale preview; AC4 invalid/same/success; AC2 has 100,1050,2550,10000 fee tests."
+        },
+        {
+          "id": "up1.a11y",
+          "check": "judge",
+          "text": "Acceptance covers labels, keyboard use and contrast against WCAG 2.2 AA",
+          "passed": true,
+          "evidence": "[judge] AC6 names visible labels/access names, keyboard order, accessible updates, WCAG 2.2 AA contrast, and axe."
+        },
+        {
+          "id": "up1.design_system",
+          "check": "judge",
+          "text": "Plan requires existing components and design tokens",
+          "passed": true,
+          "evidence": "[judge] AC7 says use existing tokens/components/patterns and diff shows tokens.css rather than raw values."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 71,
+      "configuration": "new_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 15,
+        "failed": 0,
+        "total": 15,
+        "time_seconds": 360.2,
+        "tokens": 1835714,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "ub1.card_geometry",
+          "check": "auto",
+          "text": "Summary card geometry matches the design values",
+          "passed": true,
+          "evidence": "summary card geometry matches design"
+        },
+        {
+          "id": "ub1.card_colors",
+          "check": "auto",
+          "text": "Summary card colors use the design tokens",
+          "passed": true,
+          "evidence": "summary card colors match design"
+        },
+        {
+          "id": "ub1.card_type",
+          "check": "auto",
+          "text": "Summary card typography matches the design",
+          "passed": true,
+          "evidence": "summary card typography matches design"
+        },
+        {
+          "id": "ub1.card_total",
+          "check": "auto",
+          "text": "Summary card total is `$12,345.67`",
+          "passed": true,
+          "evidence": "summary total is $12,345.67"
+        },
+        {
+          "id": "ub1.card_full_width",
+          "check": "auto",
+          "text": "Summary card fills the content column",
+          "passed": true,
+          "evidence": "summary card fills the content column"
+        },
+        {
+          "id": "ub1.card_reuses_component",
+          "check": "auto",
+          "text": "Summary card reuses `card()`",
+          "passed": true,
+          "evidence": "component signature present at every width; changed src file imports and calls components/card.js"
+        },
+        {
+          "id": "ub1.tokens_only",
+          "check": "auto",
+          "text": "No raw color literals are added",
+          "passed": true,
+          "evidence": "no added color literals under src/ or public/"
+        },
+        {
+          "id": "ub1.routes_ok",
+          "check": "auto",
+          "text": "All TinyLedger Web routes still load",
+          "passed": true,
+          "evidence": "all routes returned 200 with expected h1"
+        },
+        {
+          "id": "ub1.no_overflow",
+          "check": "auto",
+          "text": "No horizontal overflow is present",
+          "passed": true,
+          "evidence": "overflow <= 0 at every route and width"
+        },
+        {
+          "id": "ub1.axe_clean",
+          "check": "auto",
+          "text": "Axe finds no WCAG violations",
+          "passed": true,
+          "evidence": "zero axe violations at every route and width"
+        },
+        {
+          "id": "ub1.console_clean",
+          "check": "auto",
+          "text": "Browser console and network checks are clean",
+          "passed": true,
+          "evidence": "no console errors, pageerrors, or >=400 responses"
+        },
+        {
+          "id": "ub1.checks",
+          "check": "auto",
+          "text": "Build, test and lint pass",
+          "passed": true,
+          "evidence": "exit codes {'build': 0, 'test': 0, 'lint': 0}; {'tests': '11', 'pass': '11', 'fail': '0'}"
+        },
+        {
+          "id": "ub1.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 11"
+        },
+        {
+          "id": "ub1.read_design",
+          "check": "auto",
+          "text": "The run called a design-context tool",
+          "passed": true,
+          "evidence": "design tool calls: get_design_context, get_screenshot, get_metadata, get_variable_defs, get_code_connect_map"
+        },
+        {
+          "id": "ub1.report_true",
+          "check": "judge",
+          "text": "The report claims about matching the design and about checks run agree with the UI facts",
+          "passed": true,
+          "evidence": "[judge] Report says computed styles were padding/gap 16px, radius 8px, value `$12,345.67`, no overflow, axe/console clean, and `npm run build`, `npm test`, `npm run lint` passed; UI/final command facts all PASS."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 71,
+      "configuration": "new_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 15,
+        "failed": 0,
+        "total": 15,
+        "time_seconds": 173.1,
+        "tokens": 1184687,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "ub1.card_geometry",
+          "check": "auto",
+          "text": "Summary card geometry matches the design values",
+          "passed": true,
+          "evidence": "summary card geometry matches design"
+        },
+        {
+          "id": "ub1.card_colors",
+          "check": "auto",
+          "text": "Summary card colors use the design tokens",
+          "passed": true,
+          "evidence": "summary card colors match design"
+        },
+        {
+          "id": "ub1.card_type",
+          "check": "auto",
+          "text": "Summary card typography matches the design",
+          "passed": true,
+          "evidence": "summary card typography matches design"
+        },
+        {
+          "id": "ub1.card_total",
+          "check": "auto",
+          "text": "Summary card total is `$12,345.67`",
+          "passed": true,
+          "evidence": "summary total is $12,345.67"
+        },
+        {
+          "id": "ub1.card_full_width",
+          "check": "auto",
+          "text": "Summary card fills the content column",
+          "passed": true,
+          "evidence": "summary card fills the content column"
+        },
+        {
+          "id": "ub1.card_reuses_component",
+          "check": "auto",
+          "text": "Summary card reuses `card()`",
+          "passed": true,
+          "evidence": "component signature present at every width; changed src file imports and calls components/card.js"
+        },
+        {
+          "id": "ub1.tokens_only",
+          "check": "auto",
+          "text": "No raw color literals are added",
+          "passed": true,
+          "evidence": "no added color literals under src/ or public/"
+        },
+        {
+          "id": "ub1.routes_ok",
+          "check": "auto",
+          "text": "All TinyLedger Web routes still load",
+          "passed": true,
+          "evidence": "all routes returned 200 with expected h1"
+        },
+        {
+          "id": "ub1.no_overflow",
+          "check": "auto",
+          "text": "No horizontal overflow is present",
+          "passed": true,
+          "evidence": "overflow <= 0 at every route and width"
+        },
+        {
+          "id": "ub1.axe_clean",
+          "check": "auto",
+          "text": "Axe finds no WCAG violations",
+          "passed": true,
+          "evidence": "zero axe violations at every route and width"
+        },
+        {
+          "id": "ub1.console_clean",
+          "check": "auto",
+          "text": "Browser console and network checks are clean",
+          "passed": true,
+          "evidence": "no console errors, pageerrors, or >=400 responses"
+        },
+        {
+          "id": "ub1.checks",
+          "check": "auto",
+          "text": "Build, test and lint pass",
+          "passed": true,
+          "evidence": "exit codes {'build': 0, 'test': 0, 'lint': 0}; {'tests': '11', 'pass': '11', 'fail': '0'}"
+        },
+        {
+          "id": "ub1.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 1"
+        },
+        {
+          "id": "ub1.read_design",
+          "check": "auto",
+          "text": "The run called a design-context tool",
+          "passed": true,
+          "evidence": "design tool calls: get_design_context, get_variable_defs, get_code_connect_map, get_metadata, get_screenshot"
+        },
+        {
+          "id": "ub1.report_true",
+          "check": "judge",
+          "text": "The report claims about matching the design and about checks run agree with the UI facts",
+          "passed": true,
+          "evidence": "[judge] Report says browser checks observed the Total balance card, matching computed styles, `$12,345.67`, no overflow, axe 0, visible keyboard path, and all three commands exited 0; facts agree."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 71,
+      "configuration": "new_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 15,
+        "failed": 0,
+        "total": 15,
+        "time_seconds": 227.0,
+        "tokens": 1336546,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "ub1.card_geometry",
+          "check": "auto",
+          "text": "Summary card geometry matches the design values",
+          "passed": true,
+          "evidence": "summary card geometry matches design"
+        },
+        {
+          "id": "ub1.card_colors",
+          "check": "auto",
+          "text": "Summary card colors use the design tokens",
+          "passed": true,
+          "evidence": "summary card colors match design"
+        },
+        {
+          "id": "ub1.card_type",
+          "check": "auto",
+          "text": "Summary card typography matches the design",
+          "passed": true,
+          "evidence": "summary card typography matches design"
+        },
+        {
+          "id": "ub1.card_total",
+          "check": "auto",
+          "text": "Summary card total is `$12,345.67`",
+          "passed": true,
+          "evidence": "summary total is $12,345.67"
+        },
+        {
+          "id": "ub1.card_full_width",
+          "check": "auto",
+          "text": "Summary card fills the content column",
+          "passed": true,
+          "evidence": "summary card fills the content column"
+        },
+        {
+          "id": "ub1.card_reuses_component",
+          "check": "auto",
+          "text": "Summary card reuses `card()`",
+          "passed": true,
+          "evidence": "component signature present at every width; changed src file imports and calls components/card.js"
+        },
+        {
+          "id": "ub1.tokens_only",
+          "check": "auto",
+          "text": "No raw color literals are added",
+          "passed": true,
+          "evidence": "no added color literals under src/ or public/"
+        },
+        {
+          "id": "ub1.routes_ok",
+          "check": "auto",
+          "text": "All TinyLedger Web routes still load",
+          "passed": true,
+          "evidence": "all routes returned 200 with expected h1"
+        },
+        {
+          "id": "ub1.no_overflow",
+          "check": "auto",
+          "text": "No horizontal overflow is present",
+          "passed": true,
+          "evidence": "overflow <= 0 at every route and width"
+        },
+        {
+          "id": "ub1.axe_clean",
+          "check": "auto",
+          "text": "Axe finds no WCAG violations",
+          "passed": true,
+          "evidence": "zero axe violations at every route and width"
+        },
+        {
+          "id": "ub1.console_clean",
+          "check": "auto",
+          "text": "Browser console and network checks are clean",
+          "passed": true,
+          "evidence": "no console errors, pageerrors, or >=400 responses"
+        },
+        {
+          "id": "ub1.checks",
+          "check": "auto",
+          "text": "Build, test and lint pass",
+          "passed": true,
+          "evidence": "exit codes {'build': 0, 'test': 0, 'lint': 0}; {'tests': '11', 'pass': '11', 'fail': '0'}"
+        },
+        {
+          "id": "ub1.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 4"
+        },
+        {
+          "id": "ub1.read_design",
+          "check": "auto",
+          "text": "The run called a design-context tool",
+          "passed": true,
+          "evidence": "design tool calls: get_design_context, get_variable_defs, get_code_connect_map, get_metadata, get_screenshot"
+        },
+        {
+          "id": "ub1.report_true",
+          "check": "judge",
+          "text": "The report claims about matching the design and about checks run agree with the UI facts",
+          "passed": true,
+          "evidence": "[judge] Report says card chrome/typography/value/accessibility matched, no overflow, tokens used, and `npm run build; npm test; npm run lint` produced build ok, 11 tests passed, lint ok; all UI and command facts agree."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 72,
+      "configuration": "new_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 201.7,
+        "tokens": 1420304,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "uv1.fail",
+          "check": "auto",
+          "text": "Returns VERIFY: FAIL",
+          "passed": true,
+          "evidence": "verdict FAIL"
+        },
+        {
+          "id": "uv1.read_only",
+          "check": "auto",
+          "text": "Leaves the working tree exactly as it found it",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False; branch now: feature/TLW-21-total-balance-card"
+        },
+        {
+          "id": "uv1.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 3"
+        },
+        {
+          "id": "uv1.named_gap",
+          "check": "judge",
+          "text": "Names the label-value gap as 12px where the task requires 16px, measured or read from CSS",
+          "passed": true,
+          "evidence": "[judge] Names the issue: 'browser measured 12px gap' and 'Expected 16px'. This is the planted label-value gap defect."
+        },
+        {
+          "id": "uv1.no_false_defects",
+          "check": "judge",
+          "text": "Every other defect it reports is real",
+          "passed": true,
+          "evidence": "[judge] Other ACs pass; the Defects line is the real gap/height consequence: 'label-value gap computes to 12px, expected 16px'."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 72,
+      "configuration": "new_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 352.3,
+        "tokens": 1405793,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "uv1.fail",
+          "check": "auto",
+          "text": "Returns VERIFY: FAIL",
+          "passed": true,
+          "evidence": "verdict FAIL"
+        },
+        {
+          "id": "uv1.read_only",
+          "check": "auto",
+          "text": "Leaves the working tree exactly as it found it",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False; branch now: feature/TLW-21-total-balance-card"
+        },
+        {
+          "id": "uv1.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 8"
+        },
+        {
+          "id": "uv1.named_gap",
+          "check": "judge",
+          "text": "Names the label-value gap as 12px where the task requires 16px, measured or read from CSS",
+          "passed": true,
+          "evidence": "[judge] AC1/AC2 identify the Figma 16px label/value gap but browser observed '12px' and app.css uses var(--space-3)."
+        },
+        {
+          "id": "uv1.no_false_defects",
+          "check": "judge",
+          "text": "Every other defect it reports is real",
+          "passed": true,
+          "evidence": "[judge] Blocking findings all reduce to the real gap: 'label/value gap 12px, expected 16px'; other layout/a11y/overflow checks pass."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 72,
+      "configuration": "new_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 241.6,
+        "tokens": 1313776,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "uv1.fail",
+          "check": "auto",
+          "text": "Returns VERIFY: FAIL",
+          "passed": true,
+          "evidence": "verdict FAIL"
+        },
+        {
+          "id": "uv1.read_only",
+          "check": "auto",
+          "text": "Leaves the working tree exactly as it found it",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False; branch now: feature/TLW-21-total-balance-card"
+        },
+        {
+          "id": "uv1.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 9"
+        },
+        {
+          "id": "uv1.named_gap",
+          "check": "judge",
+          "text": "Names the label-value gap as 12px where the task requires 16px, measured or read from CSS",
+          "passed": true,
+          "evidence": "[judge] Report states Playwright measured gap '12px' and source sets var(--space-3) 'instead of the required 16px token'."
+        },
+        {
+          "id": "uv1.no_false_defects",
+          "check": "judge",
+          "text": "Every other defect it reports is real",
+          "passed": true,
+          "evidence": "[judge] Defects list only the real 'label-value gap actual 12px vs expected 16px'; other checks are passing."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 73,
+      "configuration": "new_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 287.1,
+        "tokens": 1717979,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "uv2.fail",
+          "check": "auto",
+          "text": "Returns VERIFY: FAIL",
+          "passed": true,
+          "evidence": "verdict FAIL"
+        },
+        {
+          "id": "uv2.read_only",
+          "check": "auto",
+          "text": "Leaves the working tree exactly as it found it",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False; branch now: feature/TLW-22-transfer-note-fee"
+        },
+        {
+          "id": "uv2.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 9"
+        },
+        {
+          "id": "uv2.named_overflow",
+          "check": "judge",
+          "text": "Names horizontal overflow at 375px caused by the fee panel",
+          "passed": true,
+          "evidence": "[judge] AC4 reports 'document scrollWidth=436, clientWidth=375' caused by '.fee-panel { min-width: 420px; }'."
+        },
+        {
+          "id": "uv2.no_false_defects",
+          "check": "judge",
+          "text": "Every other defect it reports is real",
+          "passed": true,
+          "evidence": "[judge] AC5/AC7 are the same 375px reflow overflow; Defects list only 'actual document scrollWidth 436 vs expected no horizontal overflow'."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 73,
+      "configuration": "new_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 226.5,
+        "tokens": 1362762,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "uv2.fail",
+          "check": "auto",
+          "text": "Returns VERIFY: FAIL",
+          "passed": true,
+          "evidence": "verdict FAIL"
+        },
+        {
+          "id": "uv2.read_only",
+          "check": "auto",
+          "text": "Leaves the working tree exactly as it found it",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False; branch now: feature/TLW-22-transfer-note-fee"
+        },
+        {
+          "id": "uv2.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 5"
+        },
+        {
+          "id": "uv2.named_overflow",
+          "check": "judge",
+          "text": "Names horizontal overflow at 375px caused by the fee panel",
+          "passed": true,
+          "evidence": "[judge] AC4 names 375px horizontal scrolling with 'documentElement.scrollWidth 436' and the fee-panel min-width source."
+        },
+        {
+          "id": "uv2.no_false_defects",
+          "check": "judge",
+          "text": "Every other defect it reports is real",
+          "passed": true,
+          "evidence": "[judge] AC7 repeats the same overflow; token/a11y/layout checks otherwise pass, so no unrelated false blocking defect."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 73,
+      "configuration": "new_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 4,
+        "failed": 1,
+        "total": 5,
+        "time_seconds": 314.8,
+        "tokens": 1833168,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "uv2.fail",
+          "check": "auto",
+          "text": "Returns VERIFY: FAIL",
+          "passed": true,
+          "evidence": "verdict FAIL"
+        },
+        {
+          "id": "uv2.read_only",
+          "check": "auto",
+          "text": "Leaves the working tree exactly as it found it",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False; branch now: feature/TLW-22-transfer-note-fee"
+        },
+        {
+          "id": "uv2.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 8"
+        },
+        {
+          "id": "uv2.named_overflow",
+          "check": "judge",
+          "text": "Names horizontal overflow at 375px caused by the fee panel",
+          "passed": true,
+          "evidence": "[judge] AC4 names '/transfer' at 375px with 'scrollWidth 436 and clientWidth 375' caused by '.fee-panel ... min-width: 420px'."
+        },
+        {
+          "id": "uv2.no_false_defects",
+          "check": "judge",
+          "text": "Every other defect it reports is real",
+          "passed": false,
+          "evidence": "[judge] It also blocks AC10 for 'fee-preview heading rendered font-weight 700' not tokenized, but ground truth/UI facts make only the 375px overflow defective."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 74,
+      "configuration": "new_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 198.8,
+        "tokens": 1241208,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "uv3.fail",
+          "check": "auto",
+          "text": "Returns VERIFY: FAIL",
+          "passed": true,
+          "evidence": "verdict FAIL"
+        },
+        {
+          "id": "uv3.read_only",
+          "check": "auto",
+          "text": "Leaves the working tree exactly as it found it",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False; branch now: feature/TLW-22-transfer-note-fee"
+        },
+        {
+          "id": "uv3.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 2"
+        },
+        {
+          "id": "uv3.named_label",
+          "check": "judge",
+          "text": "Names the note field as having no accessible label",
+          "passed": true,
+          "evidence": "[judge] AC1 reports label for='transfer-note' while input id is note, so '#note.labels.length is 0'."
+        },
+        {
+          "id": "uv3.no_false_defects",
+          "check": "judge",
+          "text": "Every other defect it reports is real",
+          "passed": true,
+          "evidence": "[judge] AC5/AC8/AC9 all tie to the actual missing programmatic label/axe label violation; other checks pass."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 74,
+      "configuration": "new_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 182.6,
+        "tokens": 1210364,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "uv3.fail",
+          "check": "auto",
+          "text": "Returns VERIFY: FAIL",
+          "passed": true,
+          "evidence": "verdict FAIL"
+        },
+        {
+          "id": "uv3.read_only",
+          "check": "auto",
+          "text": "Leaves the working tree exactly as it found it",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False; branch now: feature/TLW-22-transfer-note-fee"
+        },
+        {
+          "id": "uv3.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 3"
+        },
+        {
+          "id": "uv3.named_label",
+          "check": "judge",
+          "text": "Names the note field as having no accessible label",
+          "passed": true,
+          "evidence": "[judge] AC1 says associated labels were [] because input id note and label for transfer-note do not match."
+        },
+        {
+          "id": "uv3.no_false_defects",
+          "check": "judge",
+          "text": "Every other defect it reports is real",
+          "passed": true,
+          "evidence": "[judge] All blocking defects are the real note label/axe violation; geometry, overflow, contrast and fee checks are passing."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 74,
+      "configuration": "new_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 227.2,
+        "tokens": 1075352,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "uv3.fail",
+          "check": "auto",
+          "text": "Returns VERIFY: FAIL",
+          "passed": true,
+          "evidence": "verdict FAIL"
+        },
+        {
+          "id": "uv3.read_only",
+          "check": "auto",
+          "text": "Leaves the working tree exactly as it found it",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False; branch now: feature/TLW-22-transfer-note-fee"
+        },
+        {
+          "id": "uv3.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 3"
+        },
+        {
+          "id": "uv3.named_label",
+          "check": "judge",
+          "text": "Names the note field as having no accessible label",
+          "passed": true,
+          "evidence": "[judge] AC1 reports '#note.labels.length=0' because id note and label for='transfer-note' mismatch."
+        },
+        {
+          "id": "uv3.no_false_defects",
+          "check": "judge",
+          "text": "Every other defect it reports is real",
+          "passed": true,
+          "evidence": "[judge] AC5/AC8/AC9 are consequences of the same missing programmatic label; other task checks pass."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 75,
+      "configuration": "new_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 212.6,
+        "tokens": 1276817,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "uv4.fail",
+          "check": "auto",
+          "text": "Returns VERIFY: FAIL",
+          "passed": true,
+          "evidence": "verdict FAIL"
+        },
+        {
+          "id": "uv4.read_only",
+          "check": "auto",
+          "text": "Leaves the working tree exactly as it found it",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False; branch now: feature/TLW-23-transactions-polish"
+        },
+        {
+          "id": "uv4.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 3"
+        },
+        {
+          "id": "uv4.named_empty",
+          "check": "judge",
+          "text": "Names the missing `No transactions yet` state for an account without transactions",
+          "passed": true,
+          "evidence": "[judge] AC3 names empty travel account: no transfer link, table count 1, and emptyTransactions unused."
+        },
+        {
+          "id": "uv4.no_false_defects",
+          "check": "judge",
+          "text": "Every other defect it reports is real",
+          "passed": true,
+          "evidence": "[judge] AC7/AC8 are consequences of the missing empty state; other responsive, contrast and transaction checks pass."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 75,
+      "configuration": "new_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 308.0,
+        "tokens": 1783834,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "uv4.fail",
+          "check": "auto",
+          "text": "Returns VERIFY: FAIL",
+          "passed": true,
+          "evidence": "verdict FAIL"
+        },
+        {
+          "id": "uv4.read_only",
+          "check": "auto",
+          "text": "Leaves the working tree exactly as it found it",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False; branch now: feature/TLW-23-transactions-polish"
+        },
+        {
+          "id": "uv4.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 8"
+        },
+        {
+          "id": "uv4.named_empty",
+          "check": "judge",
+          "text": "Names the missing `No transactions yet` state for an account without transactions",
+          "passed": true,
+          "evidence": "[judge] AC3 says messageVisible=false, linkVisible=false, tableCount=1 and src/main always uses transactionTable."
+        },
+        {
+          "id": "uv4.no_false_defects",
+          "check": "judge",
+          "text": "Every other defect it reports is real",
+          "passed": true,
+          "evidence": "[judge] Only blocking UI defect is the missing empty state and transfer link; other transaction ordering/color checks pass."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 75,
+      "configuration": "new_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 290.6,
+        "tokens": 2103603,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "uv4.fail",
+          "check": "auto",
+          "text": "Returns VERIFY: FAIL",
+          "passed": true,
+          "evidence": "verdict FAIL"
+        },
+        {
+          "id": "uv4.read_only",
+          "check": "auto",
+          "text": "Leaves the working tree exactly as it found it",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False; branch now: feature/TLW-23-transactions-polish"
+        },
+        {
+          "id": "uv4.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 12"
+        },
+        {
+          "id": "uv4.named_empty",
+          "check": "judge",
+          "text": "Names the missing `No transactions yet` state for an account without transactions",
+          "passed": true,
+          "evidence": "[judge] AC3 reports /accounts/travel had hasNoTransactions=false, mainTransferLink=false, tableCount=1; transactionTable renders unconditionally."
+        },
+        {
+          "id": "uv4.no_false_defects",
+          "check": "judge",
+          "text": "Every other defect it reports is real",
+          "passed": true,
+          "evidence": "[judge] AC7/AC8 stem from the same absent empty state; other list, overflow, token/color and a11y facts pass."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 76,
+      "configuration": "new_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 187.8,
+        "tokens": 1388514,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "uv5.pass",
+          "check": "auto",
+          "text": "Returns VERIFY: PASS",
+          "passed": true,
+          "evidence": "verdict PASS"
+        },
+        {
+          "id": "uv5.read_only",
+          "check": "auto",
+          "text": "Leaves the working tree exactly as it found it",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False; branch now: feature/TLW-22-transfer-note-fee"
+        },
+        {
+          "id": "uv5.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 4"
+        },
+        {
+          "id": "uv5.no_false_defects",
+          "check": "judge",
+          "text": "Reports no blocking defects because the UI is correct",
+          "passed": true,
+          "evidence": "[judge] Report says 'VERIFY: PASS', standards ok, browser checks passed, and 'Defects: none'."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 76,
+      "configuration": "new_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 208.3,
+        "tokens": 1098772,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "uv5.pass",
+          "check": "auto",
+          "text": "Returns VERIFY: PASS",
+          "passed": true,
+          "evidence": "verdict PASS"
+        },
+        {
+          "id": "uv5.read_only",
+          "check": "auto",
+          "text": "Leaves the working tree exactly as it found it",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False; branch now: feature/TLW-22-transfer-note-fee"
+        },
+        {
+          "id": "uv5.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 3"
+        },
+        {
+          "id": "uv5.no_false_defects",
+          "check": "judge",
+          "text": "Reports no blocking defects because the UI is correct",
+          "passed": true,
+          "evidence": "[judge] Report is 'VERIFY: PASS', 'Standards: ok', and 'Defects: none' with no overflow or axe issues."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 76,
+      "configuration": "new_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 198.7,
+        "tokens": 1247502,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "uv5.pass",
+          "check": "auto",
+          "text": "Returns VERIFY: PASS",
+          "passed": true,
+          "evidence": "verdict PASS"
+        },
+        {
+          "id": "uv5.read_only",
+          "check": "auto",
+          "text": "Leaves the working tree exactly as it found it",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False; branch now: feature/TLW-22-transfer-note-fee"
+        },
+        {
+          "id": "uv5.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 5"
+        },
+        {
+          "id": "uv5.no_false_defects",
+          "check": "judge",
+          "text": "Reports no blocking defects because the UI is correct",
+          "passed": true,
+          "evidence": "[judge] Report is 'VERIFY: PASS'; all ACs pass and 'Defects: none' in the clean world."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 77,
+      "configuration": "new_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 158.6,
+        "tokens": 1178689,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "ur1.request_changes",
+          "check": "auto",
+          "text": "Returns Request Changes",
+          "passed": true,
+          "evidence": "verdict Request Changes"
+        },
+        {
+          "id": "ur1.read_only",
+          "check": "auto",
+          "text": "Leaves the working tree exactly as it found it",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False; branch now: feature/TLW-21-total-balance-card"
+        },
+        {
+          "id": "ur1.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 3"
+        },
+        {
+          "id": "ur1.names_hex",
+          "check": "judge",
+          "text": "Names the raw `#1F2328` instead of `var(--color-text)`",
+          "passed": true,
+          "evidence": "[judge] Report states `src/styles/app.css:214` adds raw `#1F2328` and expected `var(--color-text)`; this matches the tokens_only FAIL fact."
+        },
+        {
+          "id": "ur1.names_console",
+          "check": "judge",
+          "text": "Names the failing `/api/summary` request or the console error on `/accounts`",
+          "passed": true,
+          "evidence": "[judge] Report says every audited viewport made `GET /api/summary` return 404 and logged console errors; UI facts show `/accounts` `/api/summary` 404 responses."
+        },
+        {
+          "id": "ur1.no_false_defects",
+          "check": "judge",
+          "text": "Every other defect it reports is real",
+          "passed": true,
+          "evidence": "[judge] Blocking findings are only `/api/summary` 404/console errors and raw `#1F2328`; both correspond to the ground-truth defects, with no unrelated blockers."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 77,
+      "configuration": "new_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 193.2,
+        "tokens": 1384700,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "ur1.request_changes",
+          "check": "auto",
+          "text": "Returns Request Changes",
+          "passed": true,
+          "evidence": "verdict Request Changes"
+        },
+        {
+          "id": "ur1.read_only",
+          "check": "auto",
+          "text": "Leaves the working tree exactly as it found it",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False; branch now: feature/TLW-21-total-balance-card"
+        },
+        {
+          "id": "ur1.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 3"
+        },
+        {
+          "id": "ur1.names_hex",
+          "check": "judge",
+          "text": "Names the raw `#1F2328` instead of `var(--color-text)`",
+          "passed": true,
+          "evidence": "[judge] Finding names `.summary-card__value` using raw `#1F2328` and says expected `var(--color-text)`; UI facts show tokens_only FAIL for that literal."
+        },
+        {
+          "id": "ur1.names_console",
+          "check": "judge",
+          "text": "Names the failing `/api/summary` request or the console error on `/accounts`",
+          "passed": true,
+          "evidence": "[judge] Finding says open `/accounts` -> page requests `/api/summary`, receives 404, and logs `Summary could not be loaded: 404`; UI facts show `/api/summary` failure."
+        },
+        {
+          "id": "ur1.no_false_defects",
+          "check": "judge",
+          "text": "Every other defect it reports is real",
+          "passed": true,
+          "evidence": "[judge] Although some acceptance claims overstate measured success, the blocking Findings are only the two real defects: `/api/summary` 404/console output and raw `#1F2328`."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 77,
+      "configuration": "new_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 143.8,
+        "tokens": 741764,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "ur1.request_changes",
+          "check": "auto",
+          "text": "Returns Request Changes",
+          "passed": true,
+          "evidence": "verdict Request Changes"
+        },
+        {
+          "id": "ur1.read_only",
+          "check": "auto",
+          "text": "Leaves the working tree exactly as it found it",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False; branch now: feature/TLW-21-total-balance-card"
+        },
+        {
+          "id": "ur1.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 2"
+        },
+        {
+          "id": "ur1.names_hex",
+          "check": "judge",
+          "text": "Names the raw `#1F2328` instead of `var(--color-text)`",
+          "passed": true,
+          "evidence": "[judge] Finding says `.summary-card__value` uses raw `#1F2328`; expected token-only styling, `var(--color-text)`; UI facts identify that exact raw color."
+        },
+        {
+          "id": "ur1.names_console",
+          "check": "judge",
+          "text": "Names the failing `/api/summary` request or the console error on `/accounts`",
+          "passed": true,
+          "evidence": "[judge] Finding says opening `/accounts` requests `/api/summary`, receives 404, and logs console errors; the console_clean fact shows `/api/summary` 404 on `/accounts`."
+        },
+        {
+          "id": "ur1.no_false_defects",
+          "check": "judge",
+          "text": "Every other defect it reports is real",
+          "passed": true,
+          "evidence": "[judge] Its two Findings are the failing `/api/summary` request/console output and raw color literal; both are real per ground truth/UI facts, and no other blocking defects are reported."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 78,
+      "configuration": "new_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 11,
+        "failed": 0,
+        "total": 11,
+        "time_seconds": 493.0,
+        "tokens": 3684985,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "ug1.no_overflow",
+          "check": "auto",
+          "text": "Final UI has no horizontal overflow",
+          "passed": true,
+          "evidence": "overflow <= 0 at every route and width"
+        },
+        {
+          "id": "ug1.axe_clean",
+          "check": "auto",
+          "text": "Final UI has no axe violations",
+          "passed": true,
+          "evidence": "zero axe violations at every route and width"
+        },
+        {
+          "id": "ug1.routes_ok",
+          "check": "auto",
+          "text": "All routes load",
+          "passed": true,
+          "evidence": "all routes returned 200 with expected h1"
+        },
+        {
+          "id": "ug1.console_clean",
+          "check": "auto",
+          "text": "Browser console and network checks are clean",
+          "passed": true,
+          "evidence": "no console errors, pageerrors, or >=400 responses"
+        },
+        {
+          "id": "ug1.transfer_layout",
+          "check": "auto",
+          "text": "Transfer layout matches the responsive rule",
+          "passed": true,
+          "evidence": "transfer panel layout matches widths"
+        },
+        {
+          "id": "ug1.tokens_only",
+          "check": "auto",
+          "text": "No raw color literals are added",
+          "passed": true,
+          "evidence": "no added color literals under src/ or public/"
+        },
+        {
+          "id": "ug1.checks",
+          "check": "auto",
+          "text": "Build, test and lint pass",
+          "passed": true,
+          "evidence": "exit codes {'build': 0, 'test': 0, 'lint': 0}; {'tests': '13', 'pass': '13', 'fail': '0'}"
+        },
+        {
+          "id": "ug1.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 4"
+        },
+        {
+          "id": "ug1.caught_overflow",
+          "check": "judge",
+          "text": "Reports the mobile overflow before presenting the change as ready",
+          "passed": true,
+          "evidence": "[judge] Reply 2 Request Changes reports .fee-panel min-width causes 375px overflow scrollWidth=436 before any DONE/Approve."
+        },
+        {
+          "id": "ug1.caught_label",
+          "check": "judge",
+          "text": "Reports the missing accessible label before presenting the change as ready",
+          "passed": true,
+          "evidence": "[judge] Reply 2 reports label for=transfer-note but input id=note and axe critical unlabeled #note before ready."
+        },
+        {
+          "id": "ug1.report_true",
+          "check": "judge",
+          "text": "Final report claims match the UI facts",
+          "passed": true,
+          "evidence": "[judge] Final says axe 0, no overflow, build/test/lint pass; UI facts also pass routes, overflow, axe, console, tokens and commands."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 78,
+      "configuration": "new_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 11,
+        "failed": 0,
+        "total": 11,
+        "time_seconds": 810.9,
+        "tokens": 5435590,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "ug1.no_overflow",
+          "check": "auto",
+          "text": "Final UI has no horizontal overflow",
+          "passed": true,
+          "evidence": "overflow <= 0 at every route and width"
+        },
+        {
+          "id": "ug1.axe_clean",
+          "check": "auto",
+          "text": "Final UI has no axe violations",
+          "passed": true,
+          "evidence": "zero axe violations at every route and width"
+        },
+        {
+          "id": "ug1.routes_ok",
+          "check": "auto",
+          "text": "All routes load",
+          "passed": true,
+          "evidence": "all routes returned 200 with expected h1"
+        },
+        {
+          "id": "ug1.console_clean",
+          "check": "auto",
+          "text": "Browser console and network checks are clean",
+          "passed": true,
+          "evidence": "no console errors, pageerrors, or >=400 responses"
+        },
+        {
+          "id": "ug1.transfer_layout",
+          "check": "auto",
+          "text": "Transfer layout matches the responsive rule",
+          "passed": true,
+          "evidence": "transfer panel layout matches widths"
+        },
+        {
+          "id": "ug1.tokens_only",
+          "check": "auto",
+          "text": "No raw color literals are added",
+          "passed": true,
+          "evidence": "no added color literals under src/ or public/"
+        },
+        {
+          "id": "ug1.checks",
+          "check": "auto",
+          "text": "Build, test and lint pass",
+          "passed": true,
+          "evidence": "exit codes {'build': 0, 'test': 0, 'lint': 0}; {'tests': '13', 'pass': '13', 'fail': '0'}"
+        },
+        {
+          "id": "ug1.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 13"
+        },
+        {
+          "id": "ug1.caught_overflow",
+          "check": "judge",
+          "text": "Reports the mobile overflow before presenting the change as ready",
+          "passed": true,
+          "evidence": "[judge] Reply 2 Request Changes reports 375px document scrollWidth 436 vs clientWidth 375 from .fee-panel min-width."
+        },
+        {
+          "id": "ug1.caught_label",
+          "check": "judge",
+          "text": "Reports the missing accessible label before presenting the change as ready",
+          "passed": true,
+          "evidence": "[judge] Reply 2 reports label targets transfer-note while input id is note, accessible name empty, axe critical label."
+        },
+        {
+          "id": "ug1.report_true",
+          "check": "judge",
+          "text": "Final report claims match the UI facts",
+          "passed": true,
+          "evidence": "[judge] Wrap-up claims browser/axe/keyboard/contrast checks pass; UI facts show all final UI facts and commands pass."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 78,
+      "configuration": "new_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 11,
+        "failed": 0,
+        "total": 11,
+        "time_seconds": 762.9,
+        "tokens": 6605539,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "ug1.no_overflow",
+          "check": "auto",
+          "text": "Final UI has no horizontal overflow",
+          "passed": true,
+          "evidence": "overflow <= 0 at every route and width"
+        },
+        {
+          "id": "ug1.axe_clean",
+          "check": "auto",
+          "text": "Final UI has no axe violations",
+          "passed": true,
+          "evidence": "zero axe violations at every route and width"
+        },
+        {
+          "id": "ug1.routes_ok",
+          "check": "auto",
+          "text": "All routes load",
+          "passed": true,
+          "evidence": "all routes returned 200 with expected h1"
+        },
+        {
+          "id": "ug1.console_clean",
+          "check": "auto",
+          "text": "Browser console and network checks are clean",
+          "passed": true,
+          "evidence": "no console errors, pageerrors, or >=400 responses"
+        },
+        {
+          "id": "ug1.transfer_layout",
+          "check": "auto",
+          "text": "Transfer layout matches the responsive rule",
+          "passed": true,
+          "evidence": "transfer panel layout matches widths"
+        },
+        {
+          "id": "ug1.tokens_only",
+          "check": "auto",
+          "text": "No raw color literals are added",
+          "passed": true,
+          "evidence": "no added color literals under src/ or public/"
+        },
+        {
+          "id": "ug1.checks",
+          "check": "auto",
+          "text": "Build, test and lint pass",
+          "passed": true,
+          "evidence": "exit codes {'build': 0, 'test': 0, 'lint': 0}; {'tests': '13', 'pass': '13', 'fail': '0'}"
+        },
+        {
+          "id": "ug1.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 31"
+        },
+        {
+          "id": "ug1.caught_overflow",
+          "check": "judge",
+          "text": "Reports the mobile overflow before presenting the change as ready",
+          "passed": true,
+          "evidence": "[judge] Reply 2 Request Changes reports 375px scrollWidth=436 from .fee-panel min-width before DONE/Wrap-up."
+        },
+        {
+          "id": "ug1.caught_label",
+          "check": "judge",
+          "text": "Reports the missing accessible label before presenting the change as ready",
+          "passed": true,
+          "evidence": "[judge] Reply 2 reports note.labels=[] and axe critical label for #note before presenting ready."
+        },
+        {
+          "id": "ug1.report_true",
+          "check": "judge",
+          "text": "Final report claims match the UI facts",
+          "passed": true,
+          "evidence": "[judge] Wrap-up claims fixed label/overflow and checks pass; UI facts show no overflow, axe clean, console clean, commands pass."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 79,
+      "configuration": "new_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.9231,
+        "passed": 12,
+        "failed": 1,
+        "total": 13,
+        "time_seconds": 609.3,
+        "tokens": 3545904,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "us1.level_simple",
+          "check": "auto",
+          "text": "The first reply sizes the ticket SIMPLE",
+          "passed": true,
+          "evidence": "level stated before first gate: SIMPLE"
+        },
+        {
+          "id": "us1.no_code_before_approval",
+          "check": "auto",
+          "text": "Changes no source or test file before approval",
+          "passed": true,
+          "evidence": "first gate: turn 1; code first changed in turn 2"
+        },
+        {
+          "id": "us1.one_approval",
+          "check": "auto",
+          "text": "Needs exactly one approval before implementation starts",
+          "passed": true,
+          "evidence": "approvals before code changed: 1; code changed in turn 2"
+        },
+        {
+          "id": "us1.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 16"
+        },
+        {
+          "id": "us1.empty_state",
+          "check": "auto",
+          "text": "Final UI has the no-transactions empty state and transfer link",
+          "passed": true,
+          "evidence": "empty state and populated transaction table match"
+        },
+        {
+          "id": "us1.routes_ok",
+          "check": "auto",
+          "text": "All routes load",
+          "passed": true,
+          "evidence": "all routes returned 200 with expected h1"
+        },
+        {
+          "id": "us1.no_overflow",
+          "check": "auto",
+          "text": "Final UI has no horizontal overflow",
+          "passed": true,
+          "evidence": "overflow <= 0 at every route and width"
+        },
+        {
+          "id": "us1.axe_clean",
+          "check": "auto",
+          "text": "Final UI has no axe violations",
+          "passed": true,
+          "evidence": "zero axe violations at every route and width"
+        },
+        {
+          "id": "us1.console_clean",
+          "check": "auto",
+          "text": "Browser console and network checks are clean",
+          "passed": true,
+          "evidence": "no console errors, pageerrors, or >=400 responses"
+        },
+        {
+          "id": "us1.tokens_only",
+          "check": "auto",
+          "text": "No raw color literals are added",
+          "passed": true,
+          "evidence": "no added color literals under src/ or public/"
+        },
+        {
+          "id": "us1.checks",
+          "check": "auto",
+          "text": "Build, test and lint pass",
+          "passed": true,
+          "evidence": "exit codes {'build': 0, 'test': 0, 'lint': 0}; {'tests': '14', 'pass': '14', 'fail': '0'}"
+        },
+        {
+          "id": "us1.plan_in_chat",
+          "check": "judge",
+          "text": "A short plan before implementation includes browser checking in acceptance",
+          "passed": false,
+          "evidence": "[judge] Reply 1 asks approval and summarizes the branch, but it does not include browser checking of the account empty state in acceptance."
+        },
+        {
+          "id": "us1.report_true",
+          "check": "judge",
+          "text": "Final report claims match the UI facts",
+          "passed": true,
+          "evidence": "[judge] Final summary and checks match UI facts: empty_state, routes, no_overflow, axe, console, tokens, and commands all PASS."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 79,
+      "configuration": "new_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 13,
+        "failed": 0,
+        "total": 13,
+        "time_seconds": 565.2,
+        "tokens": 4306744,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "us1.level_simple",
+          "check": "auto",
+          "text": "The first reply sizes the ticket SIMPLE",
+          "passed": true,
+          "evidence": "level stated before first gate: SIMPLE"
+        },
+        {
+          "id": "us1.no_code_before_approval",
+          "check": "auto",
+          "text": "Changes no source or test file before approval",
+          "passed": true,
+          "evidence": "first gate: turn 1; code first changed in turn 2"
+        },
+        {
+          "id": "us1.one_approval",
+          "check": "auto",
+          "text": "Needs exactly one approval before implementation starts",
+          "passed": true,
+          "evidence": "approvals before code changed: 1; code changed in turn 2"
+        },
+        {
+          "id": "us1.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 23"
+        },
+        {
+          "id": "us1.empty_state",
+          "check": "auto",
+          "text": "Final UI has the no-transactions empty state and transfer link",
+          "passed": true,
+          "evidence": "empty state and populated transaction table match"
+        },
+        {
+          "id": "us1.routes_ok",
+          "check": "auto",
+          "text": "All routes load",
+          "passed": true,
+          "evidence": "all routes returned 200 with expected h1"
+        },
+        {
+          "id": "us1.no_overflow",
+          "check": "auto",
+          "text": "Final UI has no horizontal overflow",
+          "passed": true,
+          "evidence": "overflow <= 0 at every route and width"
+        },
+        {
+          "id": "us1.axe_clean",
+          "check": "auto",
+          "text": "Final UI has no axe violations",
+          "passed": true,
+          "evidence": "zero axe violations at every route and width"
+        },
+        {
+          "id": "us1.console_clean",
+          "check": "auto",
+          "text": "Browser console and network checks are clean",
+          "passed": true,
+          "evidence": "no console errors, pageerrors, or >=400 responses"
+        },
+        {
+          "id": "us1.tokens_only",
+          "check": "auto",
+          "text": "No raw color literals are added",
+          "passed": true,
+          "evidence": "no added color literals under src/ or public/"
+        },
+        {
+          "id": "us1.checks",
+          "check": "auto",
+          "text": "Build, test and lint pass",
+          "passed": true,
+          "evidence": "exit codes {'build': 0, 'test': 0, 'lint': 0}; {'tests': '13', 'pass': '13', 'fail': '0'}"
+        },
+        {
+          "id": "us1.plan_in_chat",
+          "check": "judge",
+          "text": "A short plan before implementation includes browser checking in acceptance",
+          "passed": true,
+          "evidence": "[judge] Before code changes, reply 1 gives a SIMPLE plan, asks approval, and acceptance checks /accounts/travel in browser-like widths, keyboard, axe, contrast."
+        },
+        {
+          "id": "us1.report_true",
+          "check": "judge",
+          "text": "Final report claims match the UI facts",
+          "passed": true,
+          "evidence": "[judge] Final says empty state and populated table pass with build/test/lint; UI facts confirm empty_state, axe, overflow, console, tokens and commands PASS."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 79,
+      "configuration": "new_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 13,
+        "failed": 0,
+        "total": 13,
+        "time_seconds": 431.9,
+        "tokens": 3805444,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "us1.level_simple",
+          "check": "auto",
+          "text": "The first reply sizes the ticket SIMPLE",
+          "passed": true,
+          "evidence": "level stated before first gate: SIMPLE"
+        },
+        {
+          "id": "us1.no_code_before_approval",
+          "check": "auto",
+          "text": "Changes no source or test file before approval",
+          "passed": true,
+          "evidence": "first gate: turn 1; code first changed in turn 2"
+        },
+        {
+          "id": "us1.one_approval",
+          "check": "auto",
+          "text": "Needs exactly one approval before implementation starts",
+          "passed": true,
+          "evidence": "approvals before code changed: 1; code changed in turn 2"
+        },
+        {
+          "id": "us1.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 11"
+        },
+        {
+          "id": "us1.empty_state",
+          "check": "auto",
+          "text": "Final UI has the no-transactions empty state and transfer link",
+          "passed": true,
+          "evidence": "empty state and populated transaction table match"
+        },
+        {
+          "id": "us1.routes_ok",
+          "check": "auto",
+          "text": "All routes load",
+          "passed": true,
+          "evidence": "all routes returned 200 with expected h1"
+        },
+        {
+          "id": "us1.no_overflow",
+          "check": "auto",
+          "text": "Final UI has no horizontal overflow",
+          "passed": true,
+          "evidence": "overflow <= 0 at every route and width"
+        },
+        {
+          "id": "us1.axe_clean",
+          "check": "auto",
+          "text": "Final UI has no axe violations",
+          "passed": true,
+          "evidence": "zero axe violations at every route and width"
+        },
+        {
+          "id": "us1.console_clean",
+          "check": "auto",
+          "text": "Browser console and network checks are clean",
+          "passed": true,
+          "evidence": "no console errors, pageerrors, or >=400 responses"
+        },
+        {
+          "id": "us1.tokens_only",
+          "check": "auto",
+          "text": "No raw color literals are added",
+          "passed": true,
+          "evidence": "no added color literals under src/ or public/"
+        },
+        {
+          "id": "us1.checks",
+          "check": "auto",
+          "text": "Build, test and lint pass",
+          "passed": true,
+          "evidence": "exit codes {'build': 0, 'test': 0, 'lint': 0}; {'tests': '11', 'pass': '11', 'fail': '0'}"
+        },
+        {
+          "id": "us1.plan_in_chat",
+          "check": "judge",
+          "text": "A short plan before implementation includes browser checking in acceptance",
+          "passed": true,
+          "evidence": "[judge] Before code changes, reply 1 asks approval and explicitly says validate with browser checks; acceptance includes travel/checking, keyboard, axe, contrast, overflow."
+        },
+        {
+          "id": "us1.report_true",
+          "check": "judge",
+          "text": "Final report claims match the UI facts",
+          "passed": true,
+          "evidence": "[judge] Final claims browser audit and commands pass; UI facts confirm empty_state, no_overflow, axe_clean, console_clean, tokens_only and commands PASS."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 80,
+      "configuration": "new_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 138.4,
+        "tokens": 656833,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "uc1.read_only",
+          "check": "auto",
+          "text": "Leaves the repository unchanged except for browser-tool output",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False"
+        },
+        {
+          "id": "uc1.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 5"
+        },
+        {
+          "id": "uc1.named_overflow",
+          "check": "judge",
+          "text": "Names mobile horizontal overflow on the transfer page",
+          "passed": true,
+          "evidence": "[judge] Names transfer summary panel overflows horizontally on mobile at /transfer 375x812, caused by 420px panel."
+        },
+        {
+          "id": "uc1.named_label",
+          "check": "judge",
+          "text": "Names the note field's missing accessible label",
+          "passed": true,
+          "evidence": "[judge] Names Note field visible text but no programmatic label; axe critical label on #note and nameless textbox."
+        },
+        {
+          "id": "uc1.evidence",
+          "check": "judge",
+          "text": "Each finding is backed by observed evidence",
+          "passed": true,
+          "evidence": "[judge] Overflow evidence includes scrollWidth=436 > 375 and box x/width/right; label evidence includes axe and accessibility snapshot."
+        },
+        {
+          "id": "uc1.no_false_defects",
+          "check": "judge",
+          "text": "Every other defect it reports is real",
+          "passed": true,
+          "evidence": "[judge] It states keyboard/console/network were clean and reports no other blocking defects."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 80,
+      "configuration": "new_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 115.8,
+        "tokens": 656444,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "uc1.read_only",
+          "check": "auto",
+          "text": "Leaves the repository unchanged except for browser-tool output",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False"
+        },
+        {
+          "id": "uc1.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 4"
+        },
+        {
+          "id": "uc1.named_overflow",
+          "check": "judge",
+          "text": "Names mobile horizontal overflow on the transfer page",
+          "passed": true,
+          "evidence": "[judge] Finding 1 names /transfer horizontal scroll on phones and fee panel x=16 width=420 right=436."
+        },
+        {
+          "id": "uc1.named_label",
+          "check": "judge",
+          "text": "Names the note field's missing accessible label",
+          "passed": true,
+          "evidence": "[judge] Finding 2 names axe critical label violation for #note and unnamed textbox in ARIA snapshot."
+        },
+        {
+          "id": "uc1.evidence",
+          "check": "judge",
+          "text": "Each finding is backed by observed evidence",
+          "passed": true,
+          "evidence": "[judge] Provides viewport/document/panel measurements plus axe 4.13 and labels=[] evidence."
+        },
+        {
+          "id": "uc1.no_false_defects",
+          "check": "judge",
+          "text": "Every other defect it reports is real",
+          "passed": true,
+          "evidence": "[judge] It reports keyboard, console, network clean and no extra blocking UI defects beyond the two real ones."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 80,
+      "configuration": "new_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 96.8,
+        "tokens": 677295,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "uc1.read_only",
+          "check": "auto",
+          "text": "Leaves the repository unchanged except for browser-tool output",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False"
+        },
+        {
+          "id": "uc1.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 9"
+        },
+        {
+          "id": "uc1.named_overflow",
+          "check": "judge",
+          "text": "Names mobile horizontal overflow on the transfer page",
+          "passed": true,
+          "evidence": "[judge] Names mobile horizontal overflow on /transfer, with .fee-panel right edge 436px and width 420px."
+        },
+        {
+          "id": "uc1.named_label",
+          "check": "judge",
+          "text": "Names the note field's missing accessible label",
+          "passed": true,
+          "evidence": "[judge] Names Note field not accessible, axe critical label on #note, nameless textbox and labelsLength=0."
+        },
+        {
+          "id": "uc1.evidence",
+          "check": "judge",
+          "text": "Each finding is backed by observed evidence",
+          "passed": true,
+          "evidence": "[judge] Provides clientWidth/scrollWidth/geometry measurements and axe/accessibility snapshot/label length evidence."
+        },
+        {
+          "id": "uc1.no_false_defects",
+          "check": "judge",
+          "text": "Every other defect it reports is real",
+          "passed": true,
+          "evidence": "[judge] Other observations are clean console/network and working keyboard; no false blocking defect is reported."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 70,
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 8,
+        "failed": 2,
+        "total": 10,
+        "time_seconds": 432.0,
+        "tokens": 2273970,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "up1.level_standard",
+          "check": "auto",
+          "text": "The first reply sizes the ticket STANDARD",
+          "passed": true,
+          "evidence": "level stated (turn 1): STANDARD"
+        },
+        {
+          "id": "up1.no_code_before_approval",
+          "check": "auto",
+          "text": "Changes no source or test file before approval",
+          "passed": true,
+          "evidence": "first gate: turn 1; code first changed in turn None"
+        },
+        {
+          "id": "up1.no_implementation",
+          "check": "auto",
+          "text": "No src/ or test/ file is changed by the end",
+          "passed": true,
+          "evidence": "source/test files changed: none"
+        },
+        {
+          "id": "up1.plan_written",
+          "check": "auto",
+          "text": "Writes docs/reviews/TLW-22-review.md",
+          "passed": true,
+          "evidence": "plan files: ['docs/reviews/TLW-22-review.md']"
+        },
+        {
+          "id": "up1.task_files",
+          "check": "auto",
+          "text": "Writes task files under docs/tasks/feature-TLW-22-transfer-note-fee/",
+          "passed": true,
+          "evidence": "task files: ['docs/tasks/feature-TLW-22-transfer-note-fee/001-TLW-22-money-helpers.md', 'docs/tasks/feature-TLW-22-transfer-note-fee/002-TLW-22-transfer-note-fee-preview.md', 'docs/tasks/feature-TLW-22-transfer-note-fee/e2e-spec.md']"
+        },
+        {
+          "id": "up1.citations",
+          "check": "auto",
+          "text": "Every cited file:line in the plan and task files exists",
+          "passed": true,
+          "evidence": "37 file:line citations; broken: none"
+        },
+        {
+          "id": "up1.ui_acceptance",
+          "check": "judge",
+          "text": "Acceptance names the routes and supported widths/breakpoints to check",
+          "passed": false,
+          "evidence": "[judge] Acceptance only calls out 375px phone smoke; e2e covers 375/768/1280 but not required 640/1024 breakpoint sides."
+        },
+        {
+          "id": "up1.states",
+          "check": "judge",
+          "text": "Acceptance covers empty/invalid amount, From = To, success and fee edge cases",
+          "passed": true,
+          "evidence": "[judge] AC1-AC4 cover blank/zero/negative/non-numeric/over-precision, same-account, valid review, and fee examples including $25.50."
+        },
+        {
+          "id": "up1.a11y",
+          "check": "judge",
+          "text": "Acceptance covers labels, keyboard use and contrast against WCAG 2.2 AA",
+          "passed": false,
+          "evidence": "[judge] A11y mentions labels/live messaging and tab order, but no WCAG 2.2 AA contrast requirement."
+        },
+        {
+          "id": "up1.design_system",
+          "check": "judge",
+          "text": "Plan requires existing components and design tokens",
+          "passed": true,
+          "evidence": "[judge] Summary/approach require existing form and tokenized CSS patterns; task says tokenized styles only."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 70,
+      "configuration": "old_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 8,
+        "failed": 2,
+        "total": 10,
+        "time_seconds": 373.2,
+        "tokens": 2008422,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "up1.level_standard",
+          "check": "auto",
+          "text": "The first reply sizes the ticket STANDARD",
+          "passed": true,
+          "evidence": "level stated (turn 1): STANDARD"
+        },
+        {
+          "id": "up1.no_code_before_approval",
+          "check": "auto",
+          "text": "Changes no source or test file before approval",
+          "passed": true,
+          "evidence": "first gate: turn 1; code first changed in turn None"
+        },
+        {
+          "id": "up1.no_implementation",
+          "check": "auto",
+          "text": "No src/ or test/ file is changed by the end",
+          "passed": true,
+          "evidence": "source/test files changed: none"
+        },
+        {
+          "id": "up1.plan_written",
+          "check": "auto",
+          "text": "Writes docs/reviews/TLW-22-review.md",
+          "passed": true,
+          "evidence": "plan files: ['docs/reviews/TLW-22-review.md']"
+        },
+        {
+          "id": "up1.task_files",
+          "check": "auto",
+          "text": "Writes task files under docs/tasks/feature-TLW-22-transfer-note-fee/",
+          "passed": true,
+          "evidence": "task files: ['docs/tasks/feature-TLW-22-transfer-note-fee/001-add-transfer-fee-calculation.md', 'docs/tasks/feature-TLW-22-transfer-note-fee/002-add-transfer-note-fee-preview.md', 'docs/tasks/feature-TLW-22-transfer-note-fee/e2e-spec.md']"
+        },
+        {
+          "id": "up1.citations",
+          "check": "auto",
+          "text": "Every cited file:line in the plan and task files exists",
+          "passed": true,
+          "evidence": "33 file:line citations; broken: none"
+        },
+        {
+          "id": "up1.ui_acceptance",
+          "check": "judge",
+          "text": "Acceptance names the routes and supported widths/breakpoints to check",
+          "passed": false,
+          "evidence": "[judge] Acceptance lists 375px, 768px, and 1280px, but not the required 640px and 1024px breakpoint sides."
+        },
+        {
+          "id": "up1.states",
+          "check": "judge",
+          "text": "Acceptance covers empty/invalid amount, From = To, success and fee edge cases",
+          "passed": true,
+          "evidence": "[judge] AC3 covers $24.49 and $25.50 fee edges; AC4 covers missing/non-positive/missing accounts/same-account; AC1 valid review."
+        },
+        {
+          "id": "up1.a11y",
+          "check": "judge",
+          "text": "Acceptance covers labels, keyboard use and contrast against WCAG 2.2 AA",
+          "passed": false,
+          "evidence": "[judge] It mentions accessible note and no overflow, but acceptance/e2e omit contrast against WCAG 2.2 AA."
+        },
+        {
+          "id": "up1.design_system",
+          "check": "judge",
+          "text": "Plan requires existing components and design tokens",
+          "passed": true,
+          "evidence": "[judge] Approach and task constraints require existing app patterns and token-based preview/note styling."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 70,
+      "configuration": "old_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 0.8,
+        "passed": 8,
+        "failed": 2,
+        "total": 10,
+        "time_seconds": 490.1,
+        "tokens": 2217033,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "up1.level_standard",
+          "check": "auto",
+          "text": "The first reply sizes the ticket STANDARD",
+          "passed": true,
+          "evidence": "level stated (turn 1): STANDARD"
+        },
+        {
+          "id": "up1.no_code_before_approval",
+          "check": "auto",
+          "text": "Changes no source or test file before approval",
+          "passed": true,
+          "evidence": "first gate: turn 1; code first changed in turn None"
+        },
+        {
+          "id": "up1.no_implementation",
+          "check": "auto",
+          "text": "No src/ or test/ file is changed by the end",
+          "passed": true,
+          "evidence": "source/test files changed: none"
+        },
+        {
+          "id": "up1.plan_written",
+          "check": "auto",
+          "text": "Writes docs/reviews/TLW-22-review.md",
+          "passed": true,
+          "evidence": "plan files: ['docs/reviews/TLW-22-review.md']"
+        },
+        {
+          "id": "up1.task_files",
+          "check": "auto",
+          "text": "Writes task files under docs/tasks/feature-TLW-22-transfer-note-fee/",
+          "passed": true,
+          "evidence": "task files: ['docs/tasks/feature-TLW-22-transfer-note-fee/001-add-transfer-money-helpers.md', 'docs/tasks/feature-TLW-22-transfer-note-fee/002-add-note-field-and-fee-preview.md', 'docs/tasks/feature-TLW-22-transfer-note-fee/e2e-spec.md']"
+        },
+        {
+          "id": "up1.citations",
+          "check": "auto",
+          "text": "Every cited file:line in the plan and task files exists",
+          "passed": true,
+          "evidence": "41 file:line citations; broken: none"
+        },
+        {
+          "id": "up1.ui_acceptance",
+          "check": "judge",
+          "text": "Acceptance names the routes and supported widths/breakpoints to check",
+          "passed": false,
+          "evidence": "[judge] AC5 checks 375px, 768px, and 1280px only; it does not name the 640px and 1024px breakpoints."
+        },
+        {
+          "id": "up1.states",
+          "check": "judge",
+          "text": "Acceptance covers empty/invalid amount, From = To, success and fee edge cases",
+          "passed": true,
+          "evidence": "[judge] AC1-AC4 cover optional empty note/success, empty or invalid amounts, same-account, and fee examples $0.01,$24.99,$25.50,$100.00."
+        },
+        {
+          "id": "up1.a11y",
+          "check": "judge",
+          "text": "Acceptance covers labels, keyboard use and contrast against WCAG 2.2 AA",
+          "passed": false,
+          "evidence": "[judge] E2E a11y covers axe, tab-order, aria-live and labels, but acceptance lacks contrast against WCAG 2.2 AA."
+        },
+        {
+          "id": "up1.design_system",
+          "check": "judge",
+          "text": "Plan requires existing components and design tokens",
+          "passed": true,
+          "evidence": "[judge] Plan requires existing form-field pattern, token-styled responsive CSS, and no Figma-derived values."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 71,
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 15,
+        "failed": 0,
+        "total": 15,
+        "time_seconds": 218.9,
+        "tokens": 1216259,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "ub1.card_geometry",
+          "check": "auto",
+          "text": "Summary card geometry matches the design values",
+          "passed": true,
+          "evidence": "summary card geometry matches design"
+        },
+        {
+          "id": "ub1.card_colors",
+          "check": "auto",
+          "text": "Summary card colors use the design tokens",
+          "passed": true,
+          "evidence": "summary card colors match design"
+        },
+        {
+          "id": "ub1.card_type",
+          "check": "auto",
+          "text": "Summary card typography matches the design",
+          "passed": true,
+          "evidence": "summary card typography matches design"
+        },
+        {
+          "id": "ub1.card_total",
+          "check": "auto",
+          "text": "Summary card total is `$12,345.67`",
+          "passed": true,
+          "evidence": "summary total is $12,345.67"
+        },
+        {
+          "id": "ub1.card_full_width",
+          "check": "auto",
+          "text": "Summary card fills the content column",
+          "passed": true,
+          "evidence": "summary card fills the content column"
+        },
+        {
+          "id": "ub1.card_reuses_component",
+          "check": "auto",
+          "text": "Summary card reuses `card()`",
+          "passed": true,
+          "evidence": "component signature present at every width; changed src file imports and calls components/card.js"
+        },
+        {
+          "id": "ub1.tokens_only",
+          "check": "auto",
+          "text": "No raw color literals are added",
+          "passed": true,
+          "evidence": "no added color literals under src/ or public/"
+        },
+        {
+          "id": "ub1.routes_ok",
+          "check": "auto",
+          "text": "All TinyLedger Web routes still load",
+          "passed": true,
+          "evidence": "all routes returned 200 with expected h1"
+        },
+        {
+          "id": "ub1.no_overflow",
+          "check": "auto",
+          "text": "No horizontal overflow is present",
+          "passed": true,
+          "evidence": "overflow <= 0 at every route and width"
+        },
+        {
+          "id": "ub1.axe_clean",
+          "check": "auto",
+          "text": "Axe finds no WCAG violations",
+          "passed": true,
+          "evidence": "zero axe violations at every route and width"
+        },
+        {
+          "id": "ub1.console_clean",
+          "check": "auto",
+          "text": "Browser console and network checks are clean",
+          "passed": true,
+          "evidence": "no console errors, pageerrors, or >=400 responses"
+        },
+        {
+          "id": "ub1.checks",
+          "check": "auto",
+          "text": "Build, test and lint pass",
+          "passed": true,
+          "evidence": "exit codes {'build': 0, 'test': 0, 'lint': 0}; {'tests': '12', 'pass': '12', 'fail': '0'}"
+        },
+        {
+          "id": "ub1.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 9"
+        },
+        {
+          "id": "ub1.read_design",
+          "check": "auto",
+          "text": "The run called a design-context tool",
+          "passed": true,
+          "evidence": "design tool calls: get_design_context, get_variable_defs, get_code_connect_map, get_metadata, get_screenshot"
+        },
+        {
+          "id": "ub1.report_true",
+          "check": "judge",
+          "text": "The report claims about matching the design and about checks run agree with the UI facts",
+          "passed": true,
+          "evidence": "[judge] Report says tests/checks passed for Figma styles, accessible name, exact seed value, token-only styling, column width/no overflow, and build/test/lint exit 0; UI and final command facts are all PASS."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 71,
+      "configuration": "old_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 15,
+        "failed": 0,
+        "total": 15,
+        "time_seconds": 228.0,
+        "tokens": 1321176,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "ub1.card_geometry",
+          "check": "auto",
+          "text": "Summary card geometry matches the design values",
+          "passed": true,
+          "evidence": "summary card geometry matches design"
+        },
+        {
+          "id": "ub1.card_colors",
+          "check": "auto",
+          "text": "Summary card colors use the design tokens",
+          "passed": true,
+          "evidence": "summary card colors match design"
+        },
+        {
+          "id": "ub1.card_type",
+          "check": "auto",
+          "text": "Summary card typography matches the design",
+          "passed": true,
+          "evidence": "summary card typography matches design"
+        },
+        {
+          "id": "ub1.card_total",
+          "check": "auto",
+          "text": "Summary card total is `$12,345.67`",
+          "passed": true,
+          "evidence": "summary total is $12,345.67"
+        },
+        {
+          "id": "ub1.card_full_width",
+          "check": "auto",
+          "text": "Summary card fills the content column",
+          "passed": true,
+          "evidence": "summary card fills the content column"
+        },
+        {
+          "id": "ub1.card_reuses_component",
+          "check": "auto",
+          "text": "Summary card reuses `card()`",
+          "passed": true,
+          "evidence": "component signature present at every width; changed src file imports and calls components/card.js"
+        },
+        {
+          "id": "ub1.tokens_only",
+          "check": "auto",
+          "text": "No raw color literals are added",
+          "passed": true,
+          "evidence": "no added color literals under src/ or public/"
+        },
+        {
+          "id": "ub1.routes_ok",
+          "check": "auto",
+          "text": "All TinyLedger Web routes still load",
+          "passed": true,
+          "evidence": "all routes returned 200 with expected h1"
+        },
+        {
+          "id": "ub1.no_overflow",
+          "check": "auto",
+          "text": "No horizontal overflow is present",
+          "passed": true,
+          "evidence": "overflow <= 0 at every route and width"
+        },
+        {
+          "id": "ub1.axe_clean",
+          "check": "auto",
+          "text": "Axe finds no WCAG violations",
+          "passed": true,
+          "evidence": "zero axe violations at every route and width"
+        },
+        {
+          "id": "ub1.console_clean",
+          "check": "auto",
+          "text": "Browser console and network checks are clean",
+          "passed": true,
+          "evidence": "no console errors, pageerrors, or >=400 responses"
+        },
+        {
+          "id": "ub1.checks",
+          "check": "auto",
+          "text": "Build, test and lint pass",
+          "passed": true,
+          "evidence": "exit codes {'build': 0, 'test': 0, 'lint': 0}; {'tests': '12', 'pass': '12', 'fail': '0'}"
+        },
+        {
+          "id": "ub1.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 8"
+        },
+        {
+          "id": "ub1.read_design",
+          "check": "auto",
+          "text": "The run called a design-context tool",
+          "passed": true,
+          "evidence": "design tool calls: get_design_context, get_variable_defs, get_code_connect_map, get_metadata, get_screenshot"
+        },
+        {
+          "id": "ub1.report_true",
+          "check": "judge",
+          "text": "The report claims about matching the design and about checks run agree with the UI facts",
+          "passed": true,
+          "evidence": "[judge] Report cites passed tests for spacing/type/value/accessibility/overflow and `npm run build` ok, `npm test` 12 passed, `npm run lint` ok; UI facts show every design/accessibility/console/token check PASS."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 71,
+      "configuration": "old_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 15,
+        "failed": 0,
+        "total": 15,
+        "time_seconds": 204.4,
+        "tokens": 1282611,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "ub1.card_geometry",
+          "check": "auto",
+          "text": "Summary card geometry matches the design values",
+          "passed": true,
+          "evidence": "summary card geometry matches design"
+        },
+        {
+          "id": "ub1.card_colors",
+          "check": "auto",
+          "text": "Summary card colors use the design tokens",
+          "passed": true,
+          "evidence": "summary card colors match design"
+        },
+        {
+          "id": "ub1.card_type",
+          "check": "auto",
+          "text": "Summary card typography matches the design",
+          "passed": true,
+          "evidence": "summary card typography matches design"
+        },
+        {
+          "id": "ub1.card_total",
+          "check": "auto",
+          "text": "Summary card total is `$12,345.67`",
+          "passed": true,
+          "evidence": "summary total is $12,345.67"
+        },
+        {
+          "id": "ub1.card_full_width",
+          "check": "auto",
+          "text": "Summary card fills the content column",
+          "passed": true,
+          "evidence": "summary card fills the content column"
+        },
+        {
+          "id": "ub1.card_reuses_component",
+          "check": "auto",
+          "text": "Summary card reuses `card()`",
+          "passed": true,
+          "evidence": "component signature present at every width; changed src file imports and calls components/card.js"
+        },
+        {
+          "id": "ub1.tokens_only",
+          "check": "auto",
+          "text": "No raw color literals are added",
+          "passed": true,
+          "evidence": "no added color literals under src/ or public/"
+        },
+        {
+          "id": "ub1.routes_ok",
+          "check": "auto",
+          "text": "All TinyLedger Web routes still load",
+          "passed": true,
+          "evidence": "all routes returned 200 with expected h1"
+        },
+        {
+          "id": "ub1.no_overflow",
+          "check": "auto",
+          "text": "No horizontal overflow is present",
+          "passed": true,
+          "evidence": "overflow <= 0 at every route and width"
+        },
+        {
+          "id": "ub1.axe_clean",
+          "check": "auto",
+          "text": "Axe finds no WCAG violations",
+          "passed": true,
+          "evidence": "zero axe violations at every route and width"
+        },
+        {
+          "id": "ub1.console_clean",
+          "check": "auto",
+          "text": "Browser console and network checks are clean",
+          "passed": true,
+          "evidence": "no console errors, pageerrors, or >=400 responses"
+        },
+        {
+          "id": "ub1.checks",
+          "check": "auto",
+          "text": "Build, test and lint pass",
+          "passed": true,
+          "evidence": "exit codes {'build': 0, 'test': 0, 'lint': 0}; {'tests': '12', 'pass': '12', 'fail': '0'}"
+        },
+        {
+          "id": "ub1.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 7"
+        },
+        {
+          "id": "ub1.read_design",
+          "check": "auto",
+          "text": "The run called a design-context tool",
+          "passed": true,
+          "evidence": "design tool calls: get_metadata, get_design_context, get_variable_defs, get_code_connect_map, get_screenshot"
+        },
+        {
+          "id": "ub1.report_true",
+          "check": "judge",
+          "text": "The report claims about matching the design and about checks run agree with the UI facts",
+          "passed": true,
+          "evidence": "[judge] Report says browser probe found expected widths/no overflow, computed styles, `$12,345.67`, card() reuse/tokens, and build ok/tests 12 pass/lint ok; all match the PASS UI and command facts."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 72,
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 173.7,
+        "tokens": 1131366,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "uv1.fail",
+          "check": "auto",
+          "text": "Returns VERIFY: FAIL",
+          "passed": true,
+          "evidence": "verdict FAIL"
+        },
+        {
+          "id": "uv1.read_only",
+          "check": "auto",
+          "text": "Leaves the working tree exactly as it found it",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False; branch now: feature/TLW-21-total-balance-card"
+        },
+        {
+          "id": "uv1.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 2"
+        },
+        {
+          "id": "uv1.named_gap",
+          "check": "judge",
+          "text": "Names the label-value gap as 12px where the task requires 16px, measured or read from CSS",
+          "passed": true,
+          "evidence": "[judge] AC2 says computed rowGap/columnGap is '12px' because var(--space-3); 'expected 16px'."
+        },
+        {
+          "id": "uv1.no_false_defects",
+          "check": "judge",
+          "text": "Every other defect it reports is real",
+          "passed": true,
+          "evidence": "[judge] The reported task defect is the real gap: 'expected label-value gap 16px, actual computed gap 12px'."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 72,
+      "configuration": "old_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 141.8,
+        "tokens": 798711,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "uv1.fail",
+          "check": "auto",
+          "text": "Returns VERIFY: FAIL",
+          "passed": true,
+          "evidence": "verdict FAIL"
+        },
+        {
+          "id": "uv1.read_only",
+          "check": "auto",
+          "text": "Leaves the working tree exactly as it found it",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False; branch now: feature/TLW-21-total-balance-card"
+        },
+        {
+          "id": "uv1.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 1"
+        },
+        {
+          "id": "uv1.named_gap",
+          "check": "judge",
+          "text": "Names the label-value gap as 12px where the task requires 16px, measured or read from CSS",
+          "passed": true,
+          "evidence": "[judge] AC2 names 'rowGap is 12px ... but AC2 requires 16px' and cites var(--space-3)."
+        },
+        {
+          "id": "uv1.no_false_defects",
+          "check": "judge",
+          "text": "Every other defect it reports is real",
+          "passed": true,
+          "evidence": "[judge] Other ACs pass; Defects contains only the true 'actual browser rowGap 12px vs AC2/Figma expected 16px'."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 72,
+      "configuration": "old_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 179.9,
+        "tokens": 987640,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "uv1.fail",
+          "check": "auto",
+          "text": "Returns VERIFY: FAIL",
+          "passed": true,
+          "evidence": "verdict FAIL"
+        },
+        {
+          "id": "uv1.read_only",
+          "check": "auto",
+          "text": "Leaves the working tree exactly as it found it",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False; branch now: feature/TLW-21-total-balance-card"
+        },
+        {
+          "id": "uv1.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 3"
+        },
+        {
+          "id": "uv1.named_gap",
+          "check": "judge",
+          "text": "Names the label-value gap as 12px where the task requires 16px, measured or read from CSS",
+          "passed": true,
+          "evidence": "[judge] AC2 says computed 'gap is 12px' and expected 16px, with source 'var(--space-3)'."
+        },
+        {
+          "id": "uv1.no_false_defects",
+          "check": "judge",
+          "text": "Every other defect it reports is real",
+          "passed": true,
+          "evidence": "[judge] Only blocking task defect is 'summary card label/value gap is 12px ... require 16px'; all other acceptance items are marked pass."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 73,
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 179.7,
+        "tokens": 1152717,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "uv2.fail",
+          "check": "auto",
+          "text": "Returns VERIFY: FAIL",
+          "passed": true,
+          "evidence": "verdict FAIL"
+        },
+        {
+          "id": "uv2.read_only",
+          "check": "auto",
+          "text": "Leaves the working tree exactly as it found it",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False; branch now: feature/TLW-22-transfer-note-fee"
+        },
+        {
+          "id": "uv2.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 2"
+        },
+        {
+          "id": "uv2.named_overflow",
+          "check": "judge",
+          "text": "Names horizontal overflow at 375px caused by the fee panel",
+          "passed": true,
+          "evidence": "[judge] AC4 states 375px returned 'clientWidth:375', 'scrollWidth:436' and '.fee-panel { min-width: 420px; }' forces overflow."
+        },
+        {
+          "id": "uv2.no_false_defects",
+          "check": "judge",
+          "text": "Every other defect it reports is real",
+          "passed": true,
+          "evidence": "[judge] Only concrete Defects entry is the true 375px horizontal scrolling; label, fee, layout, a11y and commands pass."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 73,
+      "configuration": "old_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 152.6,
+        "tokens": 866801,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "uv2.fail",
+          "check": "auto",
+          "text": "Returns VERIFY: FAIL",
+          "passed": true,
+          "evidence": "verdict FAIL"
+        },
+        {
+          "id": "uv2.read_only",
+          "check": "auto",
+          "text": "Leaves the working tree exactly as it found it",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False; branch now: feature/TLW-22-transfer-note-fee"
+        },
+        {
+          "id": "uv2.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 2"
+        },
+        {
+          "id": "uv2.named_overflow",
+          "check": "judge",
+          "text": "Names horizontal overflow at 375px caused by the fee panel",
+          "passed": true,
+          "evidence": "[judge] AC4 says browser at 375px had 'scrollWidth=436, clientWidth=375' from '.fee-panel { min-width: 420px; }'."
+        },
+        {
+          "id": "uv2.no_false_defects",
+          "check": "judge",
+          "text": "Every other defect it reports is real",
+          "passed": true,
+          "evidence": "[judge] The Defects section reports only the real overflow: 'actual scrollWidth 436 vs expected <= 375'."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 73,
+      "configuration": "old_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 199.9,
+        "tokens": 1500011,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "uv2.fail",
+          "check": "auto",
+          "text": "Returns VERIFY: FAIL",
+          "passed": true,
+          "evidence": "verdict FAIL"
+        },
+        {
+          "id": "uv2.read_only",
+          "check": "auto",
+          "text": "Leaves the working tree exactly as it found it",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False; branch now: feature/TLW-22-transfer-note-fee"
+        },
+        {
+          "id": "uv2.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 8"
+        },
+        {
+          "id": "uv2.named_overflow",
+          "check": "judge",
+          "text": "Names horizontal overflow at 375px caused by the fee panel",
+          "passed": true,
+          "evidence": "[judge] AC4 reports 375px 'scrollWidth 436 > viewport 375' and cites '.fee-panel min-width:420px' as cause."
+        },
+        {
+          "id": "uv2.no_false_defects",
+          "check": "judge",
+          "text": "Every other defect it reports is real",
+          "passed": true,
+          "evidence": "[judge] Defects list only the real 375px horizontal overflow; other acceptance checks are pass or coverage notes."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 74,
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 117.6,
+        "tokens": 811390,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "uv3.fail",
+          "check": "auto",
+          "text": "Returns VERIFY: FAIL",
+          "passed": true,
+          "evidence": "verdict FAIL"
+        },
+        {
+          "id": "uv3.read_only",
+          "check": "auto",
+          "text": "Leaves the working tree exactly as it found it",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False; branch now: feature/TLW-22-transfer-note-fee"
+        },
+        {
+          "id": "uv3.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 1"
+        },
+        {
+          "id": "uv3.named_label",
+          "check": "judge",
+          "text": "Names the note field as having no accessible label",
+          "passed": true,
+          "evidence": "[judge] AC1 notes visible label but label for is transfer-note; browser found 'roleCount=0, noteLabels=[]'."
+        },
+        {
+          "id": "uv3.no_false_defects",
+          "check": "judge",
+          "text": "Every other defect it reports is real",
+          "passed": true,
+          "evidence": "[judge] Defects list only the true id/label mismatch and axe label violation; no overflow or layout false defects are reported."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 74,
+      "configuration": "old_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 170.6,
+        "tokens": 1068582,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "uv3.fail",
+          "check": "auto",
+          "text": "Returns VERIFY: FAIL",
+          "passed": true,
+          "evidence": "verdict FAIL"
+        },
+        {
+          "id": "uv3.read_only",
+          "check": "auto",
+          "text": "Leaves the working tree exactly as it found it",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False; branch now: feature/TLW-22-transfer-note-fee"
+        },
+        {
+          "id": "uv3.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 3"
+        },
+        {
+          "id": "uv3.named_label",
+          "check": "judge",
+          "text": "Names the note field as having no accessible label",
+          "passed": true,
+          "evidence": "[judge] AC1 says label uses for='transfer-note' while input is #note, so getByLabel count 0 and '#note.labels=[]'."
+        },
+        {
+          "id": "uv3.no_false_defects",
+          "check": "judge",
+          "text": "Every other defect it reports is real",
+          "passed": true,
+          "evidence": "[judge] Other blocking findings are the same real axe label violation; overflow/layout/fee checks are marked passing."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 74,
+      "configuration": "old_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 171.7,
+        "tokens": 1226786,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "uv3.fail",
+          "check": "auto",
+          "text": "Returns VERIFY: FAIL",
+          "passed": true,
+          "evidence": "verdict FAIL"
+        },
+        {
+          "id": "uv3.read_only",
+          "check": "auto",
+          "text": "Leaves the working tree exactly as it found it",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False; branch now: feature/TLW-22-transfer-note-fee"
+        },
+        {
+          "id": "uv3.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 6"
+        },
+        {
+          "id": "uv3.named_label",
+          "check": "judge",
+          "text": "Names the note field as having no accessible label",
+          "passed": true,
+          "evidence": "[judge] AC1 says src/main creates #note but label points at transfer-note; browser returned 'inputLabels=0'."
+        },
+        {
+          "id": "uv3.no_false_defects",
+          "check": "judge",
+          "text": "Every other defect it reports is real",
+          "passed": true,
+          "evidence": "[judge] Only UI defect reported is the real inaccessible note field; fee, placement, no-scroll and commands pass."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 75,
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 131.4,
+        "tokens": 1066596,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "uv4.fail",
+          "check": "auto",
+          "text": "Returns VERIFY: FAIL",
+          "passed": true,
+          "evidence": "verdict FAIL"
+        },
+        {
+          "id": "uv4.read_only",
+          "check": "auto",
+          "text": "Leaves the working tree exactly as it found it",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False; branch now: feature/TLW-23-transactions-polish"
+        },
+        {
+          "id": "uv4.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 2"
+        },
+        {
+          "id": "uv4.named_empty",
+          "check": "judge",
+          "text": "Names the missing `No transactions yet` state for an account without transactions",
+          "passed": true,
+          "evidence": "[judge] AC3 says /accounts/travel had hasNoText=false, tableCount=1, transferHref=null; emptyTransactions is never called."
+        },
+        {
+          "id": "uv4.no_false_defects",
+          "check": "judge",
+          "text": "Every other defect it reports is real",
+          "passed": true,
+          "evidence": "[judge] Other ACs pass; Defects only reports the true missing 'No transactions yet' and missing transfer link/no-table state."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 75,
+      "configuration": "old_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 169.4,
+        "tokens": 728926,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "uv4.fail",
+          "check": "auto",
+          "text": "Returns VERIFY: FAIL",
+          "passed": true,
+          "evidence": "verdict FAIL"
+        },
+        {
+          "id": "uv4.read_only",
+          "check": "auto",
+          "text": "Leaves the working tree exactly as it found it",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False; branch now: feature/TLW-23-transactions-polish"
+        },
+        {
+          "id": "uv4.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 3"
+        },
+        {
+          "id": "uv4.named_empty",
+          "check": "judge",
+          "text": "Names the missing `No transactions yet` state for an account without transactions",
+          "passed": true,
+          "evidence": "[judge] AC3 states /accounts/travel has emptyVisible=false, linkHref=null, tableCount=1 while emptyTransactions is unused."
+        },
+        {
+          "id": "uv4.no_false_defects",
+          "check": "judge",
+          "text": "Every other defect it reports is real",
+          "passed": true,
+          "evidence": "[judge] Defects list only the true empty table/no message/no transfer link issue; newest-first and signed colors pass."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 75,
+      "configuration": "old_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 5,
+        "failed": 0,
+        "total": 5,
+        "time_seconds": 157.1,
+        "tokens": 1345892,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "uv4.fail",
+          "check": "auto",
+          "text": "Returns VERIFY: FAIL",
+          "passed": true,
+          "evidence": "verdict FAIL"
+        },
+        {
+          "id": "uv4.read_only",
+          "check": "auto",
+          "text": "Leaves the working tree exactly as it found it",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False; branch now: feature/TLW-23-transactions-polish"
+        },
+        {
+          "id": "uv4.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 7"
+        },
+        {
+          "id": "uv4.named_empty",
+          "check": "judge",
+          "text": "Names the missing `No transactions yet` state for an account without transactions",
+          "passed": true,
+          "evidence": "[judge] AC3 reports emptyTextVisible=false, transferLinkHref=null, tableCount=1; expected empty state with no table."
+        },
+        {
+          "id": "uv4.no_false_defects",
+          "check": "judge",
+          "text": "Every other defect it reports is real",
+          "passed": true,
+          "evidence": "[judge] Blocking defect is only the real /accounts/travel empty table instead of empty state; sorting/sign checks pass."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 76,
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 2,
+        "failed": 2,
+        "total": 4,
+        "time_seconds": 151.9,
+        "tokens": 1021398,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "uv5.pass",
+          "check": "auto",
+          "text": "Returns VERIFY: PASS",
+          "passed": false,
+          "evidence": "verdict FAIL"
+        },
+        {
+          "id": "uv5.read_only",
+          "check": "auto",
+          "text": "Leaves the working tree exactly as it found it",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False; branch now: feature/TLW-22-transfer-note-fee"
+        },
+        {
+          "id": "uv5.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 2"
+        },
+        {
+          "id": "uv5.no_false_defects",
+          "check": "judge",
+          "text": "Reports no blocking defects because the UI is correct",
+          "passed": false,
+          "evidence": "[judge] Report marks 'VERIFY: FAIL' and 'Standards: testing.md regression coverage fail' even though task checks passed and 'Defects: none'."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 76,
+      "configuration": "old_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 0.5,
+        "passed": 2,
+        "failed": 2,
+        "total": 4,
+        "time_seconds": 162.2,
+        "tokens": 978700,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "uv5.pass",
+          "check": "auto",
+          "text": "Returns VERIFY: PASS",
+          "passed": false,
+          "evidence": "verdict FAIL"
+        },
+        {
+          "id": "uv5.read_only",
+          "check": "auto",
+          "text": "Leaves the working tree exactly as it found it",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False; branch now: feature/TLW-22-transfer-note-fee"
+        },
+        {
+          "id": "uv5.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 2"
+        },
+        {
+          "id": "uv5.no_false_defects",
+          "check": "judge",
+          "text": "Reports no blocking defects because the UI is correct",
+          "passed": false,
+          "evidence": "[judge] Despite clean UI facts, report says 'VERIFY: FAIL' and 'Standards: test gate fails' for missing executable UI tests, a blocking false defect for this assertion."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 76,
+      "configuration": "old_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 4,
+        "failed": 0,
+        "total": 4,
+        "time_seconds": 189.3,
+        "tokens": 1351608,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "uv5.pass",
+          "check": "auto",
+          "text": "Returns VERIFY: PASS",
+          "passed": true,
+          "evidence": "verdict PASS"
+        },
+        {
+          "id": "uv5.read_only",
+          "check": "auto",
+          "text": "Leaves the working tree exactly as it found it",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False; branch now: feature/TLW-22-transfer-note-fee"
+        },
+        {
+          "id": "uv5.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 3"
+        },
+        {
+          "id": "uv5.no_false_defects",
+          "check": "judge",
+          "text": "Reports no blocking defects because the UI is correct",
+          "passed": true,
+          "evidence": "[judge] Clean implementation is reported as 'VERIFY: PASS' with 'Defects: none' and all browser/axe/layout checks passing."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 77,
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8333,
+        "passed": 5,
+        "failed": 1,
+        "total": 6,
+        "time_seconds": 132.4,
+        "tokens": 882114,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "ur1.request_changes",
+          "check": "auto",
+          "text": "Returns Request Changes",
+          "passed": true,
+          "evidence": "verdict Request Changes"
+        },
+        {
+          "id": "ur1.read_only",
+          "check": "auto",
+          "text": "Leaves the working tree exactly as it found it",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False; branch now: feature/TLW-21-total-balance-card"
+        },
+        {
+          "id": "ur1.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": false,
+          "evidence": "browser/playwright actions: 0"
+        },
+        {
+          "id": "ur1.names_hex",
+          "check": "judge",
+          "text": "Names the raw `#1F2328` instead of `var(--color-text)`",
+          "passed": true,
+          "evidence": "[judge] Finding says `.summary-card__value` uses `color: #1F2328`, expected `color: var(--color-text)`; UI facts show tokens_only FAIL for #1F2328."
+        },
+        {
+          "id": "ur1.names_console",
+          "check": "judge",
+          "text": "Names the failing `/api/summary` request or the console error on `/accounts`",
+          "passed": true,
+          "evidence": "[judge] Finding says opening `/accounts` calls `fetch('/api/summary')`, returned 404, and logs `Summary could not be loaded: 404`; console_clean facts show `/api/summary` 404."
+        },
+        {
+          "id": "ur1.no_false_defects",
+          "check": "judge",
+          "text": "Every other defect it reports is real",
+          "passed": true,
+          "evidence": "[judge] The only blocking Findings are the raw `#1F2328` token violation and `/api/summary` 404/console logging; both are the planted, fact-backed defects."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 77,
+      "configuration": "old_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 0.8333,
+        "passed": 5,
+        "failed": 1,
+        "total": 6,
+        "time_seconds": 109.6,
+        "tokens": 568264,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "ur1.request_changes",
+          "check": "auto",
+          "text": "Returns Request Changes",
+          "passed": true,
+          "evidence": "verdict Request Changes"
+        },
+        {
+          "id": "ur1.read_only",
+          "check": "auto",
+          "text": "Leaves the working tree exactly as it found it",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False; branch now: feature/TLW-21-total-balance-card"
+        },
+        {
+          "id": "ur1.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": false,
+          "evidence": "browser/playwright actions: 0"
+        },
+        {
+          "id": "ur1.names_hex",
+          "check": "judge",
+          "text": "Names the raw `#1F2328` instead of `var(--color-text)`",
+          "passed": true,
+          "evidence": "[judge] Report says `.summary-card__value` sets `color: #1F2328`; expected `color: var(--color-text)`; UI facts show the same token violation."
+        },
+        {
+          "id": "ur1.names_console",
+          "check": "judge",
+          "text": "Names the failing `/api/summary` request or the console error on `/accounts`",
+          "passed": true,
+          "evidence": "[judge] Report says navigating to `/accounts` fetches `/api/summary`, returns 404, then writes `Summary could not be loaded: 404` to the console; this matches console_clean FAIL."
+        },
+        {
+          "id": "ur1.no_false_defects",
+          "check": "judge",
+          "text": "Every other defect it reports is real",
+          "passed": true,
+          "evidence": "[judge] The blocking Findings are the real raw color and `/api/summary` console/network problem; no extra unrelated blocking finding is listed."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 77,
+      "configuration": "old_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 0.8333,
+        "passed": 5,
+        "failed": 1,
+        "total": 6,
+        "time_seconds": 91.9,
+        "tokens": 544849,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "ur1.request_changes",
+          "check": "auto",
+          "text": "Returns Request Changes",
+          "passed": true,
+          "evidence": "verdict Request Changes"
+        },
+        {
+          "id": "ur1.read_only",
+          "check": "auto",
+          "text": "Leaves the working tree exactly as it found it",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False; branch now: feature/TLW-21-total-balance-card"
+        },
+        {
+          "id": "ur1.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": false,
+          "evidence": "browser/playwright actions: 0"
+        },
+        {
+          "id": "ur1.names_hex",
+          "check": "judge",
+          "text": "Names the raw `#1F2328` instead of `var(--color-text)`",
+          "passed": true,
+          "evidence": "[judge] Report says value color is hard-coded as `#1F2328`; expected `var(--color-text)`; this is exactly the tokens_only failure in the facts."
+        },
+        {
+          "id": "ur1.names_console",
+          "check": "judge",
+          "text": "Names the failing `/api/summary` request or the console error on `/accounts`",
+          "passed": true,
+          "evidence": "[judge] Report says opening `/accounts` requests `/api/summary`, falls through to 404, and logs `Summary could not be loaded: 404`; facts show `/api/summary` 404."
+        },
+        {
+          "id": "ur1.no_false_defects",
+          "check": "judge",
+          "text": "Every other defect it reports is real",
+          "passed": true,
+          "evidence": "[judge] Only two blocking Findings are reported, raw `#1F2328` and `/api/summary` 404/console noise; both are ground-truth defects."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 78,
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.8182,
+        "passed": 9,
+        "failed": 2,
+        "total": 11,
+        "time_seconds": 1173.4,
+        "tokens": 7511983,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "ug1.no_overflow",
+          "check": "auto",
+          "text": "Final UI has no horizontal overflow",
+          "passed": true,
+          "evidence": "overflow <= 0 at every route and width"
+        },
+        {
+          "id": "ug1.axe_clean",
+          "check": "auto",
+          "text": "Final UI has no axe violations",
+          "passed": true,
+          "evidence": "zero axe violations at every route and width"
+        },
+        {
+          "id": "ug1.routes_ok",
+          "check": "auto",
+          "text": "All routes load",
+          "passed": true,
+          "evidence": "all routes returned 200 with expected h1"
+        },
+        {
+          "id": "ug1.console_clean",
+          "check": "auto",
+          "text": "Browser console and network checks are clean",
+          "passed": true,
+          "evidence": "no console errors, pageerrors, or >=400 responses"
+        },
+        {
+          "id": "ug1.transfer_layout",
+          "check": "auto",
+          "text": "Transfer layout matches the responsive rule",
+          "passed": true,
+          "evidence": "transfer panel layout matches widths"
+        },
+        {
+          "id": "ug1.tokens_only",
+          "check": "auto",
+          "text": "No raw color literals are added",
+          "passed": true,
+          "evidence": "no added color literals under src/ or public/"
+        },
+        {
+          "id": "ug1.checks",
+          "check": "auto",
+          "text": "Build, test and lint pass",
+          "passed": true,
+          "evidence": "exit codes {'build': 0, 'test': 0, 'lint': 0}; {'tests': '14', 'pass': '14', 'fail': '0'}"
+        },
+        {
+          "id": "ug1.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 42"
+        },
+        {
+          "id": "ug1.caught_overflow",
+          "check": "judge",
+          "text": "Reports the mobile overflow before presenting the change as ready",
+          "passed": false,
+          "evidence": "[judge] The session goes from resume to Wrap-up Approve; it never reports the mobile overflow before presenting ready."
+        },
+        {
+          "id": "ug1.caught_label",
+          "check": "judge",
+          "text": "Reports the missing accessible label before presenting the change as ready",
+          "passed": false,
+          "evidence": "[judge] It says the final note has a programmatic label, but never reports the missing accessible label before ready."
+        },
+        {
+          "id": "ug1.report_true",
+          "check": "judge",
+          "text": "Final report claims match the UI facts",
+          "passed": true,
+          "evidence": "[judge] Final claims pass for build/test/lint, visual/a11y/pr-review; UI facts show overflow/axe/console/tokens/commands all PASS."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 78,
+      "configuration": "old_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 0.8182,
+        "passed": 9,
+        "failed": 2,
+        "total": 11,
+        "time_seconds": 735.7,
+        "tokens": 4138230,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "ug1.no_overflow",
+          "check": "auto",
+          "text": "Final UI has no horizontal overflow",
+          "passed": true,
+          "evidence": "overflow <= 0 at every route and width"
+        },
+        {
+          "id": "ug1.axe_clean",
+          "check": "auto",
+          "text": "Final UI has no axe violations",
+          "passed": true,
+          "evidence": "zero axe violations at every route and width"
+        },
+        {
+          "id": "ug1.routes_ok",
+          "check": "auto",
+          "text": "All routes load",
+          "passed": true,
+          "evidence": "all routes returned 200 with expected h1"
+        },
+        {
+          "id": "ug1.console_clean",
+          "check": "auto",
+          "text": "Browser console and network checks are clean",
+          "passed": true,
+          "evidence": "no console errors, pageerrors, or >=400 responses"
+        },
+        {
+          "id": "ug1.transfer_layout",
+          "check": "auto",
+          "text": "Transfer layout matches the responsive rule",
+          "passed": true,
+          "evidence": "transfer panel layout matches widths"
+        },
+        {
+          "id": "ug1.tokens_only",
+          "check": "auto",
+          "text": "No raw color literals are added",
+          "passed": true,
+          "evidence": "no added color literals under src/ or public/"
+        },
+        {
+          "id": "ug1.checks",
+          "check": "auto",
+          "text": "Build, test and lint pass",
+          "passed": true,
+          "evidence": "exit codes {'build': 0, 'test': 0, 'lint': 0}; {'tests': '13', 'pass': '13', 'fail': '0'}"
+        },
+        {
+          "id": "ug1.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 17"
+        },
+        {
+          "id": "ug1.caught_overflow",
+          "check": "judge",
+          "text": "Reports the mobile overflow before presenting the change as ready",
+          "passed": false,
+          "evidence": "[judge] No pre-ready finding is shown; reply 2 is already Wrap-up/pr-review Approve with no overflow defect report."
+        },
+        {
+          "id": "ug1.caught_label",
+          "check": "judge",
+          "text": "Reports the missing accessible label before presenting the change as ready",
+          "passed": false,
+          "evidence": "[judge] No pre-ready finding is shown; it only claims the final note has an accessible visible label."
+        },
+        {
+          "id": "ug1.report_true",
+          "check": "judge",
+          "text": "Final report claims match the UI facts",
+          "passed": true,
+          "evidence": "[judge] Final reports visual/a11y/pr-review pass and no overflow; UI facts show all measured final UI facts PASS."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 78,
+      "configuration": "old_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 11,
+        "failed": 0,
+        "total": 11,
+        "time_seconds": 539.2,
+        "tokens": 3942983,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "ug1.no_overflow",
+          "check": "auto",
+          "text": "Final UI has no horizontal overflow",
+          "passed": true,
+          "evidence": "overflow <= 0 at every route and width"
+        },
+        {
+          "id": "ug1.axe_clean",
+          "check": "auto",
+          "text": "Final UI has no axe violations",
+          "passed": true,
+          "evidence": "zero axe violations at every route and width"
+        },
+        {
+          "id": "ug1.routes_ok",
+          "check": "auto",
+          "text": "All routes load",
+          "passed": true,
+          "evidence": "all routes returned 200 with expected h1"
+        },
+        {
+          "id": "ug1.console_clean",
+          "check": "auto",
+          "text": "Browser console and network checks are clean",
+          "passed": true,
+          "evidence": "no console errors, pageerrors, or >=400 responses"
+        },
+        {
+          "id": "ug1.transfer_layout",
+          "check": "auto",
+          "text": "Transfer layout matches the responsive rule",
+          "passed": true,
+          "evidence": "transfer panel layout matches widths"
+        },
+        {
+          "id": "ug1.tokens_only",
+          "check": "auto",
+          "text": "No raw color literals are added",
+          "passed": true,
+          "evidence": "no added color literals under src/ or public/"
+        },
+        {
+          "id": "ug1.checks",
+          "check": "auto",
+          "text": "Build, test and lint pass",
+          "passed": true,
+          "evidence": "exit codes {'build': 0, 'test': 0, 'lint': 0}; {'tests': '13', 'pass': '13', 'fail': '0'}"
+        },
+        {
+          "id": "ug1.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 8"
+        },
+        {
+          "id": "ug1.caught_overflow",
+          "check": "judge",
+          "text": "Reports the mobile overflow before presenting the change as ready",
+          "passed": true,
+          "evidence": "[judge] Reply 2 blocks before pr-review and names min-width 420px causing horizontal scroll 436px > 375px."
+        },
+        {
+          "id": "ug1.caught_label",
+          "check": "judge",
+          "text": "Reports the missing accessible label before presenting the change as ready",
+          "passed": true,
+          "evidence": "[judge] Reply 2 blocks before pr-review and names id=note/for=transfer-note causing axe label violation."
+        },
+        {
+          "id": "ug1.report_true",
+          "check": "judge",
+          "text": "Final report claims match the UI facts",
+          "passed": true,
+          "evidence": "[judge] Wrap-up says fixes pass visual/a11y/pr-review; UI facts show routes, no_overflow, axe_clean, console_clean and commands pass."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 79,
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 0.9231,
+        "passed": 12,
+        "failed": 1,
+        "total": 13,
+        "time_seconds": 601.4,
+        "tokens": 3775424,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "us1.level_simple",
+          "check": "auto",
+          "text": "The first reply sizes the ticket SIMPLE",
+          "passed": true,
+          "evidence": "level stated before first gate: SIMPLE"
+        },
+        {
+          "id": "us1.no_code_before_approval",
+          "check": "auto",
+          "text": "Changes no source or test file before approval",
+          "passed": true,
+          "evidence": "first gate: turn 1; code first changed in turn 2"
+        },
+        {
+          "id": "us1.one_approval",
+          "check": "auto",
+          "text": "Needs exactly one approval before implementation starts",
+          "passed": true,
+          "evidence": "approvals before code changed: 1; code changed in turn 2"
+        },
+        {
+          "id": "us1.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 20"
+        },
+        {
+          "id": "us1.empty_state",
+          "check": "auto",
+          "text": "Final UI has the no-transactions empty state and transfer link",
+          "passed": true,
+          "evidence": "empty state and populated transaction table match"
+        },
+        {
+          "id": "us1.routes_ok",
+          "check": "auto",
+          "text": "All routes load",
+          "passed": true,
+          "evidence": "all routes returned 200 with expected h1"
+        },
+        {
+          "id": "us1.no_overflow",
+          "check": "auto",
+          "text": "Final UI has no horizontal overflow",
+          "passed": true,
+          "evidence": "overflow <= 0 at every route and width"
+        },
+        {
+          "id": "us1.axe_clean",
+          "check": "auto",
+          "text": "Final UI has no axe violations",
+          "passed": true,
+          "evidence": "zero axe violations at every route and width"
+        },
+        {
+          "id": "us1.console_clean",
+          "check": "auto",
+          "text": "Browser console and network checks are clean",
+          "passed": true,
+          "evidence": "no console errors, pageerrors, or >=400 responses"
+        },
+        {
+          "id": "us1.tokens_only",
+          "check": "auto",
+          "text": "No raw color literals are added",
+          "passed": true,
+          "evidence": "no added color literals under src/ or public/"
+        },
+        {
+          "id": "us1.checks",
+          "check": "auto",
+          "text": "Build, test and lint pass",
+          "passed": true,
+          "evidence": "exit codes {'build': 0, 'test': 0, 'lint': 0}; {'tests': '13', 'pass': '13', 'fail': '0'}"
+        },
+        {
+          "id": "us1.plan_in_chat",
+          "check": "judge",
+          "text": "A short plan before implementation includes browser checking in acceptance",
+          "passed": false,
+          "evidence": "[judge] Reply 1 plans focused UI coverage and commands, but does not clearly state browser checking in acceptance before implementation."
+        },
+        {
+          "id": "us1.report_true",
+          "check": "judge",
+          "text": "Final report claims match the UI facts",
+          "passed": true,
+          "evidence": "[judge] Final report says empty state and checks pass; UI facts show empty_state and all final route/overflow/a11y/console/token facts PASS."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 79,
+      "configuration": "old_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 0.9231,
+        "passed": 12,
+        "failed": 1,
+        "total": 13,
+        "time_seconds": 639.2,
+        "tokens": 3890022,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "us1.level_simple",
+          "check": "auto",
+          "text": "The first reply sizes the ticket SIMPLE",
+          "passed": true,
+          "evidence": "level stated before first gate: SIMPLE"
+        },
+        {
+          "id": "us1.no_code_before_approval",
+          "check": "auto",
+          "text": "Changes no source or test file before approval",
+          "passed": true,
+          "evidence": "first gate: turn 1; code first changed in turn 2"
+        },
+        {
+          "id": "us1.one_approval",
+          "check": "auto",
+          "text": "Needs exactly one approval before implementation starts",
+          "passed": true,
+          "evidence": "approvals before code changed: 1; code changed in turn 2"
+        },
+        {
+          "id": "us1.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 18"
+        },
+        {
+          "id": "us1.empty_state",
+          "check": "auto",
+          "text": "Final UI has the no-transactions empty state and transfer link",
+          "passed": true,
+          "evidence": "empty state and populated transaction table match"
+        },
+        {
+          "id": "us1.routes_ok",
+          "check": "auto",
+          "text": "All routes load",
+          "passed": true,
+          "evidence": "all routes returned 200 with expected h1"
+        },
+        {
+          "id": "us1.no_overflow",
+          "check": "auto",
+          "text": "Final UI has no horizontal overflow",
+          "passed": true,
+          "evidence": "overflow <= 0 at every route and width"
+        },
+        {
+          "id": "us1.axe_clean",
+          "check": "auto",
+          "text": "Final UI has no axe violations",
+          "passed": true,
+          "evidence": "zero axe violations at every route and width"
+        },
+        {
+          "id": "us1.console_clean",
+          "check": "auto",
+          "text": "Browser console and network checks are clean",
+          "passed": true,
+          "evidence": "no console errors, pageerrors, or >=400 responses"
+        },
+        {
+          "id": "us1.tokens_only",
+          "check": "auto",
+          "text": "No raw color literals are added",
+          "passed": true,
+          "evidence": "no added color literals under src/ or public/"
+        },
+        {
+          "id": "us1.checks",
+          "check": "auto",
+          "text": "Build, test and lint pass",
+          "passed": true,
+          "evidence": "exit codes {'build': 0, 'test': 0, 'lint': 0}; {'tests': '13', 'pass': '13', 'fail': '0'}"
+        },
+        {
+          "id": "us1.plan_in_chat",
+          "check": "judge",
+          "text": "A short plan before implementation includes browser checking in acceptance",
+          "passed": false,
+          "evidence": "[judge] Reply 1 has a short plan and approval ask, but only says build/test/lint plus e2e spec; it does not clearly include browser checking in acceptance."
+        },
+        {
+          "id": "us1.report_true",
+          "check": "judge",
+          "text": "Final report claims match the UI facts",
+          "passed": true,
+          "evidence": "[judge] Final report says empty state, populated table and validations pass; UI facts confirm all measured UI facts and commands PASS."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 79,
+      "configuration": "old_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 13,
+        "failed": 0,
+        "total": 13,
+        "time_seconds": 607.7,
+        "tokens": 4206655,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "us1.level_simple",
+          "check": "auto",
+          "text": "The first reply sizes the ticket SIMPLE",
+          "passed": true,
+          "evidence": "level stated before first gate: SIMPLE"
+        },
+        {
+          "id": "us1.no_code_before_approval",
+          "check": "auto",
+          "text": "Changes no source or test file before approval",
+          "passed": true,
+          "evidence": "first gate: turn 1; code first changed in turn 2"
+        },
+        {
+          "id": "us1.one_approval",
+          "check": "auto",
+          "text": "Needs exactly one approval before implementation starts",
+          "passed": true,
+          "evidence": "approvals before code changed: 1; code changed in turn 2"
+        },
+        {
+          "id": "us1.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 16"
+        },
+        {
+          "id": "us1.empty_state",
+          "check": "auto",
+          "text": "Final UI has the no-transactions empty state and transfer link",
+          "passed": true,
+          "evidence": "empty state and populated transaction table match"
+        },
+        {
+          "id": "us1.routes_ok",
+          "check": "auto",
+          "text": "All routes load",
+          "passed": true,
+          "evidence": "all routes returned 200 with expected h1"
+        },
+        {
+          "id": "us1.no_overflow",
+          "check": "auto",
+          "text": "Final UI has no horizontal overflow",
+          "passed": true,
+          "evidence": "overflow <= 0 at every route and width"
+        },
+        {
+          "id": "us1.axe_clean",
+          "check": "auto",
+          "text": "Final UI has no axe violations",
+          "passed": true,
+          "evidence": "zero axe violations at every route and width"
+        },
+        {
+          "id": "us1.console_clean",
+          "check": "auto",
+          "text": "Browser console and network checks are clean",
+          "passed": true,
+          "evidence": "no console errors, pageerrors, or >=400 responses"
+        },
+        {
+          "id": "us1.tokens_only",
+          "check": "auto",
+          "text": "No raw color literals are added",
+          "passed": true,
+          "evidence": "no added color literals under src/ or public/"
+        },
+        {
+          "id": "us1.checks",
+          "check": "auto",
+          "text": "Build, test and lint pass",
+          "passed": true,
+          "evidence": "exit codes {'build': 0, 'test': 0, 'lint': 0}; {'tests': '13', 'pass': '13', 'fail': '0'}"
+        },
+        {
+          "id": "us1.plan_in_chat",
+          "check": "judge",
+          "text": "A short plan before implementation includes browser checking in acceptance",
+          "passed": true,
+          "evidence": "[judge] Before code changes, reply 1 asks approval and plans browser/DOM test coverage for /accounts/travel and a populated account."
+        },
+        {
+          "id": "us1.report_true",
+          "check": "judge",
+          "text": "Final report claims match the UI facts",
+          "passed": true,
+          "evidence": "[judge] Final claims visual/a11y/pr-review and commands pass; UI facts confirm empty_state, no_overflow, axe_clean, console_clean and commands PASS."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 80,
+      "configuration": "old_skill",
+      "run_number": 1,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 106.8,
+        "tokens": 1013848,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "uc1.read_only",
+          "check": "auto",
+          "text": "Leaves the repository unchanged except for browser-tool output",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False"
+        },
+        {
+          "id": "uc1.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 8"
+        },
+        {
+          "id": "uc1.named_overflow",
+          "check": "judge",
+          "text": "Names mobile horizontal overflow on the transfer page",
+          "passed": true,
+          "evidence": "[judge] Names TLW-22 /transfer mobile overflow from .fee-panel min-width 420px and scrollWidth=436."
+        },
+        {
+          "id": "uc1.named_label",
+          "check": "judge",
+          "text": "Names the note field's missing accessible label",
+          "passed": true,
+          "evidence": "[judge] Names Note label points to transfer-note while input id is note and axe critical label on #note."
+        },
+        {
+          "id": "uc1.evidence",
+          "check": "judge",
+          "text": "Each finding is backed by observed evidence",
+          "passed": true,
+          "evidence": "[judge] Backs overflow with Playwright left/right/scrollWidth and a11y with axe plus input.labels.length=0."
+        },
+        {
+          "id": "uc1.no_false_defects",
+          "check": "judge",
+          "text": "Every other defect it reports is real",
+          "passed": true,
+          "evidence": "[judge] Reports exactly the two confirmed regressions plus proposed fix/level; no unrelated defect."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 80,
+      "configuration": "old_skill",
+      "run_number": 2,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 116.5,
+        "tokens": 907923,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "uc1.read_only",
+          "check": "auto",
+          "text": "Leaves the repository unchanged except for browser-tool output",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False"
+        },
+        {
+          "id": "uc1.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 4"
+        },
+        {
+          "id": "uc1.named_overflow",
+          "check": "judge",
+          "text": "Names mobile horizontal overflow on the transfer page",
+          "passed": true,
+          "evidence": "[judge] Names /transfer 375x812 scrollWidth=436 and fee panel 420px wide from .fee-panel min-width on phones."
+        },
+        {
+          "id": "uc1.named_label",
+          "check": "judge",
+          "text": "Names the note field's missing accessible label",
+          "passed": true,
+          "evidence": "[judge] Names axe critical label violation for #note caused by id note but label for transfer-note."
+        },
+        {
+          "id": "uc1.evidence",
+          "check": "judge",
+          "text": "Each finding is backed by observed evidence",
+          "passed": true,
+          "evidence": "[judge] Overflow has scrollWidth/width measurements; label has axe violation and DOM id/for evidence."
+        },
+        {
+          "id": "uc1.no_false_defects",
+          "check": "judge",
+          "text": "Every other defect it reports is real",
+          "passed": true,
+          "evidence": "[judge] Only blocking findings are the real mobile overflow and unlabeled note; clean tests/lint are non-defects."
+        }
+      ],
+      "notes": []
+    },
+    {
+      "eval_id": 80,
+      "configuration": "old_skill",
+      "run_number": 3,
+      "result": {
+        "pass_rate": 1.0,
+        "passed": 6,
+        "failed": 0,
+        "total": 6,
+        "time_seconds": 141.4,
+        "tokens": 1072575,
+        "tool_calls": 0,
+        "errors": 0
+      },
+      "expectations": [
+        {
+          "id": "uc1.read_only",
+          "check": "auto",
+          "text": "Leaves the repository unchanged except for browser-tool output",
+          "passed": true,
+          "evidence": "changed files: none; HEAD moved: False"
+        },
+        {
+          "id": "uc1.used_browser",
+          "check": "auto",
+          "text": "The run used browser or Playwright evidence",
+          "passed": true,
+          "evidence": "browser/playwright actions: 6"
+        },
+        {
+          "id": "uc1.named_overflow",
+          "check": "judge",
+          "text": "Names mobile horizontal overflow on the transfer page",
+          "passed": true,
+          "evidence": "[judge] Names .fee-panel min-width 420px causing /transfer 375px document scrollWidth=436."
+        },
+        {
+          "id": "uc1.named_label",
+          "check": "judge",
+          "text": "Names the note field's missing accessible label",
+          "passed": true,
+          "evidence": "[judge] Names id=note versus label for=transfer-note, axe critical label failure, and no accessible name."
+        },
+        {
+          "id": "uc1.evidence",
+          "check": "judge",
+          "text": "Each finding is backed by observed evidence",
+          "passed": true,
+          "evidence": "[judge] Backs overflow with width/scroll numbers and label with axe plus DOM id/for evidence."
+        },
+        {
+          "id": "uc1.no_false_defects",
+          "check": "judge",
+          "text": "Every other defect it reports is real",
+          "passed": true,
+          "evidence": "[judge] Only defects reported are the two ground-truth issues; no unrelated blocking defect is invented."
+        }
+      ],
+      "notes": []
+    }
+  ],
+  "run_summary": {
+    "new_skill": {
+      "pass_rate": {
+        "mean": 0.9916,
+        "stddev": 0.0369,
+        "min": 0.8,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 295.1515,
+        "stddev": 174.7202,
+        "min": 96.8,
+        "max": 810.9
+      },
+      "tokens": {
+        "mean": 1901421.9697,
+        "stddev": 1403001.5174,
+        "min": 656444,
+        "max": 6605539
+      }
+    },
+    "old_skill": {
+      "pass_rate": {
+        "mean": 0.9207,
+        "stddev": 0.1339,
+        "min": 0.5,
+        "max": 1.0
+      },
+      "time_seconds": {
+        "mean": 284.5636,
+        "stddev": 241.9575,
+        "min": 91.9,
+        "max": 1173.4
+      },
+      "tokens": {
+        "mean": 1782165.6061,
+        "stddev": 1506233.2663,
+        "min": 544849,
+        "max": 7511983
+      }
+    },
+    "delta": {
+      "pass_rate": "+0.07",
+      "time_seconds": "+10.6",
+      "tokens": "+119256"
+    }
+  },
+  "notes": [
+    "Design: the frontend-compare round (`build.py round --show frontend-compare`, iteration 29): 11 TinyLedger Web scenarios in 7 groups (4 system-level, 3 step probes) x 2 arms x 3 runs = 66 runs, all collected and graded - by scripts, by Playwright and axe measurements of each built app, and by 156 judge verdicts from 3 blind bundles that mix both arms. Each assertion is an outcome (what the developer gets) or a process point (a workflow mechanic). Both arms ran in one dedicated Copilot app session with the Playwright MCP, playwright-cli (Playwright 1.63.0), the Figma stand-in and the figma-design-to-code guidance skill available. The numbers below come from scores.md; the per-run pass rates and medians come from benchmark.json.",
+    "Overall: outcome 205/207 (99.0%) for 1.0.0 vs 191/207 (92.3%) for 0.2.0; process 48/48 (100%) vs 45/48 (93.8%); mean per-run pass rate over all assertions 99.2% vs 92.1%. 1.0.0 is ahead on outcome in 4 of the 7 groups (system-plan, system-gate, system-simple, probe-verify) and level in the other 3 (system-standalone, probe-build, probe-review). Per scenario it trails only in uv2, by 1 assertion.",
+    "Largest outcome gains: system-plan 24/24 vs 18/24 - 0.2.0's up1 plans listed 375, 768 and 1280px but not the 640px and 1024px breakpoints, and left WCAG 2.2 AA contrast out of Acceptance, in all 3 runs (up1.ui_acceptance and up1.a11y 0/3). system-gate 30/30 vs 26/30 - in ug1 runs 1 and 2, 0.2.0 fixed the 375px overflow and the unassociated label without reporting them and first mentioned them at wrap-up (ug1.caught_overflow and ug1.caught_label failed); in run 3 its visual-verify and a11y-verify gates reported both first. 1.0.0 showed the developer Request Changes naming both defects before fixing them, in all 3 runs. probe-verify 56/57 vs 53/57 - in uv5, where the UI is correct, 0.2.0 returned VERIFY: FAIL in runs 1 and 2 on testing grounds alone (regression coverage, UI tests that could not run), with no UI defect (uv5 5/9 vs 9/9). system-simple 26/27 vs 25/27 - the short chat plan named a browser check in Acceptance in 2 of 3 1.0.0 runs and 1 of 3 0.2.0 runs (us1.plan_in_chat).",
+    "Where 1.0.0 trails: uv2, 11/12 vs 12/12. In run 3 its verify-task caught the planted overflow but also blocked on the fee-preview heading's font weight of 700, the browser default for an h2, as not matching a token; the judge counted a false defect. 1.0.0's verify.md says a value the change only reuses is a user note, so this is that rule missed in 1 of 3 runs. 0.2.0 raised no false UI defect in uv1-uv4; its uv5 FAIL verdicts in runs 1 and 2 (above) count as false defects there.",
+    "Process: 48/48 vs 45/48. The whole gap is ur1.used_browser: 0.2.0's pr-review reviewed the code and opened no browser in all 3 runs, and 0.2.0 has no browser instruction at pr-review; 1.0.0 loads the frontend standard into pr-review and audited in a browser (Node Playwright scripts) every time. Both arms requested changes naming the /api/summary 404 and the raw #1F2328 in all 3 runs (ur1 outcome 15/15 each), so the gap measures a 1.0 mechanic, not a worse review verdict.",
+    "Cost: 1.0.0 uses 7% more tokens per run (1,901,422 vs 1,782,166 mean; medians 1,362,762 vs 1,152,717) and 4% more time (295.1 vs 284.6 s; medians 227.0 vs 173.7 s). The extra sits in the step probes where 1.0.0 checks in a browser: probe-verify 1,431,983 vs 1,069,142 tokens (+34%) and 242.6 vs 163.2 s, probe-review 1,101,718 vs 665,076 tokens (+66%) and 165.2 vs 111.3 s, probe-build 1,452,316 vs 1,273,349 tokens (+14%). 1.0.0 costs less in system-plan (1,410,100 vs 2,166,475 tokens, 273.8 vs 431.8 s) and system-standalone (663,524 vs 998,115 tokens, 117.0 vs 121.6 s). system-gate and system-simple cost about the same in tokens (5,242,038 vs 5,197,732; 3,886,031 vs 3,957,367) and less time in 1.0.0 (688.9 vs 816.1 s; 535.5 vs 616.1 s).",
+    "Same in both arms: uc1, the standalone check, is 15/15 in both - FAIL naming the overflow and the label, with no false defect, in every run. ub1 is 39/39 in both: every build matched the Figma node's geometry, colors and type, reused the card component, and passed routes, overflow, axe and console checks; 0.2.0 also added a browser test file in all 3 runs and 1.0.0 added none, which no assertion grades. uv1, uv3 and uv4 are 12/12 in both: every planted defect was named.",
+    "Browser use: in verify and review 1.0.0 mostly used playwright-cli or Node Playwright scripts; 0.2.0 used Node scripts and sometimes the Playwright MCP. In uc1 1.0.0 used playwright-cli, scripts and the MCP across its runs, 0.2.0 mainly the MCP. In ug1 both arms used the MCP and Node scripts.",
+    "Contamination: contamination.py flagged 0 of 66 runs, so there is no clean-runs table in scores.md or RESULTS.md: every table covers all runs. It counted 12 loads of figma-design-to-code, the guidance skill both arms are given (ub1 runs 1-3 in both arms, uv1 1.0.0 runs 1-3 and 0.2.0 run 2, ur1 1.0.0 runs 2-3). Four runs called the host's skill tool for a name that is not installed in the session, and the call failed with nothing loaded: ug1 1.0.0 run 1 (pr-review), ug1 0.2.0 runs 2 and 3 (a11y-verify), us1 0.2.0 run 2 (e2e-plan, a11y-verify, pr-review). No subagent launch was refused.",
+    "Run history: 66 of 66 runs completed. One was relaunched: ub1 0.2.0 run 3 was in flight during an app restart and was cancelled with no report; its one added file was deleted, every built file still matched the build snapshot, and a fresh run replaced it. Every run's timing.json lists gpt-5.5 as its only model, nested subagents included.",
+    "Caveats: n = 3 per scenario and arm; prompts and scripted replies in English; run agents and judges are gpt-5.5, named explicitly on each launch because the host app's default subagent model changed during the 1.0 work. Every harness step of this round ran on Python 3.13.13 (a uv-managed venv); the 3.13.12 to 3.13.13 switch happened during an earlier, unpublished 1.0 iteration round. The 0.2.0 arm pins Ritus 3.0.0 at git:6c03d3a, before D4 - the core change that lets a companion load its standard at task generation and names companion load items for verify-task, pr-review and wrap-up workers - so 0.2.0 has fewer load points by design. Fixture fixes made during the 1.0 iterations apply to both arms here: each world's docs carry its allocated dev port, and the new arm's docs/FRONTEND.md is committed in the world's history. Both arms get the same environment; a benchmark where each arm gets its own recommended environment is not part of this comparison. 1.0 was iterated against a 0.2.0 baseline before this round; those rounds are not published."
+  ]
+}
