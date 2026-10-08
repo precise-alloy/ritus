@@ -65,7 +65,9 @@ The hook looks for `ritus-companion.json` in three places:
 1. **Your project / repo** — a `ritus-companion.json` at the **repo root**. Only the root is
    checked (`<repo>/ritus-companion.json`); subfolders are not scanned.
 2. **Installed companion plugins** — sibling plugins in the same marketplace (both the Claude and
-   Copilot install layouts are handled).
+   Copilot install layouts are handled). A companion installed from a different marketplace is not found in
+   Claude Code; install it from the same marketplace as Ritus. A version folder Claude has replaced, marked
+   `.orphaned_at`, is skipped.
 3. **Explicit override** — set `RITUS_COMPANION_PATHS` to a list of files or directories,
    separated by the OS path-list separator (`;` on Windows, `:` elsewhere).
 

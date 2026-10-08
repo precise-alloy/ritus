@@ -78,7 +78,9 @@ Run `python evals\install\check_install.py` to exercise local path and smart-HTT
 The ritus-frontend cases run in the same pass:
 
 - `fresh-local` and `fresh-git` also install `ritus-frontend`. The installed copy must be version 1.0.0 with exactly the files of `plugins\ritus-frontend` (`.claude-plugin`, `ritus-companion.json`, `skills\frontend`, `skills\ui-verify`). Then the installed Ritus copy's `scripts\companion-bootstrap.ts` runs as the hook does, with `CLAUDE_PLUGIN_ROOT` set to the installed Ritus directory, once per CLI layout; its registry must list `ritus-frontend (5 integrations)` with the installed manifest path.
-- `frontend-pointer` serves two stand-ins through the local git server: precise-alloy/ritus (`main` is the working tree) and precise-alloy/ritus-frontend (`main` is the 0.1.0 commit read from `--frontend-old-repo`). The case's git config rewrites `https://github.com/precise-alloy/` and the SSH forms to that server. It installs 0.1.0 from `ritus-frontend-marketplace`, applies `--frontend-pointer-patch` to the stand-in and commits it, then runs marketplace update and plugin update in each CLI. Each CLI must fetch precise-alloy/ritus from the local server and end with the same 1.0.0 install as the fresh cases.
+- `frontend-pointer` serves two stand-ins through the local git server: precise-alloy/ritus (`main` is the working tree) and precise-alloy/ritus-frontend (`main` and `feat/ritus-frontend-plugin` are the 0.1.0 commit read from `--frontend-old-repo`). The case's git config rewrites `https://github.com/precise-alloy/` and the SSH forms to that server. It installs 0.1.0 from `ritus-frontend-marketplace`, applies `--frontend-pointer-patch` to the stand-in and commits it, then runs marketplace update and plugin update in each CLI. Each CLI must fetch precise-alloy/ritus from the local server and end with the same 1.0.0 install as the fresh cases. Then it installs `ritus` from `precise-alloy/ritus` and runs the installed hook next to the updated plugin. Copilot CLI must list it; Claude Code must not, because Claude caches it under `cache\ritus-frontend-marketplace\` and the hook scans only its own marketplace's folder. Either outcome changing fails the case: the pointer README and `docs\RITUS_FRONTEND.md` describe it. Last, it runs the documented switch (uninstall `ritus-frontend@ritus-frontend-marketplace`, install `ritus-frontend@precise-alloy-marketplace`) and checks the fresh install and sibling discovery in both CLIs.
+- `frontend-212-update` installs `ritus` and `ritus-frontend` from the Ritus 2.1.2 marketplace (`fcbd5d5`), which lists ritus-frontend 0.1.0 from precise-alloy/ritus-frontend (`main` for Claude, `feat/ritus-frontend-plugin` for Copilot), served by the same stand-in. It then moves that marketplace to the working tree, updates both plugins in each CLI, and checks the Ritus install, the fresh ritus-frontend install and sibling discovery. Claude keeps the replaced 0.1.0 version directory, marked `.orphaned_at`, until it prunes it; the hook skips it, and a stale `ritus-frontend` line in the registry fails the case.
+- Both cases need `--frontend-old-repo`. When that directory does not exist, the checker prints `SKIP frontend-212-update, frontend-pointer: ...`, runs every other case, and exits 0 if they pass; its last line then names the skipped cases. A directory that exists but lacks `--frontend-old-ref` is an error.
 
 | Flag or environment | Meaning | Default |
 | --- | --- | --- |
@@ -88,7 +90,7 @@ The ritus-frontend cases run in the same pass:
 | `--git-http-backend <path>` | Explicit `git-http-backend` path for the smart-HTTP test server. | auto-detect |
 | `--github <owner/repo>` | Enable the post-push GitHub marketplace update case. | off |
 | `--github-ref <branch-or-ref>` | Ref used by the GitHub update case; required with `--github`. | none |
-| `--frontend-old-repo <path>` | Clone of precise-alloy/ritus-frontend, read only through `git archive`. | `..\ritus-frontend` next to this repository |
+| `--frontend-old-repo <path>` | Clone of precise-alloy/ritus-frontend, read only through `git archive`. When it does not exist, `frontend-212-update` and `frontend-pointer` are skipped. | `..\ritus-frontend` next to this repository |
 | `--frontend-old-ref <ref>` | The ritus-frontend 0.1.0 commit in that clone (`origin/main` before the pointer). | `dd05c63` |
 | `--frontend-pointer-patch <path>` | Pointer patch for the old repository, applied in the `frontend-pointer` case. | `evals\install\ritus-frontend-pointer.patch` |
 | `--keep` | Keep throwaway work directories for debugging. | off |
@@ -121,7 +123,7 @@ Use `--arm name=<ritus>+<companion>`. The Ritus side accepts `dir:<path>` or `gi
 
 ### Prior-step artifacts
 
-A scenario that starts mid-workflow receives the documents its own arm would already have produced. `common/` contains Ritus-core docs; `<arm>/` contains companion docs. In Phase 3 the old arm's docs include the figma-intake context marker and e2e-plan spec that 0.2.0 expects. `{{COMPANION}}` is substituted in per-arm `inputs.md` files when a worker must load a companion skill. Phase 4 adds the new arm's companion artifacts.
+A scenario that starts mid-workflow receives the documents its own arm would already have produced. `common/` contains Ritus-core docs; `<arm>/` contains companion docs. The 0.2.0 arm's docs (`old_skill/`) include the figma-intake context marker and e2e-plan spec that 0.2.0 expects. The 1.0 arm's docs (`new_skill/`) carry what 1.0 produces before that step: `docs/FRONTEND.md`, the UI lines in task Acceptance, and the `frontend` load items in worker `inputs.md` files. `{{COMPANION}}` is substituted in per-arm `inputs.md` files when a worker must load a companion skill.
 
 ### Figma stand-in and guidance skill
 
@@ -197,7 +199,7 @@ System-level groups carry the comparison because each arm reaches UI checks at d
 
 ### Final comparison
 
-Phase 5 reruns 0.2.0 next to 1.0 in one session set up exactly as above. A deployment-profile benchmark, where each arm gets its own recommended environment, is not part of this comparison.
+The `frontend-compare` round runs 0.2.0 and 1.0 side by side in one session set up exactly as above. A deployment-profile benchmark, where each arm gets its own recommended environment, is not part of this comparison.
 
 The published result is the "ritus-frontend 0.2.0 vs 1.0.0" section of [`RESULTS.md`](RESULTS.md), with its data in [`results/frontend-compare/`](results/frontend-compare/).
 

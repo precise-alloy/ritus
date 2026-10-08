@@ -147,8 +147,10 @@ approval or session controls, and keep `playwright-cli` work grouped into a smal
   the user must share or see the page. You can remove the `playwright` server that 0.2.0 asked you to add to the
   project's `.mcp.json`, and its `.ritus/screenshot` output folder. Keep the `figma` server if you use Figma MCP:
   `frontend` uses it when it is available.
-- If you added the `ritus-frontend-marketplace` (`precise-alloy/ritus-frontend`), remove that plugin and install
-  `ritus-frontend` from `precise-alloy/ritus` as above.
+- If you installed `ritus-frontend@ritus-frontend-marketplace` (`precise-alloy/ritus-frontend`), uninstall it, then
+  install `ritus-frontend@precise-alloy-marketplace` from `precise-alloy/ritus`, next to `ritus`, as above. Updating
+  the old install also gets 1.0.0, but in Claude Code Ritus does not load a companion installed from another
+  marketplace.
 - The blocking gates before `pr-review` are now checks inside `verify-task` and `pr-review`. Ritus's normal fix loop
   handles failures.
 - Skill names changed: `frontend` replaces `e2e-plan`, `figma-intake`, `figma-implement`, `visual-verify`, and

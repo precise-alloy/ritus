@@ -5,7 +5,8 @@ The script builds throwaway marketplace repositories under evals/install/.work,
 drives Copilot CLI and Claude Code with throwaway homes, and asserts that the
 installed plugin contains only the distributable plugin tree. It also checks
 ritus-frontend: a fresh install, sibling discovery by the installed Ritus hook,
-and an update from 0.1.0 through the old repository's pointer patch.
+an update from the Ritus 2.1.2 marketplace, and an update from 0.1.0 through the
+old repository's pointer patch, then the migration to this marketplace.
 """
 
 from __future__ import annotations
@@ -50,6 +51,13 @@ FRONTEND_OLD_VERSION = "0.1.0"
 DEFAULT_FRONTEND_OLD_REPO = REPO_ROOT.parent / "ritus-frontend"
 DEFAULT_FRONTEND_OLD_REF = "dd05c63"
 DEFAULT_FRONTEND_POINTER_PATCH = Path(__file__).resolve().parent / "ritus-frontend-pointer.patch"
+# Ritus 2.1.2's Copilot manifest reads ritus-frontend from this branch, its Claude manifest from main.
+FRONTEND_OLD_BRANCH = "feat/ritus-frontend-plugin"
+# Ritus 2.1.2, whose marketplace lists ritus-frontend 0.1.0 from precise-alloy/ritus-frontend.
+FRONTEND_RITUS_OLD_REF = "fcbd5d5"
+# Whether the installed Ritus hook lists a ritus-frontend installed from another marketplace. Claude nests
+# installs as cache/<marketplace>/<plugin>/<version>, and the hook scans only its own marketplace there.
+FRONTEND_CROSS_MARKETPLACE_DISCOVERY = {"copilot": True, "claude": False}
 
 
 class CheckError(RuntimeError):
@@ -710,9 +718,10 @@ def verify_frontend(case_name: str, cli: str, install_dir: Path, expected_files:
     print(f"{case_name} {cli} {FRONTEND_PLUGIN}: PASS {version}, {', '.join(entries)}; skills {', '.join(skills)}")
 
 
-def verify_sibling_discovery(
-    case_name: str, cli: str, ritus_dir: Path, frontend_dir: Path, case_work: Path, env: dict[str, str]
-) -> None:
+def companion_registry(
+    case_name: str, cli: str, ritus_dir: Path, case_work: Path, env: dict[str, str]
+) -> list[str]:
+    """Run the installed Ritus hook as the CLI does; return its registry lines."""
     project = case_work / "empty-project"
     project.mkdir(parents=True, exist_ok=True)
     hook_env = env.copy()
@@ -728,17 +737,55 @@ def verify_sibling_discovery(
         input_text=json.dumps({"cwd": str(project)}),
     )
     if not result.stdout.strip():
-        raise CheckError(f"{case_name} {cli}: companion bootstrap found no companions from {ritus_dir}")
+        return []
     try:
         output = json.loads(result.stdout)
         context = output["additionalContext"] if cli == "copilot" else output["hookSpecificOutput"]["additionalContext"]
     except (ValueError, KeyError, TypeError) as exc:
         raise CheckError(f"{case_name} {cli}: unexpected companion bootstrap output ({exc})\n{result.output}")
+    return [line for line in context.splitlines() if line.startswith("- ")]
+
+
+def frontend_registry_line(frontend_dir: Path) -> str:
     manifest = os.path.realpath(frontend_dir / "ritus-companion.json")
-    expected = f"- {FRONTEND_PLUGIN} ({FRONTEND_INTEGRATIONS} integrations): {manifest}"
-    if not any(os.path.normcase(line) == os.path.normcase(expected) for line in context.splitlines()):
-        raise CheckError(f"{case_name} {cli}: companion registry lacks '{expected}'\n{context}")
+    return f"- {FRONTEND_PLUGIN} ({FRONTEND_INTEGRATIONS} integrations): {manifest}"
+
+
+def lists_line(lines: list[str], expected: str) -> bool:
+    return any(os.path.normcase(line) == os.path.normcase(expected) for line in lines)
+
+
+def verify_sibling_discovery(
+    case_name: str, cli: str, ritus_dir: Path, frontend_dir: Path, case_work: Path, env: dict[str, str]
+) -> None:
+    lines = companion_registry(case_name, cli, ritus_dir, case_work, env)
+    if not lines:
+        raise CheckError(f"{case_name} {cli}: companion bootstrap found no companions from {ritus_dir}")
+    expected = frontend_registry_line(frontend_dir)
+    if not lists_line(lines, expected):
+        raise CheckError(f"{case_name} {cli}: companion registry lacks '{expected}'\n" + "\n".join(lines))
+    # Claude keeps a replaced version dir, marked .orphaned_at, until it prunes it; the hook must skip it.
+    stale = [line for line in lines if line.startswith(f"- {FRONTEND_PLUGIN} (") and not lists_line([line], expected)]
+    if stale:
+        raise CheckError(f"{case_name} {cli}: companion registry also lists a stale {FRONTEND_PLUGIN}\n" + "\n".join(stale))
     print(f"{case_name} {cli} sibling discovery: PASS {expected[2:]}")
+
+
+def verify_cross_marketplace_discovery(
+    case_name: str, cli: str, ritus_dir: Path, frontend_dir: Path, case_work: Path, env: dict[str, str]
+) -> None:
+    lines = companion_registry(case_name, cli, ritus_dir, case_work, env)
+    found = lists_line(lines, frontend_registry_line(frontend_dir))
+    expected = FRONTEND_CROSS_MARKETPLACE_DISCOVERY[cli]
+    outcome = "discovered" if found else "not discovered"
+    pair = f"ritus@{MARKETPLACE_NAME} next to {FRONTEND_PLUGIN}@{FRONTEND_OLD_MARKETPLACE}"
+    if found != expected:
+        raise CheckError(
+            f"{case_name} {cli}: {pair}: {FRONTEND_PLUGIN} {outcome}, expected "
+            f"{'discovered' if expected else 'not discovered'}; the pointer README and docs/RITUS_FRONTEND.md "
+            "describe the expected outcome\n" + ("\n".join(lines) or "(no companions)")
+        )
+    print(f"{case_name} {cli} cross-marketplace discovery: PASS {outcome}, as expected ({pair})")
 
 
 def verify_fresh_frontend(case_name: str, env: dict[str, str], case_work: Path) -> None:
@@ -836,7 +883,7 @@ def run_update_case(
 
 def make_github_repos(repos: Path, current_repo: Path, frontend_old_repo: Path, frontend_old_ref: str) -> Path:
     """Serve stand-ins for precise-alloy/ritus (main = the working tree) and
-    precise-alloy/ritus-frontend (main = the old 0.1.0 ref); return the latter."""
+    precise-alloy/ritus-frontend (main and the feature branch = the old 0.1.0 ref); return the latter."""
     try:
         run(["git", "rev-parse", "--verify", f"{frontend_old_ref}^{{commit}}"], cwd=frontend_old_repo)
     except (CheckError, OSError) as exc:
@@ -850,6 +897,7 @@ def make_github_repos(repos: Path, current_repo: Path, frontend_old_repo: Path, 
     run(["git", "checkout", "-q", "-B", "main"], cwd=ritus)
     frontend = make_old_repo(owner / "ritus-frontend.git", frontend_old_ref, source=frontend_old_repo)
     run(["git", "checkout", "-q", "-B", "main"], cwd=frontend)
+    run(["git", "branch", "-f", FRONTEND_OLD_BRANCH], cwd=frontend)
     old_version = plugin_version(frontend)
     if old_version != FRONTEND_OLD_VERSION:
         raise CheckError(f"{frontend_old_ref} has {FRONTEND_PLUGIN} {old_version}, expected {FRONTEND_OLD_VERSION}")
@@ -906,6 +954,76 @@ def run_frontend_pointer_case(
             f"{name} {cli} update: PASS {FRONTEND_OLD_VERSION} -> {plugin_version(new_dir)} "
             f"from {GITHUB_OWNER}/ritus plugins/{FRONTEND_PLUGIN} (local server)"
         )
+
+    # Ritus from its own marketplace, the precise-alloy/ritus stand-in, next to the updated plugin.
+    start = len(requests)
+    install_both(name, copilot, claude, f"{GITHUB_OWNER}/ritus", env, plugins=(PLUGIN_NAME,))
+    if not any(path.startswith(ritus_paths) for path in requests[start:]):
+        raise CheckError(f"{name}: the {PLUGIN_NAME} install did not fetch {GITHUB_OWNER}/ritus from the local server")
+    verify_both(name, env)
+    ritus_dirs = {"copilot": copilot_install_dir(env), "claude": claude_install_dir(env)}
+    updated_dirs = frontend_install_dirs(env, FRONTEND_OLD_MARKETPLACE)
+    for cli in ("copilot", "claude"):
+        verify_cross_marketplace_discovery(name, cli, ritus_dirs[cli], updated_dirs[cli], work, env)
+
+    # The documented migration: replace the old-marketplace plugin with the one next to ritus.
+    old_id = f"{FRONTEND_PLUGIN}@{FRONTEND_OLD_MARKETPLACE}"
+    new_id = f"{FRONTEND_PLUGIN}@{MARKETPLACE_NAME}"
+    run_step(f"{name} copilot uninstall {old_id}", [copilot, "plugin", "uninstall", old_id], env=env)
+    old_copilot_dir = copilot_install_dir(env, FRONTEND_PLUGIN, FRONTEND_OLD_MARKETPLACE)
+    if old_copilot_dir.exists():
+        raise CheckError(f"{name} copilot: {old_copilot_dir} remains after uninstall; Ritus would list it too")
+    run_step(
+        f"{name} copilot install {new_id}",
+        [copilot, "plugin", "install", new_id],
+        env=env,
+        access_denied_retries=2,
+    )
+    run_step(f"{name} claude uninstall {old_id}", [claude, "plugin", "uninstall", old_id], env=env, input_text="y\n")
+    run_step(f"{name} claude install {new_id}", [claude, "plugin", "install", "-y", new_id], env=env, input_text="y\n")
+    verify_fresh_frontend(f"{name} migrated", env, work)
+
+
+def run_frontend_ritus_212_case(
+    copilot: str,
+    claude: str,
+    ritus_old_repo: Path,
+    current_repo: Path,
+    base_url: str,
+    requests: list[str],
+    work: Path,
+) -> None:
+    """Ritus 2.1.2's marketplace lists ritus-frontend 0.1.0 from precise-alloy/ritus-frontend. Install
+    both from it, move the marketplace to the working tree, update, and expect the fresh 1.0.0 install."""
+    name = "frontend-212-update"
+    print(f"{name} case: {PLUGIN_NAME} and {FRONTEND_PLUGIN} from the {FRONTEND_RITUS_OLD_REF} marketplace:")
+    env = case_env(work / "homes")
+    redirect_github_owner(env, base_url)
+    mutable = ritus_old_repo.parent / "fe-212-mutable"
+    copy_tree_contents(ritus_old_repo, mutable)
+    commit_all(mutable, f"old marketplace {FRONTEND_RITUS_OLD_REF} with {FRONTEND_PLUGIN}")
+    start = len(requests)
+    install_both(
+        name, copilot, claude, f"{base_url}/{mutable.name}/.git", env, plugins=(PLUGIN_NAME, FRONTEND_PLUGIN)
+    )
+    if not any(path.startswith(f"/{GITHUB_OWNER}/ritus-frontend") for path in requests[start:]):
+        raise CheckError(f"{name}: the install did not fetch {GITHUB_OWNER}/ritus-frontend from the local server")
+    old_dirs = {
+        "copilot": copilot_install_dir(env, FRONTEND_PLUGIN),
+        "claude": claude_install_dir(env, FRONTEND_OLD_VERSION, FRONTEND_PLUGIN),
+    }
+    for cli, install_dir in old_dirs.items():
+        version = plugin_version(install_dir)
+        if version != FRONTEND_OLD_VERSION:
+            raise CheckError(f"{name} {cli}: installed {FRONTEND_PLUGIN} {version}, expected {FRONTEND_OLD_VERSION}")
+        print(f"{name} {cli}: installed {FRONTEND_PLUGIN} {version} from {GITHUB_OWNER}/ritus-frontend")
+
+    replace_repo_contents(mutable, current_repo, "update marketplace to current")
+    for plugin in (PLUGIN_NAME, FRONTEND_PLUGIN):
+        update_copilot(name, copilot, env, allow_up_to_date=False, plugin=plugin)
+        update_claude(name, claude, env, allow_up_to_date=False, plugin=plugin)
+    verify_both(name, env)
+    verify_fresh_frontend(name, env, work)
 
 
 def configure_copilot_github_ref(env: dict[str, str], github: str, github_ref: str) -> None:
@@ -1002,9 +1120,18 @@ def main() -> int:
         for old_ref in args.old_ref
     }
     requests: list[str] = []
+    skipped: list[str] = []
 
     try:
-        frontend_old_repo = make_github_repos(repos, current_repo, args.frontend_old_repo, args.frontend_old_ref)
+        frontend_old_repo: Path | None = None
+        if args.frontend_old_repo.is_dir():
+            frontend_old_repo = make_github_repos(repos, current_repo, args.frontend_old_repo, args.frontend_old_ref)
+        else:
+            skipped = ["frontend-212-update", "frontend-pointer"]
+            print(
+                f"SKIP {', '.join(skipped)}: --frontend-old-repo {args.frontend_old_repo} not found; these cases "
+                f"need a clone of {GITHUB_OWNER}/ritus-frontend"
+            )
         run_fresh_case("fresh-local", str(current_repo), args.copilot, args.claude, True, work / "fresh-local")
 
         with git_http_server(repos, backend, requests) as base_url:
@@ -1016,15 +1143,25 @@ def main() -> int:
                 False,
                 work / "fresh-git",
             )
-            run_frontend_pointer_case(
-                args.copilot,
-                args.claude,
-                frontend_old_repo,
-                args.frontend_pointer_patch.resolve(),
-                base_url,
-                requests,
-                work / "fe-ptr",
-            )
+            if frontend_old_repo is not None:
+                run_frontend_ritus_212_case(
+                    args.copilot,
+                    args.claude,
+                    make_old_repo(repos / "fe-212-old", FRONTEND_RITUS_OLD_REF),
+                    current_repo,
+                    base_url,
+                    requests,
+                    work / "fe-212",
+                )
+                run_frontend_pointer_case(
+                    args.copilot,
+                    args.claude,
+                    frontend_old_repo,
+                    args.frontend_pointer_patch.resolve(),
+                    base_url,
+                    requests,
+                    work / "fe-ptr",
+                )
 
             for old_ref, old_repo in old_repos.items():
                 ref_name = safe_ref_name(old_ref)
@@ -1102,7 +1239,10 @@ def main() -> int:
                     )
 
         run_github_case(args, args.old_ref[0])
-        print("all install checks passed")
+        if skipped:
+            print(f"all install checks passed; skipped {', '.join(skipped)}")
+        else:
+            print("all install checks passed")
         return 0
     finally:
         if args.keep:

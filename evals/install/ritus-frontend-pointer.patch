@@ -21,17 +21,21 @@ index ccea993..d4c75cb 100644
    ]
  }
 diff --git a/README.md b/README.md
-index 2499575..fc5d098 100644
+index 2499575..179fc79 100644
 --- a/README.md
 +++ b/README.md
-@@ -1,3 +1,11 @@
+@@ -1,3 +1,15 @@
 +> **ritus-frontend has moved.** Development continues in
 +> [precise-alloy/ritus](https://github.com/precise-alloy/ritus), at
 +> [`plugins/ritus-frontend`](https://github.com/precise-alloy/ritus/tree/main/plugins/ritus-frontend). The guide is
 +> [`docs/RITUS_FRONTEND.md`](https://github.com/precise-alloy/ritus/blob/main/docs/RITUS_FRONTEND.md) there.
 +>
-+> Installs from this marketplace keep working: after a marketplace update, `ritus-frontend@ritus-frontend-marketplace`
-+> updates to 1.0.0 from precise-alloy/ritus. The rest of this README describes 0.1.0 and is kept for reference.
++> After a marketplace update, `ritus-frontend@ritus-frontend-marketplace` installs 1.0.0 from precise-alloy/ritus. In
++> Claude Code, Ritus does not load it from this marketplace: uninstall `ritus-frontend@ritus-frontend-marketplace` and
++> install `ritus-frontend@precise-alloy-marketplace`, next to `ritus`. Do the same on other hosts, so that both plugins
++> come from one marketplace. See
++> [Migrating from 0.2.0](https://github.com/precise-alloy/ritus/blob/main/docs/RITUS_FRONTEND.md#migrating-from-020).
++> The rest of this README describes 0.1.0 and is kept for reference.
 +
  <p align="center">
    <img src="https://github.com/precise-alloy/.github/raw/main/images/ritus-frontend-banner.svg" alt="Ritus Banner" width="2142" style="max-width: 100%; height: auto;" height="500">

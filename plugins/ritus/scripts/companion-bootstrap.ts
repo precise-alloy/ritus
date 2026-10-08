@@ -108,6 +108,8 @@ function addPluginSiblings(paths: Set<string>, pluginRoot: string | undefined): 
       for (const child of readDirSafe(pluginDir)) {
         if (paths.size >= MAX_MANIFESTS) return;
         if (!child.isDirectory() || SKIP_DIRS.has(child.name)) continue;
+        // Claude keeps a replaced version's dir, marked .orphaned_at, until it prunes it.
+        if (isFile(join(pluginDir, child.name, ".orphaned_at"))) continue;
         addManifestInDir(paths, join(pluginDir, child.name));
       }
     }
