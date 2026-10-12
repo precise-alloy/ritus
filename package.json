@@ -18,6 +18,7 @@
   "files": [
     "plugins/ritus/",
     "README.md",
+    "CHANGELOG.md",
     "LICENSE"
   ],
   "author": "eshn",

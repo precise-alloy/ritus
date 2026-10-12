@@ -71,26 +71,6 @@ def rel_to_base(path: pathlib.Path) -> str:
     except ValueError:
         return path.relative_to(REPO_ROOT).as_posix()
 
-# The README's 2.x -> 3.0.0 migration section names the removed skills on purpose.
-def migration_lines() -> set[int]:
-    readme = REPO_ROOT / "README.md"
-    if not readme.is_file():
-        return set()
-    lines = readme.read_text(encoding="utf-8").splitlines()
-    inside, out = False, set()
-    for n, line in enumerate(lines, 1):
-        if line.startswith("### Upgrading from 2.x"):
-            inside = True
-        elif inside and (line.startswith("## ") or (line.startswith("### ") and not line.startswith("### Upgrading from"))):
-            inside = False
-        if inside:
-            out.add(n)
-    return out
-
-MIGRATION = migration_lines()
-
-def exempt(rel: str, n: int) -> bool:
-    return rel == "README.md" and n in MIGRATION
 ref_re = re.compile(r"`(skills/[^`\s]+)`")
 for md in md_files:
     for n, line in enumerate(md.read_text(encoding="utf-8").splitlines(), 1):
@@ -118,7 +98,7 @@ for p in ROOT.rglob("*"):
     if ".git" in p.parts or not p.is_file() or p.suffix not in {".md", ".ts", ".json", ".yml", ".yaml"}:
         continue
     for n, line in enumerate(p.read_text(encoding="utf-8", errors="replace").splitlines(), 1):
-        if removed_re.search(line) and not exempt(rel_to_base(p), n):
+        if removed_re.search(line):
             problems.append(f"{rel_to_base(p)}:{n}: removed-skill reference: {line.strip()[:120]}")
 
 # 5. Style checks on the files this phase rewrote.
@@ -187,8 +167,6 @@ for p in ROOT.rglob("*"):
         continue
     rel = rel_to_base(p)
     for n, line in enumerate(p.read_text(encoding="utf-8", errors="replace").splitlines(), 1):
-        if exempt(rel, n):
-            continue
         for rx, ok_files, ok_contexts in stale_rules:
             if not rx.search(line) or rel in ok_files:
                 continue
@@ -204,7 +182,7 @@ for p in ROOT.rglob("*"):
     if ".git" in p.parts or not p.is_file() or p.suffix not in {".md", ".ts", ".json", ".yml", ".yaml"}:
         continue
     for n, line in enumerate(p.read_text(encoding="utf-8", errors="replace").splitlines(), 1):
-        if phase3_stale.search(line) and not exempt(rel_to_base(p), n):
+        if phase3_stale.search(line):
             problems.append(f"{rel_to_base(p)}:{n}: stale Phase 3 reference: {line.strip()[:120]}")
 
 # 6c. No references to what Phase 4 removed or renamed.
